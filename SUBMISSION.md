@@ -38,6 +38,8 @@ Alur setiap interaksi (3 langkah):
 
 Fitur auto-roast: papan skor pertandingan nyata di-feed ke sistem. Tombol "Tagih prediksiku" mencocokkan prediksi tersimpan dengan hasil nyata; prediksi yang meleset ditandai dan vonis roasting disimpan sebagai memori permanen di Walrus.
 
+Mode grup (Hot Seat): Dendam membaca memori beberapa user sekaligus lalu mengadu mereka (tukang kompor), plus leaderboard "Hall of Shame" siapa paling sering meleset. Default Bahasa Inggris tapi otomatis mengikuti bahasa tiap user dan tahan typo.
+
 Interface publik (Buku Dendam) menampilkan seluruh memori, statistik (prediksi meleset, jumlah hinaan), vonis, dan papan skor — sehingga "memori in action" benar-benar terlihat.
 
 Contoh before/after: Hari 1, handle baru → Dendam mengaku tidak tahu apa-apa tentang user. Setelah beberapa hari user melempar prediksi & trash-talk → di sesi baru Dendam langsung menohok pakai prediksi lama dan hinaan user — sesuatu yang mustahil dilakukan di hari pertama.
@@ -55,7 +57,9 @@ Contoh before/after: Hari 1, handle baru → Dendam mengaku tidak tahu apa-apa t
 
 5) Persona yang kuat dan mudah dibagikan (rival pedendam berbahasa Indonesia) — bukan asisten generik.
 
-6) Mode "Tukang Kompor" (Ruang Kompor): Dendam memanas-manasi antar anggota grup dengan mengadu prediksi & hinaan yang BENAR-BENAR tersimpan di memori masing-masing — memori lintas-user dipakai untuk memicu rivalitas, sangat shareable.
+6) Mode "Tukang Kompor" (Hot Seat): Dendam memanas-manasi antar anggota grup dengan mengadu prediksi & hinaan yang BENAR-BENAR tersimpan di memori masing-masing — memori lintas-user dipakai untuk memicu rivalitas, sangat shareable. Plus "Hall of Shame" leaderboard (siapa paling sering meleset), dihitung murni dari memori.
+
+7) Multibahasa & tahan typo: default Bahasa Inggris, tapi otomatis mengikuti bahasa tiap user (Indonesia, Spanyol, dst.) dan memahami typo/slang/emoji. Memori disimpan kanonik dalam Inggris agar fitur lintas-user (kompor, leaderboard) konsisten.
 ```
 
 ---
@@ -103,6 +107,44 @@ X tweet link:                                           <link tweet #Walrus>
 Demo video:                                             <upload, ikut DEMO.md, ≤3 menit>
 ```
 > CATATAN: agar memori "live on Walrus Mainnet" (bukan /tmp ephemeral Vercel), set `MEMWAL_*` di Vercel lalu redeploy — lihat DEPLOY.md Jalur 0.
+
+---
+
+## Teks promosi (siap-tempel)
+
+### Tweet/X (#Walrus) — wajib di form
+```
+Meet Dendam 🔥⚽ — a FIFA World Cup 2026 rival AI that NEVER forgets.
+
+Every prediction & hot take you make is stored on Walrus Memory, then thrown back when you're wrong. It even stirs up your group chat.
+
+Day 1 it knows nothing. Day 5 it has a FILE on you.
+
+#Walrus
+https://dendam.vercel.app
+```
+
+Opsi thread lanjutan (balasan):
+```
+2/ Real persistent memory on @WalrusProtocol Mainnet — not a chat log.
+• Predictions auto-roasted when results land
+• "Hall of Shame" leaderboard for your group
+• Speaks your language (EN default, mirrors yours), shrugs off typos
+Try it 👉 dendam.vercel.app
+```
+
+### Deskripsi DeepSurge (project description)
+```
+Dendam is a grudge-holding football rival for the FIFA World Cup 2026, powered by genuine persistent memory on Walrus.
+
+Every prediction, hot take, and bit of trash talk you throw at Dendam is distilled into structured memories and stored on Walrus Memory (Mainnet), tied to a MemWalAccount object on Sui. Before every reply, Dendam recalls what it knows about you and uses it — confronting your contradictions, dredging up old claims, and roasting predictions the moment real match results prove them wrong.
+
+It's built to show a clear before/after: on day one Dendam knows nothing; after a few days it has a thick file on you and weaponizes it.
+
+Beyond 1-on-1, the Hot Seat mode turns Dendam into a group instigator — reading several users' real memories and pitting them against each other — plus a "Hall of Shame" leaderboard ranking who's been most wrong. It defaults to English but automatically mirrors each user's language and tolerates typos/slang.
+
+Public interface (The File) makes the memory visible: full memory log, verdicts, accuracy stats, and the live scoreboard. Live: https://dendam.vercel.app · Code: https://github.com/PugarHuda/dendam
+```
 
 ---
 
