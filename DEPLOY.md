@@ -6,7 +6,24 @@ Kendala arsitektur: Dendam butuh secret server-side (`MEMWAL_DELEGATE_KEY`, kunc
 
 ---
 
-## Jalur A — Full-stack di Node host (paling cepat & aman) ✅ rekomendasi
+## Jalur 0 — Vercel (SUDAH TER-DEPLOY) ✅
+
+Live: **https://dendam.vercel.app** · Repo tersambung: **github.com/PugarHuda/dendam** (push ke `main` = auto-deploy).
+
+Env var produksi yang sudah diset: `OPENROUTER_API_KEY`, `DENDAM_LLM_PROVIDER=openrouter`, `DENDAM_MODEL=openai/gpt-oss-120b:free`.
+
+Untuk membuat memori **persisten di Walrus Mainnet** (wajib untuk submission):
+```bash
+printf '%s' "<delegate-key-hex>"        | vercel env add MEMWAL_DELEGATE_KEY production
+printf '%s' "<memwal-account-id>"        | vercel env add MEMWAL_ACCOUNT_ID production
+printf '%s' "https://memory.walrus.xyz"  | vercel env add MEMWAL_SERVER_URL production
+vercel deploy --prod --yes               # redeploy agar env terpakai
+```
+Catatan Vercel: filesystem read-only kecuali `/tmp` (ephemeral). Papan skor (`/api/results`) di `/tmp` bisa hilang saat cold start — feed ulang setelah deploy, atau pakai backend persisten. Memori user tidak terpengaruh setelah `MEMWAL_*` diset (tersimpan di Walrus). Fungsi `maxDuration=60s` cukup untuk LLM.
+
+---
+
+## Jalur A — Full-stack di Node host (alternatif) 
 
 Deploy seluruh app Next.js (UI + API) ke host Node (Railway, Render, Fly.io, VPS, dll). Memori tetap di Walrus.
 

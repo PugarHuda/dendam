@@ -6,6 +6,12 @@ Dibuat untuk **Walrus Sessions — Session 4: Walrus Memory World Cup**.
 
 Inti idenya sesuai brief panitia: agent dengan **memori persisten sungguhan** yang menunjukkan **momen before/after** — di hari pertama Dendam tidak tahu apa-apa; setelah beberapa hari ia punya berkas tebal tentangmu dan memakainya untuk menohok.
 
+## 🔗 Live
+- **App:** https://dendam.vercel.app
+- **Repo:** https://github.com/PugarHuda/dendam
+
+> ⚠️ Agar memori benar-benar **persisten di Walrus Mainnet** (dan demo before/after sah), set env `MEMWAL_*` di Vercel lalu redeploy. Tanpa itu, app pakai memori file sementara di `/tmp` serverless yang **tidak persisten** antar-request (ephemeral, per-instance). Untuk demo dengan model yang patuh (tanpa mengarang memori di hari-1), gunakan model yang lebih kuat (`DENDAM_MODEL=claude-sonnet-4-6` via Anthropic, atau model OpenRouter berkualitas).
+
 ---
 
 ## Cara kerja (alur memori)

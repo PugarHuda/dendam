@@ -90,16 +90,17 @@ Saran perbaikan DX:
 
 ### Field teknis (isi setelah deploy)
 ```
-Link to your deployed agent (live on Walrus Mainnet):  <URL live>
+Link to your deployed agent:                            https://dendam.vercel.app
+GitHub:                                                 https://github.com/PugarHuda/dendam
 Link to the explorer showing your MemWalAccount object: https://suiscan.xyz/mainnet/object/<MEMWAL_ACCOUNT_ID>
 Your MEMWAL_AGENT_ID:                                   <public key delegate dari dashboard>
 DeepSurge project Link:                                 <URL DeepSurge, mainnet>
-Project Link (URL):                                     <URL live>
-GitHub:                                                 <URL repo>
+Project Link (URL):                                     https://dendam.vercel.app
 SUI address:                                            <wallet SUI khusus Sessions>
 X tweet link:                                           <link tweet #Walrus>
 Demo video:                                             <upload, ikut DEMO.md, ≤3 menit>
 ```
+> CATATAN: agar memori "live on Walrus Mainnet" (bukan /tmp ephemeral Vercel), set `MEMWAL_*` di Vercel lalu redeploy — lihat DEPLOY.md Jalur 0.
 
 ---
 
