@@ -1,0 +1,268 @@
+:root {
+  --bg: #0b0d12;
+  --panel: #14171f;
+  --panel-2: #1b1f2a;
+  --ink: #e8eaf0;
+  --muted: #8b93a7;
+  --accent: #ff3b3b;
+  --accent-2: #ffb020;
+  --line: #262b38;
+  --green: #2ecc71;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(1200px 600px at 80% -10%, #1a1030 0%, var(--bg) 55%);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+a {
+  color: var(--accent-2);
+  text-decoration: none;
+}
+
+.shell {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 18px 80px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.brand h1 {
+  font-size: 28px;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.brand .dot {
+  color: var(--accent);
+}
+
+.brand small {
+  color: var(--muted);
+}
+
+.nav a {
+  color: var(--muted);
+  margin-left: 16px;
+  font-weight: 600;
+}
+
+.nav a.active {
+  color: var(--ink);
+}
+
+.handle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.handle input {
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  outline: none;
+  width: 130px;
+  font-size: 14px;
+}
+
+.badge {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.badge.live {
+  color: var(--green);
+  border-color: #1f5e3a;
+}
+.badge.local {
+  color: var(--accent-2);
+  border-color: #6b5217;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.msg {
+  padding: 12px 14px;
+  border-radius: 14px;
+  max-width: 88%;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.msg.user {
+  align-self: flex-end;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+
+.msg.assistant {
+  align-self: flex-start;
+  background: linear-gradient(180deg, #1d1418, #160f13);
+  border: 1px solid #3a1f24;
+}
+
+.msg .who {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.composer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 12px;
+  background: linear-gradient(180deg, transparent, var(--bg) 30%);
+}
+
+.composer textarea {
+  flex: 1;
+  resize: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  padding: 12px;
+  font-size: 15px;
+  outline: none;
+  min-height: 52px;
+}
+
+button.send {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 10px;
+}
+
+/* Dossier */
+.dossier-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.grudge {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.grudge.wrong {
+  border-left-color: var(--accent-2);
+}
+
+.grudge .meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+.tag.kind {
+  color: var(--accent);
+  border-color: #5a2326;
+}
+
+.tag.wrong {
+  color: var(--accent-2);
+  border-color: #6b5217;
+}
+
+.stat-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.stat .n {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.stat .l {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
