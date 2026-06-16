@@ -9,7 +9,7 @@ export function TopBar({
 }: {
   handle: string;
   setHandle: (h: string) => void;
-  active: "chat" | "dossier";
+  active: "chat" | "dossier" | "grup";
 }) {
   return (
     <div className="topbar">
@@ -38,6 +38,9 @@ export function TopBar({
             className={active === "dossier" ? "active" : ""}
           >
             Buku Dendam
+          </Link>
+          <Link href="/grup" className={active === "grup" ? "active" : ""}>
+            Ruang Kompor
           </Link>
         </nav>
       </div>

@@ -33,6 +33,13 @@ User ─▶ /api/chat
 
 **Memori tersimpan** terlihat publik di halaman **Buku Dendam** (`/dossier`) — memenuhi syarat "interface tempat memori terlihat".
 
+### 🔥 Ruang Kompor (tukang kompor grup)
+Halaman `/grup`: masukkan beberapa handle anggota grup. Endpoint `POST /api/kompor`
+membaca memori **nyata** tiap anggota (prediksi, hinaan, tim favorit) dan
+membuat Dendam **mengadu mereka** — mengutip take satu orang ke rivalnya, lalu
+men-tag `@handle`. Memori lintas-user dipakai untuk memicu rivalitas, bukan
+sekadar 1-on-1. Kompor yang dibuat juga disimpan ke memori tiap anggota.
+
 ### Auto-roast saat hasil pertandingan masuk
 Papan skor nyata di-feed lewat `POST /api/results` (token-gated) atau `npm run seed:results`. Di Buku Dendam, tombol **⚖️ Tagih prediksiku** memanggil `/api/reconcile`: Dendam mencocokkan prediksi tersimpan dengan hasil nyata, menandai yang **meleset** (`wasWrong`), dan menyimpan **vonis** sebagai grudge permanen di Walrus. Inilah "kill shot" demo — prediksi "Argentina juara" otomatis di-roast begitu Argentina kalah.
 
@@ -46,8 +53,10 @@ app/
   api/memories/route.ts    pembacaan publik untuk dossier
   api/results/route.ts     feed papan skor (GET list / POST upsert, token)
   api/reconcile/route.ts   cocokkan prediksi vs hasil → vonis + grudge
+  api/kompor/route.ts      tukang kompor: adu domba antar anggota grup
   page.tsx                 layar "Lawan" (chat)
   dossier/page.tsx         "Buku Dendam" — memori, vonis, papan skor
+  grup/page.tsx            "Ruang Kompor" — manas-manasin grup
 lib/
   memory/
     types.ts               MemoryStore interface + (de)serialisasi metadata
@@ -57,6 +66,7 @@ lib/
   persona.ts               karakter "Dendam" + render blok memori
   grudge.ts                ekstraksi memori terstruktur (zod + generateObject)
   verdict.ts               vonis prediksi vs hasil (auto-roast)
+  kompor.ts                logika tukang kompor (adu memori antar user)
   results.ts               store hasil pertandingan (papan skor)
   anthropic.ts             konfigurasi model Claude
 scripts/

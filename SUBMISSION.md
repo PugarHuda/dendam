@@ -54,6 +54,8 @@ Contoh before/after: Hari 1, handle baru → Dendam mengaku tidak tahu apa-apa t
 4) Eksekusi teknis yang stabil: lapisan memori swappable (interface MemoryStore) dengan adapter Walrus Memory yang beta-safe (impor dinamis + normalisasi hasil). Disertai unit test (15 lulus), preflight round-trip memori, dan build produksi hijau.
 
 5) Persona yang kuat dan mudah dibagikan (rival pedendam berbahasa Indonesia) — bukan asisten generik.
+
+6) Mode "Tukang Kompor" (Ruang Kompor): Dendam memanas-manasi antar anggota grup dengan mengadu prediksi & hinaan yang BENAR-BENAR tersimpan di memori masing-masing — memori lintas-user dipakai untuk memicu rivalitas, sangat shareable.
 ```
 
 ---
