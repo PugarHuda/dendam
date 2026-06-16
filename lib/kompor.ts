@@ -16,14 +16,14 @@ export interface KomporMember {
 const komporSchema = z.object({
   topic: z
     .string()
-    .describe("Topik singkat yang dijadikan bahan kompor, mis. 'nasib Brasil' atau 'siapa juara'."),
+    .describe("Short topic used as the fuel, e.g. 'Brazil's fate' or 'who wins it all'."),
   provocations: z
     .array(
       z.object({
         line: z
           .string()
           .describe(
-            "Satu pesan kompor pedas & lucu yang men-tag minimal satu @handle dan mengadu mereka berdasarkan apa yang BENAR-BENAR mereka katakan/prediksi.",
+            "One spicy, funny instigating message that tags at least one @handle and pits members against each other based on what they ACTUALLY said/predicted.",
           ),
       }),
     )
@@ -43,7 +43,7 @@ const KINDS_OF_INTEREST = new Set([
 
 function renderMember(m: KomporMember): string {
   const rel = m.memories.filter((x) => KINDS_OF_INTEREST.has(x.kind));
-  if (rel.length === 0) return `@${m.handle}: (belum punya catatan apa-apa)`;
+  if (rel.length === 0) return `@${m.handle}: (no record yet)`;
   const lines = rel
     .slice(0, 12)
     .map((x) => `  - [${x.kind}${x.team ? `/${x.team}` : ""}] ${x.text}`)
@@ -62,19 +62,20 @@ export async function generateKompor(
   const roster = members.map(renderMember).join("\n\n");
 
   const system =
-    "Kamu adalah Dendam dalam mode TUKANG KOMPOR di grup chat Piala Dunia 2026. " +
-    "Tugasmu memanas-manasi antar anggota: adu domba prediksi & opini mereka, ungkit hinaan, " +
-    "bandingkan siapa paling sering meleset, dan picu rivalitas — dengan men-tag @handle. " +
-    "ATURAN: hanya pakai hal yang BENAR-BENAR tertulis di roster memori; DILARANG mengarang. " +
-    "Kalau seorang anggota belum punya catatan, pancing dia bikin prediksi. " +
-    "Pedas, lucu, dan provokatif — tapi soal bola/prediksi, bukan serangan personal SARA/fisik. Bahasa Indonesia.";
+    "You are Dendam in INSTIGATOR mode in a World Cup 2026 group chat. " +
+    "Your job is to stir the pot between members: pit their predictions & opinions against each other, dredge up insults, " +
+    "compare who's been most often wrong, and spark rivalries — tagging @handle. " +
+    "RULE: only use things ACTUALLY written in the memory roster; inventing is FORBIDDEN. " +
+    "If a member has no record yet, bait them into making a prediction. " +
+    "Spicy, funny, provocative — but about football/predictions, never personal/identity attacks. " +
+    "Reply in ENGLISH by default (members may have written in other languages — you still understand them).";
 
   const prompt =
-    `ANGGOTA GRUP & MEMORI MEREKA:\n${roster}\n\n` +
+    `GROUP MEMBERS & THEIR MEMORIES:\n${roster}\n\n` +
     (withData.length >= 2
-      ? "Adu mereka satu sama lain berdasarkan kontradiksi/rivalitas nyata di atas."
-      : "Data masih tipis — buat kompor yang memancing semua anggota melempar prediksi panas.") +
-    " Hasilkan 2–5 baris kompor.";
+      ? "Pit them against each other based on the real contradictions/rivalries above."
+      : "Data is thin — write instigation that bait every member into dropping hot predictions.") +
+    " Produce 2–5 instigating lines.";
 
   return generateJSON({
     schema: komporSchema,
@@ -102,9 +103,9 @@ export async function komporForHandles(
   const result = await generateKompor(members);
 
   if (remember && clean.length >= 2) {
-    const note = `Di Ruang Kompor, Dendam memanas-manasi grup (${clean
+    const note = `In the Hot Seat, Dendam stirred up the group (${clean
       .map((h) => "@" + h)
-      .join(", ")}) soal ${result.topic}.`;
+      .join(", ")}) over ${result.topic}.`;
     for (const h of clean) {
       try {
         await store.remember(namespaceFor(h), {

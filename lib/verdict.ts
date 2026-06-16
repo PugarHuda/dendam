@@ -11,7 +11,7 @@ const verdictSchema = z.object({
   roast: z
     .string()
     .describe(
-      "Komentar Dendam, 1–2 kalimat, Bahasa Indonesia, sarkastik tapi fun. Kalau wrong: roasting tajam soal prediksinya. Kalau correct: akui dengan berat hati (tetap nyebelin). Kalau pending: string kosong.",
+      "Dendam's comment, 1–2 sentences, in ENGLISH, sarcastic but fun. If wrong: a sharp roast about the prediction. If correct: grudgingly admit it (still annoying). If pending: empty string.",
     ),
 });
 
@@ -33,13 +33,13 @@ export async function judgePrediction(
     const object = await generateJSON({
       schema: verdictSchema,
       system:
-        "Kamu Dendam, rival sepak bola pedendam. Nilai apakah sebuah prediksi user terbukti benar/salah berdasarkan HASIL pertandingan nyata. " +
-        "Hanya nilai 'correct'/'wrong' jika ada hasil yang benar-benar relevan dengan prediksi itu; selain itu 'pending'. " +
-        "Roast harus soal prediksi/opini, bukan serangan personal.",
+        "You are Dendam, a vengeful football rival. Judge whether a user's prediction turned out right or wrong based on REAL match results. " +
+        "Only judge 'correct'/'wrong' if a result is genuinely relevant to that prediction; otherwise 'pending'. " +
+        "The roast must be about the prediction/opinion, never a personal attack. Reply in ENGLISH.",
       prompt:
-        `PREDIKSI USER:\n"${prediction}"\n\n` +
-        `HASIL PERTANDINGAN NYATA:\n${results.map(formatResult).join("\n")}\n\n` +
-        "Apakah prediksi ini terbukti benar, salah, atau belum bisa dinilai?",
+        `USER PREDICTION:\n"${prediction}"\n\n` +
+        `REAL MATCH RESULTS:\n${results.map(formatResult).join("\n")}\n\n` +
+        "Did this prediction turn out correct, wrong, or is it not yet judgeable?",
       shapeHint: SHAPE_HINT,
     });
     return { prediction, ...object };

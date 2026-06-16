@@ -17,30 +17,30 @@ export function TopBar({
         <h1>
           Dendam<span className="dot">.</span>
         </h1>
-        <small>rival Piala Dunia 2026 yang nggak pernah lupa</small>
+        <small>the World Cup 2026 rival that never forgets</small>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div className="handle" title="Identitasmu — memorimu disimpan per-handle di Walrus">
+        <div className="handle" title="Your identity — your memory is stored per-handle on Walrus">
           <span style={{ color: "var(--muted)" }}>@</span>
           <input
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
-            placeholder="handle-mu"
+            placeholder="your handle"
             spellCheck={false}
           />
         </div>
         <nav className="nav">
           <Link href="/" className={active === "chat" ? "active" : ""}>
-            Lawan
+            Face off
           </Link>
           <Link
             href="/dossier"
             className={active === "dossier" ? "active" : ""}
           >
-            Buku Dendam
+            The File
           </Link>
           <Link href="/grup" className={active === "grup" ? "active" : ""}>
-            Ruang Kompor
+            Hot Seat
           </Link>
         </nav>
       </div>

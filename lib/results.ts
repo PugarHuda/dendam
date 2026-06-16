@@ -29,7 +29,7 @@ export function winnerOf(r: MatchResult): string | "draw" {
 
 export function formatResult(r: MatchResult): string {
   const w = winnerOf(r);
-  const tail = w === "draw" ? "(seri)" : `→ ${w} menang`;
+  const tail = w === "draw" ? "(draw)" : `→ ${w} won`;
   return `${r.date} · ${r.teamA} ${r.scoreA}-${r.scoreB} ${r.teamB} ${tail}${
     r.stage ? ` [${r.stage}]` : ""
   }`;

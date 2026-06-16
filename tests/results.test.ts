@@ -29,8 +29,8 @@ test("winnerOf returns draw on equal scores", () => {
 test("formatResult includes both teams and the winner", () => {
   const s = formatResult(base);
   assert.match(s, /Argentina 1-2 Brasil/);
-  assert.match(s, /Brasil menang/);
-  assert.match(formatResult({ ...base, scoreA: 1, scoreB: 1 }), /seri/);
+  assert.match(s, /Brasil won/);
+  assert.match(formatResult({ ...base, scoreA: 1, scoreB: 1 }), /draw/);
 });
 
 test("addResults upserts by id (no duplicates)", async () => {

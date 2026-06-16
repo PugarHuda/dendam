@@ -12,7 +12,7 @@ const extractionSchema = z.object({
         text: z
           .string()
           .describe(
-            "Satu kalimat ringkas, faktual, sudut pandang Dendam tentang user. Contoh: 'User memprediksi Argentina mengalahkan Brasil 3-0 di fase grup dan mengejek Brasil.'",
+            "One concise, factual sentence in ENGLISH from Dendam's POV about the user. Example: 'User predicted Argentina would beat Brazil 3-0 in the group stage and mocked Brazil.'",
           ),
         kind: z.enum([
           "prediction",
@@ -25,18 +25,18 @@ const extractionSchema = z.object({
         team: z
           .string()
           .nullable()
-          .describe("Tim terkait, jika ada. null kalau tidak relevan."),
+          .describe("Related team, if any. null if not relevant."),
         wasWrong: z
           .boolean()
           .nullable()
           .describe(
-            "true HANYA jika ini prediksi/klaim yang sudah terbukti SALAH. Selain itu null.",
+            "true ONLY if this is a prediction/claim already proven WRONG. Otherwise null.",
           ),
       }),
     )
     .max(3)
     .describe(
-      "Hal yang layak diingat untuk ditagih nanti. Kosongkan jika tidak ada yang penting (sapaan/basa-basi).",
+      "Things worth holding against the user later. Leave empty if nothing important (greetings/small talk).",
     ),
 });
 
@@ -50,11 +50,12 @@ export async function extractGrudges(
     const object = await generateJSON({
       schema: extractionSchema,
       system:
-        "Kamu adalah mesin ekstraksi memori untuk agent rival sepak bola bernama Dendam. " +
-        "Dari percakapan, tarik HANYA hal durable yang berguna untuk ditagih di masa depan: " +
-        "prediksi pertandingan, klaim/opini kuat, tim jagoan/benci, dan hinaan user ke Dendam. " +
-        "Abaikan basa-basi. Tulis dalam Bahasa Indonesia, sudut pandang Dendam tentang user.",
-      prompt: `PESAN USER:\n${userText}\n\nJAWABAN DENDAM:\n${assistantText}\n\nEkstrak memori yang layak disimpan.`,
+        "You are the memory-extraction engine for a football rival agent named Dendam. " +
+        "From the conversation, extract ONLY durable facts useful to hold against the user later: " +
+        "match predictions, strong claims/opinions, favorite/hated teams, and insults the user threw at Dendam. " +
+        "The user may write in ANY language with typos, slang, or abbreviations — understand intent regardless. " +
+        "Ignore small talk. ALWAYS write the stored memory text in ENGLISH, from Dendam's POV about the user.",
+      prompt: `USER MESSAGE:\n${userText}\n\nDENDAM REPLY:\n${assistantText}\n\nExtract the memories worth saving.`,
       shapeHint: SHAPE_HINT,
     });
     return object.memories.map((m) => ({

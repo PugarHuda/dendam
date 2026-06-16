@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dendam — rival Piala Dunia yang nggak pernah lupa",
+  title: "Dendam — the World Cup rival that never forgets",
   description:
-    "Rival sepak bola berbasis AI yang menyimpan dendam. Prediksi, hinaan, dan hot take-mu disimpan di Walrus Memory dan ditagih saat kamu meleset.",
+    "A grudge-holding AI football rival. Your predictions, insults, and hot takes are stored on Walrus Memory and thrown back when you're wrong.",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );

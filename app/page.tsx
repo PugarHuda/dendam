@@ -42,23 +42,24 @@ export default function ChatPage() {
             {backend === "memwal" ? "● Walrus Mainnet" : "● Local (dev)"}
           </span>
         )}
-        <span className="badge">memori per @{handle || "anon"}</span>
+        <span className="badge">memory for @{handle || "anon"}</span>
       </div>
 
       <div className="chat" ref={scroller}>
         {messages.length === 0 && (
           <div className="empty">
-            Lempar prediksimu soal Piala Dunia 2026. Dendam akan mengingatnya —
-            dan menagihmu kalau meleset.
+            Drop your World Cup 2026 predictions. Dendam will remember them —
+            and call you out when you&rsquo;re wrong.
             <br />
             <span style={{ fontSize: 13 }}>
-              Coba: &ldquo;Argentina pasti juara, Brasil mah lewat.&rdquo;
+              Try: &ldquo;Argentina wins it all, Brazil won&rsquo;t make it
+              out of the group.&rdquo;
             </span>
           </div>
         )}
         {messages.map((m) => (
           <div key={m.id} className={`msg ${m.role}`}>
-            <div className="who">{m.role === "user" ? "Kamu" : "Dendam"}</div>
+            <div className="who">{m.role === "user" ? "You" : "Dendam"}</div>
             {m.parts?.map((p, i) =>
               p.type === "text" ? <span key={i}>{p.text}</span> : null,
             ) ?? <span>{(m as { content?: string }).content}</span>}
@@ -67,7 +68,7 @@ export default function ChatPage() {
         {busy && (
           <div className="msg assistant">
             <div className="who">Dendam</div>
-            <span style={{ color: "var(--muted)" }}>lagi nyari catatan lamamu…</span>
+            <span style={{ color: "var(--muted)" }}>digging up your old takes…</span>
           </div>
         )}
       </div>
@@ -76,7 +77,7 @@ export default function ChatPage() {
         <textarea
           value={input}
           onChange={handleInputChange}
-          placeholder="Tulis prediksi / opini / trash talk-mu…"
+          placeholder="Type your prediction / opinion / trash talk… (any language)"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -85,12 +86,12 @@ export default function ChatPage() {
           }}
         />
         <button className="send" type="submit" disabled={busy || !input.trim()}>
-          Kirim
+          Send
         </button>
       </form>
       <p className="hint">
-        Tip: ngobrol beberapa hari berturut-turut. Lihat hasilnya di{" "}
-        <a href="/dossier">Buku Dendam</a> — itu memori asli yang tersimpan di
+        Tip: come back over several days. See what sticks in{" "}
+        <a href="/dossier">The File</a> — that&rsquo;s real memory stored on
         Walrus.
       </p>
     </div>
