@@ -1,7 +1,7 @@
-# 📋 Teks Submission — Airtable (Walrus Sessions S4)
+# 📋 Submission Text — Airtable (Walrus Sessions S4)
 
-Salin-tempel ke form: https://airtable.com/appoDAKpC74UOqoDa/shrIl2BMnzMwpuLhO
-Isi placeholder `<...>` dengan datamu sebelum submit.
+Copy-paste into the form: https://airtable.com/appoDAKpC74UOqoDa/shrIl2BMnzMwpuLhO
+Fill the `<...>` placeholders with your data before submitting.
 
 ---
 
@@ -20,99 +20,99 @@ Session 4 — Walrus Memory World Cup
 Indonesia
 ```
 
-### Project description (1 baris)
+### Project description (one line)
 ```
-Rival sepak bola AI yang menyimpan dendam: ia mengingat prediksi, hot take, dan trash-talk-mu soal Piala Dunia 2026 lintas sesi via Walrus Memory, lalu menagihmu saat prediksimu meleset.
+A grudge-holding AI football rival: it remembers your World Cup 2026 predictions, hot takes, and trash talk across sessions via Walrus Memory, then calls you out when your prediction is wrong.
 ```
 
 ---
 
 ### Please describe the workflow and functionalities of your project *
 ```
-Dendam adalah rival sepak bola berkepribadian untuk FIFA World Cup 2026 yang memorinya 100% berjalan di Walrus Memory.
+Dendam is an opinionated football rival for the FIFA World Cup 2026 whose memory runs 100% on Walrus Memory.
 
-Alur setiap interaksi (3 langkah):
-1) RECALL — sebelum menjawab, Dendam memanggil recall() ke Walrus untuk menarik memori relevan tentang user (prediksi lama, hinaan, tim jagoan, hot take).
-2) RESPOND — memori itu disuntikkan ke prompt persona; Claude membalas in-character sambil merujuk masa lalu user secara spesifik dan mengonfrontasi inkonsistensi.
-3) REMEMBER — setelah membalas, sebuah pass ekstraksi terstruktur menyuling percakapan menjadi 0–3 memori durable, lalu remember() menulisnya ke Walrus untuk sesi berikutnya.
+Every interaction is a 3-step loop:
+1) RECALL — before replying, Dendam calls recall() on Walrus to pull relevant memories about the user (past predictions, insults, favorite team, hot takes).
+2) RESPOND — those memories are injected into the persona prompt; Claude replies in-character, referencing the user's past specifically and confronting inconsistencies.
+3) REMEMBER — after replying, a structured extraction pass distills the exchange into 0–3 durable memories, then remember() writes them to Walrus for the next session.
 
-Fitur auto-roast: papan skor pertandingan nyata di-feed ke sistem. Tombol "Tagih prediksiku" mencocokkan prediksi tersimpan dengan hasil nyata; prediksi yang meleset ditandai dan vonis roasting disimpan sebagai memori permanen di Walrus.
+Auto-roast: real match results are fed into the system. The "Hold me to it" button matches stored predictions against real results; wrong predictions are flagged and a roasting verdict is stored as a permanent memory on Walrus.
 
-Mode grup (Hot Seat): Dendam membaca memori beberapa user sekaligus lalu mengadu mereka (tukang kompor), plus leaderboard "Hall of Shame" siapa paling sering meleset. Default Bahasa Inggris tapi otomatis mengikuti bahasa tiap user dan tahan typo.
+Group mode (Hot Seat): Dendam reads several users' memories at once and pits them against each other (an instigator), plus a "Hall of Shame" leaderboard of who's been most often wrong. It defaults to English but automatically mirrors each user's language and tolerates typos.
 
-Interface publik (Buku Dendam) menampilkan seluruh memori, statistik (prediksi meleset, jumlah hinaan), vonis, dan papan skor — sehingga "memori in action" benar-benar terlihat.
+The public interface (The File) shows the full memory, stats (wrong calls, insult count), verdicts, and the scoreboard — so the "memory in action" is genuinely visible.
 
-Contoh before/after: Hari 1, handle baru → Dendam mengaku tidak tahu apa-apa tentang user. Setelah beberapa hari user melempar prediksi & trash-talk → di sesi baru Dendam langsung menohok pakai prediksi lama dan hinaan user — sesuatu yang mustahil dilakukan di hari pertama.
+Before/after example: Day 1, a fresh handle → Dendam admits it knows nothing about the user. After a few days of predictions & trash talk → in a new session Dendam immediately cuts deep using old predictions and insults — something impossible on day one.
 ```
 
-### Which features sets your solution apart from the rest? *
+### Which features set your solution apart from the rest? *
 ```
-1) Memori dipakai sebagai SENJATA, bukan sekadar log. Setiap prediksi yang meleset jadi amunisi roasting; halaman Buku Dendam memvisualkan akurasi dan "hinaan ke Dendam" si user.
+1) Memory used as a WEAPON, not just a log. Every wrong prediction becomes roasting ammo; The File visualizes the user's accuracy and "insults at Dendam".
 
-2) Loop before/after yang eksplisit & dapat dibuktikan. Ekstraksi memori terstruktur per giliran + recall lintas-sesi membuat agent hari-N terasa jelas berbeda dari hari-1. Ini persis sinyal yang dicari juri.
+2) An explicit, demonstrable before/after loop. Per-turn structured memory extraction + cross-session recall make the day-N agent clearly different from day-1. That's exactly the signal judges look for.
 
-3) Auto-roast yang dipicu hasil nyata. Saat skor Piala Dunia masuk, Dendam otomatis mencocokkan prediksi user dengan kenyataan dan menyimpan vonis sebagai grudge permanen di Walrus.
+3) Result-triggered auto-roast. When World Cup scores land, Dendam automatically matches the user's predictions against reality and stores the verdict as a permanent grudge on Walrus.
 
-4) Eksekusi teknis yang stabil: lapisan memori swappable (interface MemoryStore) dengan adapter Walrus Memory yang beta-safe (impor dinamis + normalisasi hasil). Disertai unit test (15 lulus), preflight round-trip memori, dan build produksi hijau.
+4) Stable technical execution: a swappable memory layer (MemoryStore interface) with a beta-safe Walrus Memory adapter (dynamic import + result normalization). Includes unit tests (15 passing), a memory round-trip preflight, and a green production build.
 
-5) Persona yang kuat dan mudah dibagikan (rival pedendam berbahasa Indonesia) — bukan asisten generik.
+5) A strong, shareable persona (a vengeful rival) — not a generic assistant.
 
-6) Mode "Tukang Kompor" (Hot Seat): Dendam memanas-manasi antar anggota grup dengan mengadu prediksi & hinaan yang BENAR-BENAR tersimpan di memori masing-masing — memori lintas-user dipakai untuk memicu rivalitas, sangat shareable. Plus "Hall of Shame" leaderboard (siapa paling sering meleset), dihitung murni dari memori.
+6) "Instigator" mode (Hot Seat): Dendam stirs the pot between group members by pitting their ACTUALLY-stored predictions & insults against each other — cross-user memory driving rivalries, highly shareable. Plus a "Hall of Shame" leaderboard (who's most often wrong), computed purely from memory.
 
-7) Multibahasa & tahan typo: default Bahasa Inggris, tapi otomatis mengikuti bahasa tiap user (Indonesia, Spanyol, dst.) dan memahami typo/slang/emoji. Memori disimpan kanonik dalam Inggris agar fitur lintas-user (kompor, leaderboard) konsisten.
+7) Multilingual & typo-tolerant: defaults to English, but automatically mirrors each user's language (Indonesian, Spanish, etc.) and understands typos/slang/emoji. Memories are stored canonically in English so cross-user features (instigator, leaderboard) stay consistent.
 ```
 
 ---
 
 ### Feedback (about building on Walrus) *
 ```
-Yang berjalan baik:
-- Konsep recall/remember sangat pas untuk use-case agentic — model mental "owner + namespace" intuitif.
-- Setup awal cepat (skill installer via curl, SDK npm/pip), dan memori terikat ke objek on-chain (MemWalAccount) memberi rasa "verifiable" yang nyata.
+What worked well:
+- The recall/remember concept fits agentic use cases perfectly — the "owner + namespace" mental model is intuitive.
+- Fast initial setup (curl skill installer, npm/pip SDK), and tying memory to an on-chain object (MemWalAccount) gives a real sense of being verifiable.
 
-Tantangan yang kami temui:
-- Walrus Memory masih beta, sehingga bentuk persis return type recall() dan lifecycle job remember() belum sepenuhnya terdokumentasi — kami harus menulis adapter defensif yang menormalisasi beberapa kemungkinan bentuk respons.
-- Belum jelas apakah namespace di-set saat create() atau bisa per-call, dan pola multi-user (satu klien per namespace vs parameter) butuh contoh resmi.
-- Tidak menemukan API "list/enumerate" untuk satu namespace; untuk membangun dashboard memori penuh kami terpaksa melakukan multi-query recall lalu dedupe.
+Challenges we hit:
+- Walrus Memory is still beta, so the exact return type of recall() and the lifecycle of the remember() job aren't fully documented — we had to write a defensive adapter that normalizes several possible response shapes.
+- It's unclear whether namespace is set at create() or can be per-call, and the multi-user pattern (one client per namespace vs a parameter) needs an official example.
+- We found no "list/enumerate" API for a namespace; to build a full memory dashboard we had to do multi-query recall + dedupe.
 
-Saran perbaikan DX:
-- Publikasikan skema TypeScript lengkap untuk RecallResult & RememberJob.
-- Tambah endpoint/method list memori per namespace dengan paginasi.
-- Dokumentasikan konsistensi read-your-writes setelah waitForRememberJob.
-(Detail tiket GitHub di bawah.)
+DX suggestions:
+- Publish the full TypeScript schema for RecallResult & RememberJob.
+- Add an endpoint/method to list memories per namespace with pagination.
+- Document read-your-writes consistency after waitForRememberJob.
+(GitHub ticket details below.)
 ```
 
 ### Feedback on using Walrus Memory (GitHub tickets) *
-> Buat tiket di repo MystenLabs/MemWal lalu tempel link-nya. Draf siap-pakai ada di bagian "DRAF TIKET GITHUB" di bawah.
+> Open the tickets in the MystenLabs/MemWal repo and paste the links. Ready-to-use drafts are in the "DRAFT GITHUB TICKETS" section below.
 ```
-1. [docs] Dokumentasikan skema return recall() (memories vs results vs items) — <link issue>
-2. [docs] Lifecycle remember()/job_id + konsistensi read-your-writes setelah waitForRememberJob — <link issue>
-3. [docs] Klarifikasi semantik namespace (create vs per-call) + pola multi-user — <link issue>
-4. [feature] API list/enumerate memori per namespace dengan paginasi (untuk dashboard) — <link issue>
-5. [dx] Penjelasan MEMWAL_AGENT_ID (public key) vs delegate key di dashboard — <link issue>
+1. [docs] Document the return schema of recall() (memories vs results vs items) — <issue link>
+2. [docs] remember()/job_id lifecycle + read-your-writes consistency after waitForRememberJob — <issue link>
+3. [docs] Clarify namespace semantics (create vs per-call) + multi-user pattern — <issue link>
+4. [feature] list/enumerate API for memories per namespace with pagination (for dashboards) — <issue link>
+5. [dx] Explain MEMWAL_AGENT_ID (public key) vs delegate key in the dashboard — <issue link>
 ```
 
 ---
 
-### Field teknis (isi setelah deploy)
+### Technical fields (fill in after deploy)
 ```
 Link to your deployed agent:                            https://dendam.vercel.app
 GitHub:                                                 https://github.com/PugarHuda/dendam
 Link to the explorer showing your MemWalAccount object: https://suiscan.xyz/mainnet/object/<MEMWAL_ACCOUNT_ID>
-Your MEMWAL_AGENT_ID:                                   <public key delegate dari dashboard>
-DeepSurge project Link:                                 <URL DeepSurge, mainnet>
+Your MEMWAL_AGENT_ID:                                   <delegate public key from the dashboard>
+DeepSurge project Link:                                 <DeepSurge URL, mainnet>
 Project Link (URL):                                     https://dendam.vercel.app
-SUI address:                                            <wallet SUI khusus Sessions>
-X tweet link:                                           <link tweet #Walrus>
-Demo video:                                             <upload, ikut DEMO.md, ≤3 menit>
+SUI address:                                            <dedicated SUI wallet for Sessions>
+X tweet link:                                           <#Walrus tweet link>
+Demo video:                                             <upload, follow DEMO.md, ≤3 min>
 ```
-> CATATAN: agar memori "live on Walrus Mainnet" (bukan /tmp ephemeral Vercel), set `MEMWAL_*` di Vercel lalu redeploy — lihat DEPLOY.md Jalur 0.
+> NOTE: for memory to be "live on Walrus Mainnet" (not Vercel's ephemeral /tmp), set `MEMWAL_*` on Vercel and redeploy — see DEPLOY.md Path 0.
 
 ---
 
-## Teks promosi (siap-tempel)
+## Promo copy (paste-ready)
 
-### Tweet/X (#Walrus) — wajib di form
+### Tweet/X (#Walrus) — required in the form
 ```
 Meet Dendam 🔥⚽ — a FIFA World Cup 2026 rival AI that NEVER forgets.
 
@@ -124,7 +124,7 @@ Day 1 it knows nothing. Day 5 it has a FILE on you.
 https://dendam.vercel.app
 ```
 
-Opsi thread lanjutan (balasan):
+Optional follow-up thread (reply):
 ```
 2/ Real persistent memory on @WalrusProtocol Mainnet — not a chat log.
 • Predictions auto-roasted when results land
@@ -133,7 +133,7 @@ Opsi thread lanjutan (balasan):
 Try it 👉 dendam.vercel.app
 ```
 
-### Deskripsi DeepSurge (project description)
+### DeepSurge project description
 ```
 Dendam is a grudge-holding football rival for the FIFA World Cup 2026, powered by genuine persistent memory on Walrus.
 
@@ -148,8 +148,8 @@ Public interface (The File) makes the memory visible: full memory log, verdicts,
 
 ---
 
-## DRAF TIKET GITHUB (repo: MystenLabs/MemWal)
-> Verifikasi lebih dulu terhadap SDK asli saat kredensialmu aktif — kalau ternyata sudah terdokumentasi, sesuaikan/hapus tiket terkait sebelum mengirim.
+## DRAFT GITHUB TICKETS (repo: MystenLabs/MemWal)
+> Verify against the real SDK once your credentials are active — if something is already documented, adjust/drop the related ticket before filing.
 
 **Ticket 1 — [docs] Specify the return schema of `recall()`**
 > The SDK quickstart shows `const result = await memwal.recall({ query })` but the shape of `result` (e.g. `result.memories[]`, fields `text`/`content`/`id`/`created_at`) isn't documented. We had to write a defensive normalizer that probes several shapes. Please publish the TypeScript type for the recall response.

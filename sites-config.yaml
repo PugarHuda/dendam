@@ -1,22 +1,22 @@
-# Walrus Sites config (Mainnet) — untuk Jalur B di DEPLOY.md.
-# Dipakai oleh: site-builder --config sites-config.yaml deploy ./out
+# Walrus Sites config (Mainnet) — for Path B in DEPLOY.md.
+# Used by: site-builder --config sites-config.yaml deploy ./out
 #
-# CATATAN: alamat package/objek Walrus Sites di Mainnet bisa berubah seiring
-# rilis. site-builder yang diinstal via `suiup install site-builder@mainnet`
-# umumnya sudah membawa default config yang benar — kamu sering cukup
-# menjalankan `site-builder deploy ./out` tanpa file ini. Gunakan template ini
-# hanya jika perlu override, dan sesuaikan dengan nilai resmi terbaru dari
+# NOTE: the Walrus Sites package/object addresses on Mainnet can change across
+# releases. The site-builder installed via `suiup install site-builder@mainnet`
+# usually ships with the correct default config — you can often just run
+# `site-builder deploy ./out` without this file. Use this template only if you
+# need to override, and align it with the latest official values from
 # https://docs.wal.app/walrus-sites/
 
 contexts:
   mainnet:
-    # Endpoint RPC Sui Mainnet
+    # Sui Mainnet RPC endpoint
     rpc_url: https://fullnode.mainnet.sui.io:443
-    # Wallet untuk membayar gas + storage (gunakan wallet SUI khusus Sessions).
+    # Wallet to pay gas + storage (use your dedicated SUI wallet for Sessions).
     wallet: ~/.sui/sui_config/client.yaml
-    # Alamat package Walrus Sites di Mainnet — isi dari docs resmi bila override.
+    # Walrus Sites package address on Mainnet — fill from official docs if overriding.
     # package: "0x..."
-    # Agregator/publisher Walrus (opsional override).
+    # Walrus aggregator/publisher (optional override).
     # walrus_config: ~/.config/walrus/client_config.yaml
 
 default_context: mainnet

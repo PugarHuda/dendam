@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     verdicts.push(v);
     // Persist the verdict as a durable grudge on Walrus.
     await store.remember(namespace, {
-      text: `Vonis untuk prediksi: "${p.text.slice(0, 80)}" — ${v.roast}`,
+      text: `Verdict on prediction: "${p.text.slice(0, 80)}" — ${v.roast}`,
       kind: "result",
       team: p.team,
       wasWrong: v.status === "wrong",

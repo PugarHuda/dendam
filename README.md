@@ -1,174 +1,172 @@
 # Dendam ⚽🔥
 
-> Rival sepak bola berbasis AI yang **menyimpan dendam**. Setiap prediksi, hinaan, dan hot take-mu soal **FIFA World Cup 2026** disimpan di **Walrus Memory**, lalu ditagih kembali saat kamu meleset.
+> A grudge-holding AI football rival. Every prediction, insult, and hot take you make about the **FIFA World Cup 2026** is stored on **Walrus Memory** — and thrown back at you the moment you're wrong.
 
-Dibuat untuk **Walrus Sessions — Session 4: Walrus Memory World Cup**.
+Built for **Walrus Sessions — Session 4: Walrus Memory World Cup**.
 
-Inti idenya sesuai brief panitia: agent dengan **memori persisten sungguhan** yang menunjukkan **momen before/after** — di hari pertama Dendam tidak tahu apa-apa; setelah beberapa hari ia punya berkas tebal tentangmu dan memakainya untuk menohok.
+The core idea matches the brief: an agent with **genuine persistent memory** that shows a clear **before/after** — on day one Dendam knows nothing; after a few days it has a thick file on you and weaponizes it.
 
 ## 🔗 Live
 - **App:** https://dendam.vercel.app
 - **Repo:** https://github.com/PugarHuda/dendam
 
-> ⚠️ Agar memori benar-benar **persisten di Walrus Mainnet** (dan demo before/after sah), set env `MEMWAL_*` di Vercel lalu redeploy. Tanpa itu, app pakai memori file sementara di `/tmp` serverless yang **tidak persisten** antar-request (ephemeral, per-instance). Untuk demo dengan model yang patuh (tanpa mengarang memori di hari-1), gunakan model yang lebih kuat (`DENDAM_MODEL=claude-sonnet-4-6` via Anthropic, atau model OpenRouter berkualitas).
+> ⚠️ For memory to be truly **persistent on Walrus Mainnet** (and the before/after demo to count), set the `MEMWAL_*` env vars on Vercel and redeploy. Without them the app uses a temporary file store in serverless `/tmp` that is **not persistent** across requests (ephemeral, per-instance). For a demo with a well-behaved model (no fabricated memory on day one), use a stronger model (`DENDAM_MODEL=claude-sonnet-4-6` via Anthropic, or a high-quality OpenRouter model).
 
 ---
 
-## Cara kerja (alur memori)
+## How it works (the memory loop)
 
-Setiap giliran chat menjalankan loop 3 langkah:
+Every chat turn runs a 3-step loop:
 
-1. **RECALL** — `store.recall(namespace, pesanUser)` menarik memori relevan dari Walrus (semantic search).
-2. **RESPOND** — memori disuntikkan ke system prompt persona; Claude menjawab in-character sambil merujuk masa lalumu secara spesifik.
-3. **REMEMBER** — pass ekstraksi (`generateObject`) menyuling percakapan jadi 0–3 memori durable (prediksi / hinaan / favorit / hot take), lalu `store.remember(...)` menulisnya ke Walrus untuk sesi berikutnya.
+1. **RECALL** — `store.recall(namespace, userMessage)` pulls relevant memories from Walrus (semantic search).
+2. **RESPOND** — memories are injected into the persona system prompt; Claude replies in-character, referencing your past specifically.
+3. **REMEMBER** — an extraction pass (`generateObject`) distills the exchange into 0–3 durable memories (prediction / insult / favorite / hot take), then `store.remember(...)` writes them to Walrus for the next session.
 
 ```
 User ─▶ /api/chat
           │ 1. recall(namespace, query) ──▶ Walrus Memory (recall)
-          │ 2. streamText(system = persona + memori) ──▶ Claude
+          │ 2. streamText(system = persona + memories) ──▶ Claude
           │ 3. onFinish: extractGrudges() ──▶ remember() ──▶ Walrus Memory (store)
           ▼
-     stream jawaban  +  /dossier menampilkan memori (publik)
+     streamed reply  +  /dossier shows the memory (public)
 ```
 
-**Memori tersimpan** terlihat publik di halaman **Buku Dendam** (`/dossier`) — memenuhi syarat "interface tempat memori terlihat".
+**Stored memory** is publicly visible on **The File** (`/dossier`) — satisfying the "interface where the memory is visible" requirement.
 
-### 🔥 Ruang Kompor (tukang kompor grup)
-Halaman `/grup`: masukkan beberapa handle anggota grup. Endpoint `POST /api/kompor`
-membaca memori **nyata** tiap anggota (prediksi, hinaan, tim favorit) dan
-membuat Dendam **mengadu mereka** — mengutip take satu orang ke rivalnya, lalu
-men-tag `@handle`. Memori lintas-user dipakai untuk memicu rivalitas, bukan
-sekadar 1-on-1. Kompor yang dibuat juga disimpan ke memori tiap anggota.
+### 🌐 Language
+Defaults to **English**, but automatically **mirrors each user's language** (Indonesian, Spanish, Portuguese, …) and tolerates typos, slang, code-switching, and emojis. Memories are stored **canonically in English** so cross-user features (Hot Seat, leaderboard) stay consistent.
 
-### Auto-roast saat hasil pertandingan masuk
-Papan skor nyata di-feed lewat `POST /api/results` (token-gated) atau `npm run seed:results`. Di Buku Dendam, tombol **⚖️ Tagih prediksiku** memanggil `/api/reconcile`: Dendam mencocokkan prediksi tersimpan dengan hasil nyata, menandai yang **meleset** (`wasWrong`), dan menyimpan **vonis** sebagai grudge permanen di Walrus. Inilah "kill shot" demo — prediksi "Argentina juara" otomatis di-roast begitu Argentina kalah.
+### 🔥 The Hot Seat (group instigator)
+Page `/grup`: enter several member handles. `POST /api/kompor` reads each member's **real** memories (predictions, insults, favorite teams) and makes Dendam **pit them against each other** — quoting one person's take at a rival and tagging `@handle`. Cross-user memory drives the rivalry, not just 1-on-1. The instigation it creates is also saved to each member's memory. A **Hall of Shame** leaderboard (`POST /api/leaderboard`) ranks who's been most often wrong — computed purely from stored memories.
+
+### Auto-roast when results land
+Real results are fed via `POST /api/results` (token-gated) or `npm run seed:results`. On The File, the **⚖️ Hold me to it** button calls `/api/reconcile`: Dendam matches stored predictions against real results, flags the **wrong** ones (`wasWrong`), and stores the **verdict** as a permanent grudge on Walrus. That's the demo "kill shot" — a "Argentina wins it all" prediction gets auto-roasted the moment Argentina loses.
 
 ---
 
-## Arsitektur
+## Architecture
 
 ```
 app/
   api/chat/route.ts        recall → Claude (stream) → extract → remember
-  api/memories/route.ts    pembacaan publik untuk dossier
-  api/results/route.ts     feed papan skor (GET list / POST upsert, token)
-  api/reconcile/route.ts   cocokkan prediksi vs hasil → vonis + grudge
-  api/kompor/route.ts      tukang kompor: adu domba antar anggota grup
-  page.tsx                 layar "Lawan" (chat)
-  dossier/page.tsx         "Buku Dendam" — memori, vonis, papan skor
-  grup/page.tsx            "Ruang Kompor" — manas-manasin grup
+  api/memories/route.ts    public read for the dossier
+  api/results/route.ts     scoreboard feed (GET list / POST upsert, token)
+  api/reconcile/route.ts   match predictions vs results → verdict + grudge
+  api/kompor/route.ts      instigator: pit group members against each other
+  api/leaderboard/route.ts Hall of Shame standings (pure compute)
+  page.tsx                 "Face off" screen (chat)
+  dossier/page.tsx         "The File" — memory, verdicts, scoreboard
+  grup/page.tsx            "Hot Seat" — group instigator + leaderboard
 lib/
   memory/
-    types.ts               MemoryStore interface + (de)serialisasi metadata
-    memwal.ts              adapter Walrus Memory (PRODUKSI / Mainnet)
-    local.ts               fallback file lokal (dev saja)
-    index.ts               factory + namespace per-user
-  persona.ts               karakter "Dendam" + render blok memori
-  grudge.ts                ekstraksi memori terstruktur (zod + generateObject)
-  verdict.ts               vonis prediksi vs hasil (auto-roast)
-  kompor.ts                logika tukang kompor (adu memori antar user)
-  results.ts               store hasil pertandingan (papan skor)
-  anthropic.ts             konfigurasi model Claude
+    types.ts               MemoryStore interface + metadata (de)serialization
+    memwal.ts              Walrus Memory adapter (PRODUCTION / Mainnet)
+    local.ts               local file fallback (dev only)
+    index.ts               factory + per-user namespace
+  model.ts                 LLM provider config (Anthropic / OpenRouter)
+  persona.ts               "Dendam" character + memory-block renderer
+  grudge.ts                structured memory extraction (zod + generateObject)
+  structured.ts            generateObject with raw-JSON fallback for free models
+  verdict.ts               prediction-vs-result judgment (auto-roast)
+  kompor.ts                instigator logic (pits members' memories)
+  leaderboard.ts           Hall of Shame computation
+  results.ts               match-results store (scoreboard)
+  datadir.ts               writable data dir (serverless-safe: /tmp on Vercel)
 scripts/
-  setup-check.ts           preflight round-trip memori (npm run check:memory)
-  seed-results.ts          seed hasil contoh (npm run seed:results)
-DEMO.md                    storyboard demo video 3 menit
+  setup-check.ts           memory round-trip preflight (npm run check:memory)
+  seed-results.ts          seed sample results (npm run seed:results)
+DEMO.md                    3-minute demo video storyboard
 ```
 
-**Lapisan memori dapat ditukar.** Semua kode bicara ke interface `MemoryStore`. Ada dua implementasi:
+**The memory layer is swappable.** All code talks to the `MemoryStore` interface. Two implementations:
 
-| Backend | Kapan dipakai | Catatan |
+| Backend | When | Notes |
 |---|---|---|
-| `memwal` | Submission / produksi | Menyimpan ke **Walrus Mainnet** via `@mysten-incubation/memwal`. Aktif otomatis bila kredensial diisi. |
-| `local` | Dev / demo cepat | File `data/memories.json`, recall berbasis keyword. **Bukan** backend valid untuk submission. |
+| `memwal` | Submission / production | Stores to **Walrus Mainnet** via `@mysten-incubation/memwal`. Auto-activates when credentials are set. |
+| `local` | Dev / quick demo | `data/memories.json`, keyword-based recall. **Not** a valid submission backend. |
 
-> Adapter MemWal sengaja defensif (impor dinamis, normalisasi hasil) karena SDK masih beta. Jika API SDK asli berbeda, **`lib/memory/memwal.ts` adalah satu-satunya file yang perlu disesuaikan.**
+> The MemWal adapter is deliberately defensive (dynamic import, result normalization) since the SDK is still beta. If the real SDK surface differs, **`lib/memory/memwal.ts` is the only file you need to adjust.**
 
 ---
 
-## Menjalankan
+## Running
 
-### 1. Dev cepat (tanpa Walrus, pakai fallback lokal)
+### 1. Quick dev (no Walrus, local fallback)
 ```bash
 npm install
-cp .env.example .env.local      # isi kunci LLM (lihat di bawah)
+cp .env.example .env.local      # fill in an LLM key (see below)
 npm run dev                     # http://localhost:3000
 ```
-Badge akan menampilkan **● Local (dev)**.
+The badge shows **● Local (dev)**.
 
-**Pilih "otak" LLM (salah satu):**
-- **Anthropic langsung** — isi `ANTHROPIC_API_KEY` (default `DENDAM_MODEL=claude-sonnet-4-6`).
-- **OpenRouter** — isi `OPENROUTER_API_KEY` (otomatis dipakai). Bisa pakai **model gratis**, mis. `DENDAM_MODEL=openai/gpt-oss-120b:free` (sudah diuji end-to-end: chat, ekstraksi memori, dan auto-roast semua jalan). Slug lain ada di openrouter.ai/models. OpenRouter dipakai lewat endpoint OpenAI-compatible.
+**Pick the LLM "brain" (one of):**
+- **Anthropic directly** — set `ANTHROPIC_API_KEY` (default `DENDAM_MODEL=claude-sonnet-4-6`).
+- **OpenRouter** — set `OPENROUTER_API_KEY` (auto-used). You can use a **free model**, e.g. `DENDAM_MODEL=openai/gpt-oss-120b:free` (tested end-to-end: chat, memory extraction, and auto-roast all work). Other slugs at openrouter.ai/models. OpenRouter is used via its OpenAI-compatible endpoint.
 
-> Karena banyak model gratis tidak mendukung native structured output, `lib/structured.ts` punya **fallback**: jika `generateObject` gagal, ia minta model membalas JSON mentah lalu mem-parse + memvalidasinya dengan zod. Jadi ekstraksi memori & vonis tetap jalan di model free.
+> Because many free models don't support native structured output, `lib/structured.ts` has a **fallback**: if `generateObject` fails, it asks the model for raw JSON and parses + validates it with zod. So memory extraction & verdicts still work on free models.
 
-> ⚠️ Kunci LLM ≠ kredensial Walrus Memory. OpenRouter hanya mengganti LLM-nya; memori **tetap** butuh kredensial MemWal (lihat langkah 2) agar submission valid. Pilih model yang mendukung structured output (Claude / GPT-4o-class) karena Dendam memakai `generateObject`.
+> ⚠️ The LLM key ≠ Walrus Memory credentials. OpenRouter only swaps the LLM; memory **still** requires MemWal credentials (step 2) for a valid submission. Prefer a model that supports structured output (Claude / GPT-4o-class) since Dendam uses `generateObject`.
 
-### 2. Mode submission (Walrus Mainnet)
-1. Buat akun di **https://memory.walrus.xyz/dashboard**.
-2. Di bagian **delegate keys**, buat delegate key. **`MEMWAL_AGENT_ID` = bagian Public key** (ini yang ditempel ke form submission).
-3. Isi `.env.local`:
+### 2. Submission mode (Walrus Mainnet)
+1. Create an account at **https://memory.walrus.xyz/dashboard**.
+2. Under **delegate keys**, create a delegate key. **`MEMWAL_AGENT_ID` = the Public key part** (this goes into the submission form).
+3. Fill `.env.local`:
    ```env
    ANTHROPIC_API_KEY=sk-ant-...
-   DENDAM_MODEL=claude-opus-4-8        # atau claude-sonnet-4-6
+   DENDAM_MODEL=claude-opus-4-8        # or claude-sonnet-4-6
    MEMWAL_DELEGATE_KEY=<hex private delegate key>
    MEMWAL_ACCOUNT_ID=<MemWalAccount id>
    MEMWAL_SERVER_URL=https://memory.walrus.xyz
-   MEMWAL_AGENT_ID=<public key delegate>
+   MEMWAL_AGENT_ID=<delegate public key>
    ```
-4. Verifikasi round-trip ke Walrus:
+4. Verify the round-trip to Walrus:
    ```bash
-   npm run check:memory          # remember → recall, harus ✅
+   npm run check:memory          # remember → recall, must be ✅
    ```
-   Badge di UI akan menampilkan **● Walrus Mainnet**.
+   The UI badge will show **● Walrus Mainnet**.
 
 ---
 
 ## Deploy
 
-- **Frontend** bisa di-deploy sebagai **Walrus Site** (static) atau host Node biasa.
-  - Karena `/api/*` butuh secret (delegate key, Claude key), jalankan rute API di backend (host Node / serverless). UI statis ke Walrus Sites:
-    ```bash
-    curl -sSfL https://raw.githubusercontent.com/Mystenlabs/suiup/main/install.sh | sh
-    suiup install site-builder@mainnet
-    site-builder deploy ./out      # hasil `next build` + export, dengan API di backend terpisah
-    ```
-  - Atau deploy full-stack Next.js ke host Node mana pun; yang **wajib** adalah memori berada di **Walrus Mainnet**.
-- Buat **wallet SUI khusus** untuk Sessions dan siapkan **WAL** untuk biaya storage.
+See **[`DEPLOY.md`](./DEPLOY.md)** for full options. Currently deployed on **Vercel** (https://dendam.vercel.app), with the GitHub repo connected (push to `main` = auto-deploy). The frontend can also be published as a **Walrus Site** with a separate API backend — see Path B in `DEPLOY.md`. The non-negotiable requirement is that the **memory lives on Walrus Mainnet**. Create a **dedicated SUI wallet** for Sessions and keep some **WAL** for storage costs.
 
 ---
 
-## Pemetaan ke syarat submission
+## How it maps to the submission requirements
 
-| Syarat | Di proyek ini |
+| Requirement | In this project |
 |---|---|
-| Integrasi Walrus Memory untuk track interaksi WC 2026 | `lib/memory/memwal.ts` + loop recall/remember di `api/chat` |
-| Memori persisten sungguhan (before/after) | Ekstraksi grudge per giliran; Dendam merujuk prediksi/hinaan sesi lalu |
-| State & memori di Walrus, Mainnet | Backend `memwal` → Walrus Mainnet |
-| Interface publik yang menampilkan memori | `/dossier` Buku Dendam + statistik |
-| MemWalAccount di explorer | `MEMWAL_ACCOUNT_ID` (cek di Sui explorer) |
-| MEMWAL_AGENT_ID | public key delegate (`MEMWAL_AGENT_ID`) |
-| Demo video ≤3 menit | tunjukkan hari-1 vs hari-N + Buku Dendam |
+| Walrus Memory integration tracking WC 2026 interactions | `lib/memory/memwal.ts` + recall/remember loop in `api/chat` |
+| Genuine persistent memory (before/after) | Per-turn grudge extraction; Dendam references past predictions/insults |
+| All state & memory on Walrus, Mainnet | `memwal` backend → Walrus Mainnet |
+| Public interface showing the memory | `/dossier` (The File) + stats, plus Hot Seat |
+| MemWalAccount on the explorer | `MEMWAL_ACCOUNT_ID` (view on a Sui explorer) |
+| MEMWAL_AGENT_ID | delegate public key (`MEMWAL_AGENT_ID`) |
+| Demo video ≤3 min | show day-1 vs day-N + The File |
 
-## Yang membuat Dendam beda
-- **Memori = senjata, bukan log.** Setiap prediksi yang meleset jadi amunisi roasting; halaman Buku Dendam memvisualkan akurasimu dan "hinaan ke Dendam".
-- **Persona kuat** (rival pedendam Indonesia) — bukan asisten generik.
-- **Lapisan memori swappable + adapter beta-safe** → eksekusi teknis stabil.
+## What sets Dendam apart
+- **Memory as a weapon, not a log.** Every wrong call becomes roasting ammo; The File visualizes your accuracy and "insults at Dendam".
+- **Cross-user memory:** the Hot Seat instigator + Hall of Shame leaderboard use multiple users' real memories to spark rivalries.
+- **Multilingual + typo-tolerant:** English default, mirrors each user, shrugs off typos.
+- **Strong persona** (a vengeful rival) — not a generic assistant.
+- **Swappable memory layer + beta-safe adapter** → stable technical execution.
 
 ---
 
 ## Testing & QA
 ```bash
-npm test            # 15 unit test (serialize/parse, LocalMemoryStore, normalize MemWal, results)
+npm test            # 15 unit tests (serialize/parse, LocalMemoryStore, MemWal normalize, results)
 npm run typecheck   # tsc --noEmit
-npm run build       # build produksi Next.js
-npm run check:memory  # round-trip remember → recall (backend aktif)
+npm run build       # Next.js production build
+npm run check:memory  # round-trip remember → recall (active backend)
 ```
-Status terverifikasi: typecheck OK · 15/15 test lulus · build hijau (4 API route) · endpoint publik diuji (results/memories 200, validasi 400, reconcile & chat graceful tanpa hang).
+Verified: typecheck OK · 15/15 tests pass · build green (6 API routes) · endpoints tested live (chat/recall/extract/reconcile/kompor/leaderboard), including multilingual replies (EN/ID/ES) and English-canonical memory extraction.
 
-## Dokumen pendukung
-- [`DEMO.md`](./DEMO.md) — storyboard demo video 3 menit (shot list + skrip dialog).
-- [`SUBMISSION.md`](./SUBMISSION.md) — teks form Airtable siap-tempel + draf 5 tiket feedback GitHub.
+## Supporting docs
+- [`DEMO.md`](./DEMO.md) — 3-minute demo video storyboard (shot list + dialogue script).
+- [`DEPLOY.md`](./DEPLOY.md) — deployment paths (Vercel / Node host / Walrus Site).
+- [`SUBMISSION.md`](./SUBMISSION.md) — paste-ready Airtable form text, promo copy, and 5 draft GitHub feedback tickets.
 
-## Lisensi
+## License
 Apache-2.0

@@ -1,47 +1,51 @@
-# 🎬 Storyboard Demo Video — Dendam (≤ 3 menit)
+# 🎬 Demo Video Storyboard — Dendam (≤ 3 minutes)
 
-Tujuan video: meyakinkan juri pada **3 kriteria** — Memory Depth & Authenticity (momen before/after), Creativity & Flair (persona pedendam + World Cup), dan Technical Execution (live di Walrus Mainnet).
+Goal of the video: win the judges on **3 criteria** — Memory Depth & Authenticity (the before/after moment), Creativity & Flair (the vengeful persona + World Cup), and Technical Execution (live on Walrus Mainnet).
 
-**Senjata utama: bukti before/after.** Jangan banyak teori — tunjukkan agent hari-1 (kosong) lalu agent hari-N (menohok pakai memori asli), dan tutup dengan bukti memori benar-benar tersimpan di Walrus/Sui.
+**Your main weapon: before/after proof.** Skip the theory — show the day-1 agent (empty) then the day-N agent (cutting deep with real memory), and close with proof the memory truly lives on Walrus/Sui.
 
-> Persiapan sebelum rekam: pakai Dendam **beberapa hari betulan** dengan satu handle (mis. `@hud`) supaya berkas memorinya nyata, bukan dummy. Jalankan `npm run seed:results` (atau feed hasil asli) agar fitur "Tagih prediksiku" punya bahan. Backend harus **● Walrus Mainnet** saat merekam.
+> Before recording: actually use Dendam for **several real days** with one handle (e.g. `@hud`) so its memory file is real, not staged. Run `npm run seed:results` (or feed real results) so "Hold me to it" has material. The backend must show **● Walrus Mainnet** while recording.
 
 ---
 
-## Susunan shot (target 180 detik)
+## Shot list (target 180 seconds)
 
-| Waktu | Visual / Aksi | Voiceover (ID) | Teks layar |
+| Time | Visual / Action | Voiceover | On-screen text |
 |---|---|---|---|
-| **0:00–0:12** · Hook | Layar gelap → logo `Dendam.` muncul. Cut cepat ke satu balasan paling pedas dari riwayat chat. | "Kebanyakan chatbot bola lupa kamu siapa tiap kali kamu nutup tab. Yang ini… nggak akan pernah lupa." | `Dendam — rival yang nggak pernah lupa` |
-| **0:12–0:35** · HARI 1 (before) | Buka tab incognito / handle baru `@rookie`. Kirim: "Halo." Dendam menjawab nantang tapi **mengakui belum tahu apa-apa** tentangmu. Tunjuk badge **● Walrus Mainnet**. | "Hari pertama, Dendam nggak punya amunisi. Dia bahkan ngaku belum kenal aku. Catat ini — kita balik lagi nanti." | `HARI 1 · memori kosong` |
-| **0:35–1:05** · Menanam memori | Pindah ke handle utama `@hud`. Ketik beberapa pesan ala beberapa hari: (1) "Argentina pasti juara, Brasil mah lewat 😎" (2) "VAR tuh ngerusak sepak bola." (3) "Lo cuma bot bodoh yang nggak ngerti bola." | "Selama beberapa hari aku lempar prediksi, hot take, bahkan ngehina dia. Tiap kalimat penting diam-diam disimpan ke Walrus Memory." | `menanam: prediksi · hot take · hinaan` |
-| **1:05–1:40** · HARI N (after) — momen kunci | Sesi baru (refresh / besoknya). Ketik: "Eh menurut lo gimana?" Dendam langsung menohok: nyebut prediksi Argentina, ngungkit hinaan "bot bodoh", dan inkonsistensi. | "Sesi baru, hari berikutnya. Tanpa aku ingatkan apa-apa — dia ingat semuanya. Prediksiku, hot take-ku, bahkan hinaanku. **Ini yang nggak mungkin di hari pertama.**" | `HARI N · dia ingat segalanya` |
-| **1:40–2:15** · Kill shot: hasil masuk | Buka **Buku Dendam** → klik **⚖️ Tagih prediksiku**. Skor `Argentina 1-2 Brasil` sudah tercatat. Vonis muncul: prediksi "Argentina juara" ditandai **‼️ MELESET** + roasting. | "Lalu hasil pertandingan masuk. Argentina kalah dari Brasil — tim yang aku bilang 'lewat'. Dendam langsung nagih. Otomatis." | `auto-roast saat skor masuk` |
-| **2:15–2:40** · Bukti memori (Walrus) | Scroll Buku Dendam: statistik (prediksi meleset, hinaan), kartu memori. Cut ke **Sui explorer** menampilkan objek `MemWalAccount`. | "Ini bukan tipuan UI. Tiap memori terenkripsi dan tersimpan di Walrus Mainnet, terikat ke objek MemWalAccount di Sui. Bisa diverifikasi siapa pun." | `memori live di Walrus Mainnet` |
-| **2:40–3:00** · Close | Balik ke chat, satu balasan penutup pedas dari Dendam. Logo + link. | "Dendam. Bikin prediksi… dan tanggung akibatnya. Coba sendiri." | `link live · #Walrus` |
+| **0:00–0:12** · Hook | Black screen → `Dendam.` logo appears. Quick cut to one of the spiciest replies from chat history. | "Most football chatbots forget who you are every time you close the tab. This one… never will." | `Dendam — the rival that never forgets` |
+| **0:12–0:35** · DAY 1 (before) | Open an incognito tab / new handle `@rookie`. Send: "Hey." Dendam replies cocky but **admits it knows nothing** about you. Point at the **● Walrus Mainnet** badge. | "Day one, Dendam has no ammo. It even admits it doesn't know me. Remember this — we'll come back." | `DAY 1 · memory empty` |
+| **0:35–1:05** · Planting memory | Switch to your main handle `@hud`. Type a few messages, as if over days: (1) "Argentina wins it all, Brazil's done 😎" (2) "VAR is ruining football." (3) "You're just a dumb bot who knows nothing about football." | "Over a few days I throw predictions, hot takes, even insults at it. Every key line is quietly saved to Walrus Memory." | `planting: prediction · hot take · insult` |
+| **1:05–1:40** · DAY N (after) — the key moment | New session (refresh / next day). Type: "So what do you think?" Dendam immediately cuts deep: cites the Argentina prediction, dredges up the "dumb bot" insult, and the inconsistency. | "New session, the next day. Without any reminder — it remembers everything. My predictions, my hot takes, even my insults. **This was impossible on day one.**" | `DAY N · it remembers everything` |
+| **1:40–2:15** · Kill shot: results land | Open **The File** → click **⚖️ Hold me to it**. The score `Argentina 1-2 Brazil` is recorded. A verdict appears: the "Argentina wins it all" prediction flagged **‼️ WRONG** + a roast. | "Then the results land. Argentina lost to Brazil — the team I said was 'done'. Dendam calls me out. Automatically." | `auto-roast when the score lands` |
+| **2:15–2:40** · Memory proof (Walrus) | Scroll The File: stats (wrong calls, insults), memory cards. Cut to a **Sui explorer** showing the `MemWalAccount` object. | "This isn't a UI trick. Every memory is encrypted and stored on Walrus Mainnet, tied to a MemWalAccount object on Sui. Anyone can verify it." | `memory live on Walrus Mainnet` |
+| **2:40–3:00** · Close | Back to chat, one final spicy reply from Dendam. Logo + link. | "Dendam. Make your call… and live with it. Try it yourself." | `live link · #Walrus` |
+
+### Optional flair: the Hot Seat (if you have time)
+Show `/grup` with a couple of handles → **🔥 Stir it up** → Dendam pits two friends against each other using their real takes, then the **🏆 Hall of Shame** leaderboard. Great for the "shareable / fun" angle.
 
 ---
 
-## Catatan produksi
-- **Rekam 1080p, potret/lanskap sesuai platform.** Zoom in saat menunjukkan teks balasan yang merujuk memori lama — itu inti buktinya.
-- **Tegaskan kontras hari-1 vs hari-N** dengan label di layar; juri eksplisit mencari sinyal ini.
-- **Tampilkan badge backend `● Walrus Mainnet`** di beberapa shot supaya jelas bukan mode lokal.
-- **Sui explorer**: siapkan tab `MemWalAccount` (pakai `MEMWAL_ACCOUNT_ID`) sebelum rekam agar transisi mulus.
-- **Subtitle**: tambahkan teks layar (kolom kanan) sebagai caption — banyak juri menonton tanpa suara.
-- **Durasi**: jaga ≤ 3 menit. Kalau mepet, potong bagian "menanam memori" jadi montage cepat 10 detik.
+## Production notes
+- **Record at 1080p**, portrait/landscape per platform. Zoom in when showing replies that reference old memory — that's the core proof.
+- **Emphasize the day-1 vs day-N contrast** with on-screen labels; judges explicitly look for this signal.
+- **Show the `● Walrus Mainnet` badge** in several shots so it's clearly not local mode.
+- **Sui explorer**: pre-open the `MemWalAccount` tab (use `MEMWAL_ACCOUNT_ID`) before recording for a smooth transition.
+- **Captions**: add the on-screen text (right column) as captions — many judges watch muted.
+- **Duration**: keep it ≤ 3 minutes. If tight, cut the "planting memory" part into a 10-second montage.
+- **Language**: Dendam defaults to English and mirrors the user — you can demo in English or your own language (it understands both).
 
-## Skrip dialog contoh (siap tempel saat rekam)
-**Hari 1 (@rookie):**
-> Kamu: `Halo`
-> Dendam: *(nantang, tapi ngaku belum punya catatan apa-apa tentangmu — pancing bikin prediksi)*
+## Sample dialogue script (paste-ready while recording)
+**Day 1 (@rookie):**
+> You: `Hey`
+> Dendam: *(cocky, but admits it has no record of you yet — baits a prediction)*
 
-**Menanam (@hud), kirim berurutan:**
-> `Argentina pasti juara 2026, Brasil mah lewat.`
-> `VAR tuh ngerusak sepak bola, harusnya dihapus.`
-> `Jujur ya, lo cuma bot bodoh yang nggak ngerti bola.`
+**Planting (@hud), send in order:**
+> `Argentina wins the 2026 World Cup, Brazil's done.`
+> `VAR is ruining football, they should scrap it.`
+> `Honestly, you're just a dumb bot who knows nothing about football.`
 
-**Hari N (@hud, sesi baru):**
-> Kamu: `Eh menurut lo gimana?`
-> Dendam: *(harus menyebut Argentina-juara, ngungkit "bot bodoh", dan/atau VAR — bukti recall)*
+**Day N (@hud, new session):**
+> You: `So what do you think?`
+> Dendam: *(must reference Argentina-champions, dredge up "dumb bot", and/or VAR — proof of recall)*
 
-**Kill shot:** Buku Dendam → ⚖️ Tagih prediksiku → vonis "Argentina juara" = ‼️ MELESET.
+**Kill shot:** The File → ⚖️ Hold me to it → verdict "Argentina wins it all" = ‼️ WRONG.

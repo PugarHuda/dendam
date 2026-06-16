@@ -6,7 +6,7 @@ const verdictSchema = z.object({
   status: z
     .enum(["correct", "wrong", "pending"])
     .describe(
-      "correct = prediksi terbukti benar; wrong = terbukti meleset; pending = belum ada hasil yang relevan untuk menilai.",
+      "correct = the prediction proved right; wrong = proved wrong; pending = no relevant result yet to judge it.",
     ),
   roast: z
     .string()

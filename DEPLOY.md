@@ -1,33 +1,33 @@
 # 🚀 Deploy Dendam
 
-Yang **wajib** untuk submission: (1) memori berjalan di **Walrus Mainnet** (lewat kredensial MemWal), dan (2) ada **interface publik** tempat memori terlihat. Frontend boleh di-host di mana saja; idealnya sebagai **Walrus Site**.
+**Required** for the submission: (1) memory running on **Walrus Mainnet** (via MemWal credentials), and (2) a **public interface** where the memory is visible. The frontend can be hosted anywhere; ideally as a **Walrus Site**.
 
-Kendala arsitektur: Dendam butuh secret server-side (`MEMWAL_DELEGATE_KEY`, kunci LLM), jadi **tidak bisa** seluruhnya jadi static site. Pilih satu jalur:
+Architectural constraint: Dendam needs server-side secrets (`MEMWAL_DELEGATE_KEY`, the LLM key), so it **cannot** be a fully static site. Pick one path:
 
 ---
 
-## Jalur 0 — Vercel (SUDAH TER-DEPLOY) ✅
+## Path 0 — Vercel (ALREADY DEPLOYED) ✅
 
-Live: **https://dendam.vercel.app** · Repo tersambung: **github.com/PugarHuda/dendam** (push ke `main` = auto-deploy).
+Live: **https://dendam.vercel.app** · Connected repo: **github.com/PugarHuda/dendam** (push to `main` = auto-deploy).
 
-Env var produksi yang sudah diset: `OPENROUTER_API_KEY`, `DENDAM_LLM_PROVIDER=openrouter`, `DENDAM_MODEL=openai/gpt-oss-120b:free`.
+Production env vars already set: `OPENROUTER_API_KEY`, `DENDAM_LLM_PROVIDER=openrouter`, `DENDAM_MODEL=openai/gpt-oss-120b:free`.
 
-Untuk membuat memori **persisten di Walrus Mainnet** (wajib untuk submission):
+To make memory **persistent on Walrus Mainnet** (required for the submission):
 ```bash
 printf '%s' "<delegate-key-hex>"        | vercel env add MEMWAL_DELEGATE_KEY production
 printf '%s' "<memwal-account-id>"        | vercel env add MEMWAL_ACCOUNT_ID production
 printf '%s' "https://memory.walrus.xyz"  | vercel env add MEMWAL_SERVER_URL production
-vercel deploy --prod --yes               # redeploy agar env terpakai
+vercel deploy --prod --yes               # redeploy so the env is applied
 ```
-Catatan Vercel: filesystem read-only kecuali `/tmp` (ephemeral). Papan skor (`/api/results`) di `/tmp` bisa hilang saat cold start — feed ulang setelah deploy, atau pakai backend persisten. Memori user tidak terpengaruh setelah `MEMWAL_*` diset (tersimpan di Walrus). Fungsi `maxDuration=60s` cukup untuk LLM.
+Vercel notes: the filesystem is read-only except `/tmp` (ephemeral). The scoreboard (`/api/results`) in `/tmp` can be lost on a cold start — re-feed it after deploy, or use a persistent backend. User memory is unaffected once `MEMWAL_*` is set (it's stored on Walrus). The `maxDuration=60s` function limit is enough for the LLM.
 
 ---
 
-## Jalur A — Full-stack di Node host (alternatif) 
+## Path A — Full-stack on a Node host (alternative)
 
-Deploy seluruh app Next.js (UI + API) ke host Node (Railway, Render, Fly.io, VPS, dll). Memori tetap di Walrus.
+Deploy the whole Next.js app (UI + API) to a Node host (Railway, Render, Fly.io, a VPS, etc.). Memory still lives on Walrus.
 
-**Dengan Docker (sudah disediakan `Dockerfile`):**
+**With Docker (a `Dockerfile` is provided):**
 ```bash
 docker build -t dendam .
 docker run -p 3000:3000 \
@@ -39,40 +39,40 @@ docker run -p 3000:3000 \
   dendam
 ```
 
-**Tanpa Docker (host Node biasa):**
+**Without Docker (plain Node host):**
 ```bash
 npm ci
 npm run build
 npm run start        # next start, port 3000
 ```
-Set semua env var di dashboard host. Pasang domain publik → itulah "link to your deployed agent".
+Set all env vars in the host dashboard. Attach a public domain → that's your "link to your deployed agent".
 
-> ⚠️ Persistensi data papan skor: `data/results.json` ditulis ke disk. Di host ephemeral (Railway/Render free), file bisa hilang saat restart. Untuk produksi, feed hasil lewat `POST /api/results` setelah deploy, atau pindahkan results ke storage persisten. Memori user TIDAK terpengaruh — itu di Walrus.
+> ⚠️ Scoreboard persistence: `data/results.json` is written to disk. On ephemeral hosts (Railway/Render free) the file can be lost on restart. For production, feed results via `POST /api/results` after deploy, or move results to persistent storage. User memory is NOT affected — it's on Walrus.
 
 ---
 
-## Jalur B — UI statis di Walrus Site + backend API terpisah
+## Path B — Static UI on a Walrus Site + separate API backend
 
-Tampilkan UI sebagai **Walrus Site** (sangat on-brand untuk Sessions), dengan API di backend host (Jalur A tanpa UI). UI memanggil backend lewat URL absolut.
+Publish the UI as a **Walrus Site** (very on-brand for Sessions), with the API on a backend host (Path A without the UI). The UI calls the backend via an absolute URL.
 
-1. **Deploy backend** (Jalur A) → dapatkan `https://api-dendam.example.com`.
-2. **Arahkan frontend ke backend**: ganti fetch relatif (`/api/...`) menjadi `${NEXT_PUBLIC_API_BASE}/api/...` lalu export statis. (Perlu sedikit penyesuaian; lihat catatan di bawah.)
+1. **Deploy the backend** (Path A) → get `https://api-dendam.example.com`.
+2. **Point the frontend at the backend**: change relative fetches (`/api/...`) to `${NEXT_PUBLIC_API_BASE}/api/...`, then static-export. (Requires a small tweak; see the note below.)
 3. **Install site-builder & deploy:**
    ```bash
    curl -sSfL https://raw.githubusercontent.com/Mystenlabs/suiup/main/install.sh | sh
    suiup install site-builder@mainnet
    site-builder --config sites-config.yaml deploy ./out
    ```
-4. Akses lewat portal mainnet `https://wal.app` (atau portal self-host). Itulah interface publik di Walrus.
+4. Access via the mainnet portal `https://wal.app` (or a self-hosted portal). That's your public interface on Walrus.
 
-> Catatan: Next.js App Router dengan API routes tidak bisa `output: export` langsung. Untuk Jalur B, opsi termudah: buat halaman read-only (chat + Buku Dendam) yang murni client-side dan memanggil `NEXT_PUBLIC_API_BASE`. Jalur A sudah memenuhi semua syarat submission tanpa langkah ini — kerjakan B hanya jika ingin nilai "flair" deploy-on-Walrus.
+> Note: a Next.js App Router with API routes can't `output: export` directly. The easiest option for Path B: make a read-only client-side page (chat + The File) that calls `NEXT_PUBLIC_API_BASE`. Path A already satisfies every submission requirement without this — do B only if you want the extra "deploy-on-Walrus" flair.
 
 ---
 
-## Checklist pra-deploy
-- [ ] `.env`/secret di host: kunci LLM + `MEMWAL_*` (Mainnet)
-- [ ] `npm run check:memory` di host menunjukkan backend **memwal** & round-trip OK
-- [ ] Wallet **SUI khusus Sessions** dibuat; ada **WAL** untuk biaya storage Walrus
-- [ ] Catat: link agent live, link explorer **MemWalAccount**, **MEMWAL_AGENT_ID** (public key)
-- [ ] Seed/feed hasil pertandingan (`/api/results` atau `npm run seed:results`)
-- [ ] Smoke test produksi: kirim 1 prediksi → cek tersimpan di Buku Dendam → Tagih prediksiku
+## Pre-deploy checklist
+- [ ] Host `.env`/secrets: LLM key + `MEMWAL_*` (Mainnet)
+- [ ] `npm run check:memory` on the host shows the **memwal** backend & a successful round-trip
+- [ ] Dedicated **SUI wallet for Sessions** created; some **WAL** on hand for Walrus storage costs
+- [ ] Record: live agent link, **MemWalAccount** explorer link, **MEMWAL_AGENT_ID** (public key)
+- [ ] Seed/feed match results (`/api/results` or `npm run seed:results`)
+- [ ] Production smoke test: send 1 prediction → check it's stored in The File → Hold me to it

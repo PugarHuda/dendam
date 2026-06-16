@@ -2,7 +2,7 @@
   "name": "dendam",
   "version": "0.1.0",
   "private": true,
-  "description": "Dendam — rival AI Piala Dunia 2026 yang menyimpan dendam, ditenagai Walrus Memory.",
+  "description": "Dendam — a grudge-holding World Cup 2026 rival AI, powered by Walrus Memory.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

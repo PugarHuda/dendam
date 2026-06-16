@@ -28,8 +28,8 @@ export async function generateJSON<T>(opts: {
       model: dendamModel,
       system:
         opts.system +
-        "\n\nPENTING: Balas HANYA dengan JSON valid, tanpa teks lain, tanpa penjelasan, tanpa code fence. " +
-        "Bentuk JSON yang diharapkan:\n" +
+        "\n\nIMPORTANT: Reply with VALID JSON ONLY — no other text, no explanation, no code fence. " +
+        "Expected JSON shape:\n" +
         opts.shapeHint,
       prompt: opts.prompt,
     });

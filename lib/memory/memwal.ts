@@ -93,13 +93,13 @@ export class MemWalMemoryStore implements MemoryStore {
       }
     }
     // Otherwise approximate a full listing by recalling across themes and
-    // de-duplicating. Covers the public "Buku Dendam" dossier well enough.
+    // de-duplicating. Covers the public "The File" dossier well enough.
     const themes = [
-      "prediksi pertandingan piala dunia",
-      "hinaan dan trash talk dari user ke Dendam",
-      "tim jagoan dan tim yang dibenci user",
-      "pendapat panas user soal sepak bola",
-      "prediksi user yang meleset",
+      "world cup match predictions",
+      "insults and trash talk from the user to Dendam",
+      "the user's favorite and hated teams",
+      "the user's hot takes about football",
+      "the user's predictions that turned out wrong",
     ];
     const seen = new Map<string, MemoryRecord>();
     for (const q of themes) {

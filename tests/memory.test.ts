@@ -10,7 +10,7 @@ import { namespaceFor } from "../lib/memory";
 
 test("serialize → parse round-trips structured fields", () => {
   const input: RememberInput = {
-    text: "User yakin Argentina juara dan mengejek Brasil",
+    text: "User is sure Argentina wins it all and mocked Brazil",
     kind: "prediction",
     team: "Argentina",
     wasWrong: true,
@@ -25,17 +25,17 @@ test("serialize → parse round-trips structured fields", () => {
 });
 
 test("parse without a tag falls back to a plain fact", () => {
-  const rec = parseMemory("cuma teks biasa", { id: "y", createdAt: "" });
+  const rec = parseMemory("just plain text", { id: "y", createdAt: "" });
   assert.equal(rec.kind, "fact");
-  assert.equal(rec.text, "cuma teks biasa");
+  assert.equal(rec.text, "just plain text");
 });
 
 test("parse tolerates malformed metadata", () => {
-  const rec = parseMemory("teks\n::dendam:: {not json", {
+  const rec = parseMemory("text\n::dendam:: {not json", {
     id: "z",
     createdAt: "",
   });
-  assert.equal(rec.text, "teks");
+  assert.equal(rec.text, "text");
   assert.equal(rec.kind, "fact");
 });
 
@@ -50,16 +50,16 @@ test("LocalMemoryStore remember → recall → list", async () => {
   const store = new LocalMemoryStore();
   const ns = "test:local";
   await store.remember(ns, {
-    text: "User memprediksi Brasil kalah dari Argentina",
+    text: "User predicted Brazil would lose to Argentina",
     kind: "prediction",
     team: "Argentina",
   });
   await store.remember(ns, {
-    text: "User benci VAR",
+    text: "User hates VAR",
     kind: "hot_take",
   });
 
-  const recalled = await store.recall(ns, "Argentina prediksi", 5);
+  const recalled = await store.recall(ns, "Argentina prediction", 5);
   assert.ok(recalled.length >= 1, "should recall the Argentina prediction");
   assert.ok(recalled[0].text.includes("Argentina"));
 

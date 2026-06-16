@@ -40,7 +40,7 @@ const extractionSchema = z.object({
     ),
 });
 
-const SHAPE_HINT = `{"memories":[{"text":"string","kind":"prediction|result|insult|favorite|hot_take|fact","team":"string atau null","wasWrong":true/false/null}]}`;
+const SHAPE_HINT = `{"memories":[{"text":"string","kind":"prediction|result|insult|favorite|hot_take|fact","team":"string or null","wasWrong":true/false/null}]}`;
 
 export async function extractGrudges(
   userText: string,

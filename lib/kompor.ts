@@ -31,7 +31,7 @@ const komporSchema = z.object({
     .max(6),
 });
 
-const SHAPE_HINT = `{"topic":"string","provocations":[{"line":"string dengan @handle"}]}`;
+const SHAPE_HINT = `{"topic":"string","provocations":[{"line":"string with @handle"}]}`;
 
 const KINDS_OF_INTEREST = new Set([
   "prediction",
