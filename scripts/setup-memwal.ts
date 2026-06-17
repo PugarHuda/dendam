@@ -96,6 +96,16 @@ async function main() {
     "@mysten-incubation/memwal/account"
   );
 
+  // MemWal v0.0.7 auto-constructs an old `SuiClient` from `@mysten/sui/client`,
+  // which no longer exists in @mysten/sui v2.6+ (the JSON-RPC client moved to
+  // `@mysten/sui/jsonRpc` as `SuiJsonRpcClient`). So we build it and pass it in.
+  const { SuiJsonRpcClient, getJsonRpcFullnodeUrl }: any = await import(
+    "@mysten/sui/jsonRpc"
+  );
+  const suiClient = new SuiJsonRpcClient({
+    url: getJsonRpcFullnodeUrl(network),
+  });
+
   // 1) delegate keypair
   console.log("→ generating delegate key…");
   const delegate = await generateDelegateKey();
@@ -112,6 +122,7 @@ async function main() {
         registryId: net.registryId,
         suiPrivateKey,
         suiNetwork: network,
+        suiClient,
       });
       accountId = acc.accountId;
       console.log(`  created ${accountId} (owner ${acc.owner})`);
@@ -135,6 +146,7 @@ async function main() {
     label,
     suiPrivateKey,
     suiNetwork: network,
+    suiClient,
   });
 
   // 4) output + persist
