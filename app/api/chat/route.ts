@@ -1,5 +1,11 @@
-import { streamText, type CoreMessage } from "ai";
+import {
+  createDataStreamResponse,
+  formatDataStreamPart,
+  streamText,
+  type CoreMessage,
+} from "ai";
 import { dendamModel } from "@/lib/model";
+import { coldStartReply } from "@/lib/coldstart";
 import { extractGrudges } from "@/lib/grudge";
 import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 import { DENDAM_SYSTEM, renderMemoryBlock } from "@/lib/persona";
@@ -36,32 +42,47 @@ export async function POST(req: Request) {
     }
   }
 
+  const headers = {
+    "x-dendam-backend": store.backend,
+    "x-dendam-network": memoryNetwork(),
+  };
+
+  // Helper: persist durable grudges from an exchange (best-effort).
+  const remember = async (assistantText: string) => {
+    try {
+      const grudges = await extractGrudges(query, assistantText);
+      for (const g of grudges) await store.remember(namespace, g);
+    } catch (err) {
+      console.error("[dendam] remember failed:", err);
+    }
+  };
+
+  // COLD START — no memory to ground on. A weak free model can fabricate a
+  // fake past here, so we use a deterministic guard (generate → check → retry
+  // → safe fallback) instead of streaming and hoping the model obeys.
+  if (recalled.length === 0) {
+    const text = await coldStartReply(messages);
+    await remember(text);
+    return createDataStreamResponse({
+      headers,
+      execute(writer) {
+        writer.write(formatDataStreamPart("text", text));
+      },
+    });
+  }
+
   const system = `${DENDAM_SYSTEM}\n\n${renderMemoryBlock(recalled)}`;
 
-  // 2) RESPOND — Claude answers in-character, armed with the memories.
+  // 2) RESPOND — armed with real memories, streaming is safe (referencing the
+  // recalled past is the goal, not fabrication).
   const result = streamText({
     model: dendamModel,
     system,
     messages,
     temperature: 0.85,
-    async onFinish({ text }) {
-      // 3) REMEMBER — distil this exchange into durable grudges and
-      // persist them to Walrus for future sessions.
-      try {
-        const grudges = await extractGrudges(query, text);
-        for (const g of grudges) {
-          await store.remember(namespace, g);
-        }
-      } catch (err) {
-        console.error("[dendam] remember failed:", err);
-      }
-    },
+    // 3) REMEMBER — distil this exchange into durable grudges for next time.
+    onFinish: ({ text }) => remember(text),
   });
 
-  return result.toDataStreamResponse({
-    headers: {
-      "x-dendam-backend": store.backend,
-      "x-dendam-network": memoryNetwork(),
-    },
-  });
+  return result.toDataStreamResponse({ headers });
 }
