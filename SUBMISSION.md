@@ -99,11 +99,11 @@ DX suggestions:
 ```
 Link to your deployed agent:                            https://dendam.vercel.app
 GitHub:                                                 https://github.com/PugarHuda/dendam
-Link to the explorer showing your MemWalAccount object: https://suiscan.xyz/mainnet/object/<MEMWAL_ACCOUNT_ID>
-Your MEMWAL_AGENT_ID:                                   <delegate public key from the dashboard>
+Link to the explorer showing your MemWalAccount object: https://suiscan.xyz/mainnet/object/0xe2f6e4a535e0c4179098e6701b9026798b0e17c4622aa0585a14a80a64ca168e
+Your MEMWAL_AGENT_ID:                                   37891bc6e27b72ff2a133dbe833de6ceb5d4f7ee215caeaf369e4eee84ddf57d
 DeepSurge project Link:                                 <DeepSurge URL, mainnet>
 Project Link (URL):                                     https://dendam.vercel.app
-SUI address:                                            <dedicated SUI wallet for Sessions>
+SUI address:                                            0xed1e706c3fc3b11337a966a598785fa2da4190368b9a9789d4d99fca9c46d65e
 X tweet link:                                           <#Walrus tweet link>
 Demo video:                                             <upload, follow DEMO.md, ≤3 min>
 ```
