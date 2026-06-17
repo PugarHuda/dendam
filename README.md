@@ -108,6 +108,14 @@ The badge shows **● Local (dev)**.
 > ⚠️ The LLM key ≠ Walrus Memory credentials. OpenRouter only swaps the LLM; memory **still** requires MemWal credentials (step 2) for a valid submission. Prefer a model that supports structured output (Claude / GPT-4o-class) since Dendam uses `generateObject`.
 
 ### 2. Submission mode (Walrus Mainnet)
+
+**Fastest — scripted (no dashboard clicking):** with your owner Sui key (bech32 `suiprivkey1...`, funded with a little SUI for gas):
+```bash
+SUI_PRIVATE_KEY=suiprivkey1... npm run setup:memwal
+```
+This generates a delegate key, creates your MemWalAccount on-chain (or reuses `MEMWAL_ACCOUNT_ID` if set), registers the key, and writes all `MEMWAL_*` into `.env.local`. `MEMWAL_AGENT_ID` (the delegate public key) is what you paste into the Airtable form.
+
+**Or via the dashboard:**
 1. Create an account at **https://memory.walrus.xyz/dashboard**.
 2. Under **delegate keys**, create a delegate key. **`MEMWAL_AGENT_ID` = the Public key part** (this goes into the submission form).
 3. Fill `.env.local`:

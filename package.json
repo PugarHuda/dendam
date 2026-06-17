@@ -10,6 +10,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "check:memory": "tsx scripts/setup-check.ts",
+    "setup:memwal": "tsx scripts/setup-memwal.ts",
     "seed:results": "tsx scripts/seed-results.ts",
     "test": "node --import tsx --test tests/*.test.ts"
   },
@@ -25,9 +26,9 @@
   },
   "optionalDependencies": {
     "@mysten-incubation/memwal": "*",
-    "@mysten/seal": "*",
-    "@mysten/sui": "*",
-    "@mysten/walrus": "*"
+    "@mysten/seal": "^1.2.0",
+    "@mysten/sui": "^2.18.0",
+    "@mysten/walrus": "^1.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

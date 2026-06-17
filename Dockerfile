@@ -3,7 +3,8 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=optional || npm install --omit=optional
+# Install incl. optional deps (@mysten/* + memwal) — required for the Walrus backend.
+RUN npm ci || npm install
 
 FROM node:22-alpine AS builder
 WORKDIR /app
