@@ -6,7 +6,7 @@ import { HANDLE_KEY, TopBar } from "@/components/TopBar";
 
 export default function ChatPage() {
   const [handle, setHandle] = useState("anon");
-  const [backend, setBackend] = useState<string>("");
+  const [network, setNetwork] = useState<string>("");
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,8 +21,8 @@ export default function ChatPage() {
     api: "/api/chat",
     body: { handle },
     onResponse(res) {
-      const b = res.headers.get("x-dendam-backend");
-      if (b) setBackend(b);
+      const n = res.headers.get("x-dendam-network");
+      if (n) setNetwork(n);
     },
   });
 
@@ -37,9 +37,13 @@ export default function ChatPage() {
       <TopBar handle={handle} setHandle={setHandle} active="chat" />
 
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        {backend && (
-          <span className={`badge ${backend === "memwal" ? "live" : "local"}`}>
-            {backend === "memwal" ? "● Walrus Mainnet" : "● Local (dev)"}
+        {network && (
+          <span className={`badge ${network === "local" ? "local" : "live"}`}>
+            {network === "mainnet"
+              ? "● Walrus Mainnet"
+              : network === "testnet"
+                ? "● Walrus Testnet"
+                : "● Local (dev)"}
           </span>
         )}
         <span className="badge">memory for @{handle || "anon"}</span>

@@ -90,6 +90,7 @@ DX suggestions:
 3. [docs] Clarify namespace semantics (create vs per-call) + multi-user pattern — <issue link>
 4. [feature] list/enumerate API for memories per namespace with pagination (for dashboards) — <issue link>
 5. [dx] Explain MEMWAL_AGENT_ID (public key) vs delegate key in the dashboard — <issue link>
+6. [bug] account ops throw "SuiClient not found" with @mysten/sui v2.6+ (client moved to /jsonRpc) despite peer >=2.5.0 — <issue link>
 ```
 
 ---
@@ -165,4 +166,7 @@ Public interface (The File) makes the memory visible: full memory log, verdicts,
 
 **Ticket 5 — [dx] Clarify `MEMWAL_AGENT_ID` vs delegate key in the dashboard**
 > The submission form says `MEMWAL_AGENT_ID` is the "Public key part" of the delegate key. The dashboard could label this explicitly (e.g. "MEMWAL_AGENT_ID = this public key") to remove ambiguity between the private delegate key and the agent id.
+
+**Ticket 6 — [bug] account ops break with `@mysten/sui` v2.6+ even though peer is `>=2.5.0`**
+> `createAccount`/`addDelegateKey` auto-construct a `SuiClient` from `@mysten/sui/client`, but in `@mysten/sui` v2.6+ the JSON-RPC client moved to `@mysten/sui/jsonRpc` as `SuiJsonRpcClient` — so `@mysten/sui/client` no longer exports `SuiClient` and the call throws `"SuiClient not found. For @mysten/sui v2.6.0+, pass suiClient in opts."`. Since `peerDependencies` declares `@mysten/sui >=2.5.0`, a fresh install pulls v2.18 and breaks out of the box. The workaround (build `new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network) })` and pass `suiClient`) works, but it should either be auto-detected internally or documented in the quickstart. Repro + fix in our setup script: https://github.com/PugarHuda/dendam (scripts/setup-memwal.ts).
 ```

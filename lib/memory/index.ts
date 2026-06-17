@@ -47,3 +47,19 @@ export function namespaceFor(userHandle: string): string {
   const safe = userHandle.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "_");
   return `wc2026:${safe || "anon"}`;
 }
+
+export type MemoryNetwork = "mainnet" | "testnet" | "local";
+
+// Pure classifier (exported for testing).
+export function classifyNetwork(
+  backend: MemoryStore["backend"],
+  serverUrl: string | undefined,
+): MemoryNetwork {
+  if (backend !== "memwal") return "local";
+  return /staging|testnet/i.test(serverUrl || "") ? "testnet" : "mainnet";
+}
+
+// Which Walrus network the active store is talking to (drives the UI badge).
+export function memoryNetwork(): MemoryNetwork {
+  return classifyNetwork(getMemoryStore().backend, process.env.MEMWAL_SERVER_URL);
+}

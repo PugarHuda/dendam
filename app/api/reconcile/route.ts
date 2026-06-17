@@ -33,12 +33,22 @@ export async function POST(req: Request) {
     (p) => !judgedText.some((v) => v.includes(p.text.slice(0, 40))),
   );
 
+  // Judge predictions concurrently (capped) so we stay well under the 60s
+  // serverless limit; judgePrediction already swallows errors → "pending".
+  const MAX_JUDGE = 12;
+  const CONCURRENCY = 5;
+  const toJudge = fresh.slice(0, MAX_JUDGE);
+  const judged = await mapLimit(toJudge, CONCURRENCY, async (p) => ({
+    p,
+    v: await judgePrediction(p.text, results),
+  }));
+
+  // Persist verdicts sequentially (the local file store isn't safe for
+  // parallel writes; the relayer is, but sequential here is plenty fast).
   const verdicts: Verdict[] = [];
-  for (const p of fresh) {
-    const v = await judgePrediction(p.text, results);
+  for (const { p, v } of judged) {
     if (v.status === "pending") continue;
     verdicts.push(v);
-    // Persist the verdict as a durable grudge on Walrus.
     await store.remember(namespace, {
       text: `Verdict on prediction: "${p.text.slice(0, 80)}" — ${v.roast}`,
       kind: "result",
@@ -50,6 +60,28 @@ export async function POST(req: Request) {
   return Response.json({
     backend: store.backend,
     judged: verdicts.length,
+    skipped: Math.max(0, fresh.length - toJudge.length),
     verdicts,
   });
+}
+
+// Run an async fn over items with bounded concurrency, preserving order.
+async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await fn(items[i]);
+      }
+    },
+  );
+  await Promise.all(workers);
+  return out;
 }

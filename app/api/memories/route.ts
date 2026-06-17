@@ -1,4 +1,4 @@
-import { getMemoryStore, namespaceFor } from "@/lib/memory";
+import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 
 export const runtime = "nodejs";
 
@@ -15,13 +15,21 @@ export async function GET(req: Request) {
     return Response.json({
       handle,
       backend: store.backend,
+      network: memoryNetwork(),
       count: memories.length,
       memories,
     });
   } catch (err) {
     console.error("[dendam] list failed:", err);
     return Response.json(
-      { handle, backend: store.backend, count: 0, memories: [], error: "list_failed" },
+      {
+        handle,
+        backend: store.backend,
+        network: memoryNetwork(),
+        count: 0,
+        memories: [],
+        error: "list_failed",
+      },
       { status: 200 },
     );
   }

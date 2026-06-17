@@ -6,7 +6,7 @@ import {
   type RememberInput,
 } from "../lib/memory/types";
 import { LocalMemoryStore } from "../lib/memory/local";
-import { namespaceFor } from "../lib/memory";
+import { classifyNetwork, namespaceFor } from "../lib/memory";
 
 test("serialize → parse round-trips structured fields", () => {
   const input: RememberInput = {
@@ -71,4 +71,32 @@ test("LocalMemoryStore remember → recall → list", async () => {
   // recall with an unrelated query returns nothing (keyword overlap = 0)
   const none = await store.recall(ns, "zzzz qqqq", 5);
   assert.equal(none.length, 0);
+});
+
+test("LocalMemoryStore serializes concurrent writes (no lost updates)", async () => {
+  process.env.DENDAM_DATA_DIR = `${process.cwd()}/.tmp-test-conc-${Date.now()}`;
+  const store = new LocalMemoryStore();
+  const ns = "test:conc";
+  await Promise.all(
+    Array.from({ length: 25 }, (_, i) =>
+      store.remember(ns, { text: `mem ${i}`, kind: "fact" }),
+    ),
+  );
+  const all = await store.list(ns, 100);
+  assert.equal(all.length, 25); // without the write mutex this would be < 25
+  assert.equal(new Set(all.map((r) => r.id)).size, 25); // ids unique
+});
+
+test("classifyNetwork maps backend + relayer URL to a network", () => {
+  assert.equal(classifyNetwork("local", undefined), "local");
+  assert.equal(classifyNetwork("local", "https://relayer.memory.walrus.xyz"), "local");
+  assert.equal(
+    classifyNetwork("memwal", "https://relayer.memory.walrus.xyz"),
+    "mainnet",
+  );
+  assert.equal(
+    classifyNetwork("memwal", "https://relayer-staging.memory.walrus.xyz"),
+    "testnet",
+  );
+  assert.equal(classifyNetwork("memwal", undefined), "mainnet");
 });

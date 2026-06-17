@@ -1,7 +1,7 @@
 import { streamText, type CoreMessage } from "ai";
 import { dendamModel } from "@/lib/model";
 import { extractGrudges } from "@/lib/grudge";
-import { getMemoryStore, namespaceFor } from "@/lib/memory";
+import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 import { DENDAM_SYSTEM, renderMemoryBlock } from "@/lib/persona";
 
 export const runtime = "nodejs";
@@ -26,11 +26,14 @@ export async function POST(req: Request) {
       : JSON.stringify(lastUser?.content ?? "");
 
   // 1) RECALL — pull what Dendam remembers about this user from Walrus.
+  // Skip on an empty query (e.g. a non-text first turn) to avoid a useless call.
   let recalled: Awaited<ReturnType<typeof store.recall>> = [];
-  try {
-    recalled = await store.recall(namespace, query, 8);
-  } catch (err) {
-    console.error("[dendam] recall failed:", err);
+  if (query.trim()) {
+    try {
+      recalled = await store.recall(namespace, query, 8);
+    } catch (err) {
+      console.error("[dendam] recall failed:", err);
+    }
   }
 
   const system = `${DENDAM_SYSTEM}\n\n${renderMemoryBlock(recalled)}`;
@@ -56,6 +59,9 @@ export async function POST(req: Request) {
   });
 
   return result.toDataStreamResponse({
-    headers: { "x-dendam-backend": store.backend },
+    headers: {
+      "x-dendam-backend": store.backend,
+      "x-dendam-network": memoryNetwork(),
+    },
   });
 }

@@ -42,7 +42,7 @@ export default function DossierPage() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [results, setResults] = useState<MatchResult[]>([]);
   const [verdicts, setVerdicts] = useState<Verdict[]>([]);
-  const [backend, setBackend] = useState("");
+  const [network, setNetwork] = useState("");
   const [loading, setLoading] = useState(false);
   const [reconciling, setReconciling] = useState(false);
 
@@ -64,7 +64,7 @@ export default function DossierPage() {
       const m = await mRes.json();
       const r = await rRes.json();
       setMemories(m.memories ?? []);
-      setBackend(m.backend ?? "");
+      setNetwork(m.network ?? "");
       setResults(r.results ?? []);
     } finally {
       setLoading(false);
@@ -102,9 +102,13 @@ export default function DossierPage() {
       <TopBar handle={handle} setHandle={setHandle} active="dossier" />
 
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        {backend && (
-          <span className={`badge ${backend === "memwal" ? "live" : "local"}`}>
-            {backend === "memwal" ? "● Walrus Mainnet" : "● Local (dev)"}
+        {network && (
+          <span className={`badge ${network === "local" ? "local" : "live"}`}>
+            {network === "mainnet"
+              ? "● Walrus Mainnet"
+              : network === "testnet"
+                ? "● Walrus Testnet"
+                : "● Local (dev)"}
           </span>
         )}
         <span className="badge">file on @{handle || "anon"}</span>

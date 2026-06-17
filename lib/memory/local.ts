@@ -57,11 +57,25 @@ function score(query: string, rec: MemoryRecord): number {
 export class LocalMemoryStore implements MemoryStore {
   readonly backend = "local" as const;
 
+  // Serialize writes: the store is a single JSON file, so concurrent
+  // read-modify-write would clobber. Chain all writes through one queue.
+  private queue: Promise<void> = Promise.resolve();
+  private seq = 0;
+
   async remember(namespace: string, input: RememberInput): Promise<void> {
+    const run = this.queue.then(() => this.doRemember(namespace, input));
+    this.queue = run.catch(() => {}); // keep the chain alive on error
+    return run;
+  }
+
+  private async doRemember(
+    namespace: string,
+    input: RememberInput,
+  ): Promise<void> {
     const db = await readDB();
     const list = db[namespace] ?? [];
     const rec: MemoryRecord = {
-      id: `${Date.now()}-${list.length}`,
+      id: `${Date.now()}-${this.seq++}`,
       text: input.text,
       kind: input.kind,
       team: input.team,
