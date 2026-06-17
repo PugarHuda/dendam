@@ -53,7 +53,7 @@ Before/after example: Day 1, a fresh handle → Dendam admits it knows nothing a
 
 3) Result-triggered auto-roast. When World Cup scores land, Dendam automatically matches the user's predictions against reality and stores the verdict as a permanent grudge on Walrus.
 
-4) Stable technical execution: a swappable memory layer (MemoryStore interface) with a beta-safe Walrus Memory adapter (dynamic import + result normalization). Includes unit tests (15 passing), a memory round-trip preflight, and a green production build.
+4) Stable technical execution: a swappable memory layer (MemoryStore interface) with a beta-safe Walrus Memory adapter (dynamic import + result normalization). Includes unit tests (22 passing), a memory round-trip preflight, bounded-concurrency fan-out to stay under serverless limits, and a green production build.
 
 5) A strong, shareable persona (a vengeful rival) — not a generic assistant.
 
