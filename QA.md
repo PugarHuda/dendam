@@ -1,7 +1,7 @@
 # 🔍 QA & Audit Notes
 
 A thorough pass over correctness, edge cases, security, performance, and DX.
-Status at audit: typecheck OK · 17/17 unit tests · build green (6 API routes) ·
+Status at audit: typecheck OK · 22/22 unit tests · build green (6 API routes) ·
 live endpoints verified on Vercel (chat/recall/extract/reconcile/kompor/leaderboard,
 multilingual EN/ID/ES) · full pipeline validated on Walrus **testnet**
 (createAccount → addDelegateKey → remember → recall).
@@ -17,6 +17,7 @@ multilingual EN/ID/ES) · full pipeline validated on Walrus **testnet**
 | 6 | Low | `Dockerfile` used `--omit=optional`, skipping the `@mysten/*` peers the Walrus backend needs. | Install with optional deps. |
 | 7 | High | **Day-1 memory fabrication** — on an empty memory, a weak free model sometimes invented a fake past ("like when you predicted…"), undermining the before/after demo. | **Deterministic cold-start guard** (`lib/coldstart.ts`): on empty recall, generate non-streamed → regex-check for fabricated-past phrasing (multilingual) → retry cooler → hard-coded fallback. Stays free + model-agnostic. Verified clean across EN/ID/ES live. |
 | 8 | Medium | `POST /api/results` was open (scoreboard vandalism) when no token set. | `DENDAM_ADMIN_TOKEN` set on the deployment → writes require `x-admin-token`. |
+| 9 | Medium | `kompor` / `leaderboard` loaded each member's memories **sequentially**, and `memwal.list()` ran its 5 theme-recalls sequentially → a group of N members fanned out to ~N×5 serial relayer round-trips, risking the 60s limit (same class as #1). | Shared `mapLimit` util (`lib/async.ts`, reused by `reconcile`): member loads run at concurrency 4, theme-recalls within `list()` run concurrently. Regression tests assert order is preserved and the concurrency cap is honored. |
 
 ## Known limitations & recommendations (NOT bugs)
 - **Stronger model still recommended for the recorded demo.** The cold-start guard removes day-1 fabrication on any model, but a stronger model (`DENDAM_MODEL=claude-sonnet-4-6`, or free `nex-agi/nex-n2-pro:free` which tested best) gives sharper, more on-character roasts for the recording. The free default `openai/gpt-oss-120b:free` is fine and fully working.

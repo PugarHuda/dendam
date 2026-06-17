@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { mapLimit } from "./async";
 import { getMemoryStore, namespaceFor } from "./memory";
 import { MemoryRecord } from "./memory/types";
 import { generateJSON } from "./structured";
@@ -94,11 +95,12 @@ export async function komporForHandles(
   const store = getMemoryStore();
   const clean = [...new Set(handles.map((h) => h.trim()).filter(Boolean))];
 
-  const members: KomporMember[] = [];
-  for (const h of clean) {
-    const memories = await store.list(namespaceFor(h), 50);
-    members.push({ handle: h, memories });
-  }
+  // Load each member's memories concurrently (bounded) — sequential awaits
+  // here scale with group size and risk the 60s serverless limit.
+  const members: KomporMember[] = await mapLimit(clean, 4, async (h) => ({
+    handle: h,
+    memories: await store.list(namespaceFor(h), 50),
+  }));
 
   const result = await generateKompor(members);
 
@@ -106,16 +108,13 @@ export async function komporForHandles(
     const note = `In the Hot Seat, Dendam stirred up the group (${clean
       .map((h) => "@" + h)
       .join(", ")}) over ${result.topic}.`;
-    for (const h of clean) {
+    await mapLimit(clean, 4, async (h) => {
       try {
-        await store.remember(namespaceFor(h), {
-          text: note,
-          kind: "fact",
-        });
+        await store.remember(namespaceFor(h), { text: note, kind: "fact" });
       } catch {
         // non-fatal
       }
-    }
+    });
   }
 
   return { ...result, members: clean };

@@ -1,3 +1,4 @@
+import { mapLimit } from "../async";
 import {
   MemoryRecord,
   MemoryStore,
@@ -101,9 +102,14 @@ export class MemWalMemoryStore implements MemoryStore {
       "the user's hot takes about football",
       "the user's predictions that turned out wrong",
     ];
+    // Run the theme recalls concurrently — they're independent queries, and
+    // doing them sequentially multiplies per-handle latency 5x (which compounds
+    // when callers like the leaderboard/kompor list several handles).
+    const perTheme = await mapLimit(themes, themes.length, (q) =>
+      this.recall(namespace, q, limit),
+    );
     const seen = new Map<string, MemoryRecord>();
-    for (const q of themes) {
-      const recs = await this.recall(namespace, q, limit);
+    for (const recs of perTheme) {
       for (const r of recs) seen.set(r.text, r);
     }
     return [...seen.values()].slice(0, limit);

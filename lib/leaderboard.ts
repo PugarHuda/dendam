@@ -1,3 +1,4 @@
+import { mapLimit } from "./async";
 import { getMemoryStore, namespaceFor } from "./memory";
 
 // A "Hall of Shame" leaderboard computed purely from each member's stored
@@ -17,8 +18,9 @@ export async function leaderboardForHandles(
   const store = getMemoryStore();
   const clean = [...new Set(handles.map((h) => h.trim()).filter(Boolean))];
 
-  const rows: LeaderboardRow[] = [];
-  for (const h of clean) {
+  // Load each member's memories concurrently (bounded) — sequential awaits
+  // here scale with group size and risk the 60s serverless limit.
+  const rows: LeaderboardRow[] = await mapLimit(clean, 4, async (h) => {
     const memories = await store.list(namespaceFor(h), 200);
     const predictions = memories.filter((m) => m.kind === "prediction").length;
     const insults = memories.filter((m) => m.kind === "insult").length;
@@ -27,15 +29,15 @@ export async function leaderboardForHandles(
     const wrong = verdicts.filter((m) => m.wasWrong).length;
     const correct = verdicts.filter((m) => m.wasWrong === false).length;
     const resolved = wrong + correct;
-    rows.push({
+    return {
       handle: h,
       predictions,
       wrong,
       correct,
       insults,
       accuracy: resolved > 0 ? correct / resolved : null,
-    });
-  }
+    };
+  });
 
   // Hall of Shame order: most wrong first, then most insults, then fewest
   // predictions (all talk, no calls).

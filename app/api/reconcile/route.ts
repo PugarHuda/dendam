@@ -1,3 +1,4 @@
+import { mapLimit } from "@/lib/async";
 import { getMemoryStore, namespaceFor } from "@/lib/memory";
 import { listResults } from "@/lib/results";
 import { judgePrediction, Verdict } from "@/lib/verdict";
@@ -63,25 +64,4 @@ export async function POST(req: Request) {
     skipped: Math.max(0, fresh.length - toJudge.length),
     verdicts,
   });
-}
-
-// Run an async fn over items with bounded concurrency, preserving order.
-async function mapLimit<T, R>(
-  items: T[],
-  limit: number,
-  fn: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const out = new Array<R>(items.length);
-  let next = 0;
-  const workers = Array.from(
-    { length: Math.min(limit, items.length) },
-    async () => {
-      while (next < items.length) {
-        const i = next++;
-        out[i] = await fn(items[i]);
-      }
-    },
-  );
-  await Promise.all(workers);
-  return out;
 }
