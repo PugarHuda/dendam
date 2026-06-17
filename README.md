@@ -174,7 +174,8 @@ Verified: typecheck OK · 15/15 tests pass · build green (6 API routes) · endp
 ## Supporting docs
 - [`DEMO.md`](./DEMO.md) — 3-minute demo video storyboard (shot list + dialogue script).
 - [`DEPLOY.md`](./DEPLOY.md) — deployment paths (Vercel / Node host / Walrus Site).
-- [`SUBMISSION.md`](./SUBMISSION.md) — paste-ready Airtable form text, promo copy, and 5 draft GitHub feedback tickets.
+- [`SUBMISSION.md`](./SUBMISSION.md) — paste-ready Airtable form text, promo copy, and 6 draft GitHub feedback tickets.
+- [`QA.md`](./QA.md) — audit notes: issues found & fixed, known limitations, recommendations.
 
 ## License
 Apache-2.0
