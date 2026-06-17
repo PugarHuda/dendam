@@ -16,7 +16,7 @@ To make memory **persistent on Walrus Mainnet** (required for the submission):
 ```bash
 printf '%s' "<delegate-key-hex>"        | vercel env add MEMWAL_DELEGATE_KEY production
 printf '%s' "<memwal-account-id>"        | vercel env add MEMWAL_ACCOUNT_ID production
-printf '%s' "https://memory.walrus.xyz"  | vercel env add MEMWAL_SERVER_URL production
+printf '%s' "https://relayer.memory.walrus.xyz" | vercel env add MEMWAL_SERVER_URL production
 vercel deploy --prod --yes               # redeploy so the env is applied
 ```
 Vercel notes: the filesystem is read-only except `/tmp` (ephemeral). The scoreboard (`/api/results`) in `/tmp` can be lost on a cold start — re-feed it after deploy, or use a persistent backend. User memory is unaffected once `MEMWAL_*` is set (it's stored on Walrus). The `maxDuration=60s` function limit is enough for the LLM.
@@ -35,7 +35,7 @@ docker run -p 3000:3000 \
   -e DENDAM_MODEL=openai/gpt-oss-120b:free \
   -e MEMWAL_DELEGATE_KEY=... \
   -e MEMWAL_ACCOUNT_ID=... \
-  -e MEMWAL_SERVER_URL=https://memory.walrus.xyz \
+  -e MEMWAL_SERVER_URL=https://relayer.memory.walrus.xyz \
   dendam
 ```
 

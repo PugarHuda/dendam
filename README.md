@@ -116,7 +116,7 @@ The badge shows **● Local (dev)**.
    DENDAM_MODEL=claude-opus-4-8        # or claude-sonnet-4-6
    MEMWAL_DELEGATE_KEY=<hex private delegate key>
    MEMWAL_ACCOUNT_ID=<MemWalAccount id>
-   MEMWAL_SERVER_URL=https://memory.walrus.xyz
+   MEMWAL_SERVER_URL=https://relayer.memory.walrus.xyz
    MEMWAL_AGENT_ID=<delegate public key>
    ```
 4. Verify the round-trip to Walrus:
