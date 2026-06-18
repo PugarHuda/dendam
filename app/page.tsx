@@ -1,171 +1,221 @@
-"use client";
+import Link from "next/link";
 
-import { useChat } from "@ai-sdk/react";
-import { useEffect, useRef, useState } from "react";
-import { HANDLE_KEY, TopBar } from "@/components/TopBar";
+const ACCOUNT_ID =
+  "0xe2f6e4a535e0c4179098e6701b9026798b0e17c4622aa0585a14a80a64ca168e";
+const EXPLORER = `https://suiscan.xyz/mainnet/object/${ACCOUNT_ID}`;
 
-const SUGGESTIONS = [
-  "Argentina wins it all, Brazil won't escape the group 😎",
-  "Mbappé outscores Messi this tournament, easy.",
-  "VAR is ruining football — scrap it.",
-  "Honestly? You're just a bot who knows nothing about football.",
+const FEATURES: { icon: string; title: string; body: string }[] = [
+  {
+    icon: "🎯",
+    title: "Memory as a weapon",
+    body: "Every wrong prediction becomes ammo. Dendam doesn't log your takes — it weaponizes them.",
+  },
+  {
+    icon: "⚖️",
+    title: "Auto-roast on results",
+    body: "When real match scores land, Dendam matches them against your calls and roasts the ones you blew.",
+  },
+  {
+    icon: "🔥",
+    title: "Hot Seat instigator",
+    body: "Feed it your group's handles and it pits everyone against each other using their real stored takes.",
+  },
+  {
+    icon: "🏆",
+    title: "Hall of Shame",
+    body: "A live leaderboard of who's been most wrong — computed purely from memory.",
+  },
+  {
+    icon: "🌍",
+    title: "Speaks your language",
+    body: "Defaults to English, mirrors whatever you type (Indonesian, Spanish…), shrugs off typos & slang.",
+  },
+  {
+    icon: "🔒",
+    title: "Real on-chain memory",
+    body: "Encrypted on Walrus Mainnet, tied to a MemWalAccount object on Sui. Verifiable, not a chat log.",
+  },
 ];
 
-function NetworkBadge({ network }: { network: string }) {
-  if (!network) return null;
-  const label =
-    network === "mainnet"
-      ? "Walrus Mainnet"
-      : network === "testnet"
-        ? "Walrus Testnet"
-        : "Local (dev)";
+const STEPS: { n: string; title: string; body: string }[] = [
+  {
+    n: "1",
+    title: "Recall",
+    body: "Before replying, Dendam pulls what it knows about you from Walrus — past predictions, insults, favourite teams.",
+  },
+  {
+    n: "2",
+    title: "Respond",
+    body: "Those memories are injected into its persona. It confronts your contradictions and dredges up old claims.",
+  },
+  {
+    n: "3",
+    title: "Remember",
+    body: "It distils the exchange into durable memories and writes them back to Walrus for next time.",
+  },
+];
+
+export default function LandingPage() {
   return (
-    <span className={`badge ${network === "local" ? "local" : "live"}`}>
-      {label}
-    </span>
-  );
-}
-
-export default function ChatPage() {
-  const [handle, setHandle] = useState("anon");
-  const [network, setNetwork] = useState<string>("");
-  const scroller = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(HANDLE_KEY);
-    if (saved) setHandle(saved);
-  }, []);
-  useEffect(() => {
-    localStorage.setItem(HANDLE_KEY, handle);
-  }, [handle]);
-
-  const { messages, input, handleInputChange, handleSubmit, append, status } =
-    useChat({
-    api: "/api/chat",
-    body: { handle },
-    onResponse(res) {
-      const n = res.headers.get("x-dendam-network");
-      if (n) setNetwork(n);
-    },
-  });
-
-  useEffect(() => {
-    scroller.current?.scrollTo({ top: 1e9, behavior: "smooth" });
-  }, [messages, status]);
-
-  // Auto-grow the composer textarea.
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 180) + "px";
-  }, [input]);
-
-  const busy = status === "submitted" || status === "streaming";
-  const lastId = messages.length ? messages[messages.length - 1].id : null;
-
-  function msgText(m: (typeof messages)[number]): string {
-    return (
-      m.parts
-        ?.map((p) => (p.type === "text" ? p.text : ""))
-        .join("") ??
-      (m as { content?: string }).content ??
-      ""
-    );
-  }
-
-  return (
-    <div className="shell">
-      <TopBar handle={handle} setHandle={setHandle} active="chat" />
-
-      <div className="badge-row">
-        <NetworkBadge network={network} />
-        <span className="badge">memory for @{handle || "anon"}</span>
-      </div>
-
-      <div className="chat" ref={scroller}>
-        {messages.length === 0 && (
-          <div className="empty">
-            <div className="big">🔥</div>
-            Drop your World Cup 2026 predictions. Dendam remembers every one —
-            and throws it back the moment you&rsquo;re wrong.
-            <div className="chips">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  className="chip"
-                  onClick={() => append({ role: "user", content: s })}
-                  disabled={busy}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+    <div className="shell landing">
+      <header className="topbar">
+        <Link href="/" className="brand" style={{ textDecoration: "none" }}>
+          <span className="brand-emblem" aria-hidden>
+            🔥
+          </span>
+          <div className="brand-text">
+            <h1 style={{ color: "var(--ink)" }}>
+              Dendam<span className="dot">.</span>
+            </h1>
+            <small>the World Cup 2026 rival that never forgets</small>
           </div>
-        )}
+        </Link>
+        <nav className="nav">
+          <Link href="/chat">Face off</Link>
+          <Link href="/dossier">The File</Link>
+          <Link href="/grup">Hot Seat</Link>
+        </nav>
+      </header>
 
-        {messages.map((m) => {
-          const isUser = m.role === "user";
-          const streamingHere =
-            !isUser && status === "streaming" && m.id === lastId;
-          return (
-            <div key={m.id} className={`msg-row ${m.role}`}>
-              <div
-                className={`avatar ${isUser ? "you" : "dendam"}`}
-                aria-hidden
-              >
-                {isUser ? "🧑" : "🔥"}
+      {/* ── Hero ─────────────────────────────────── */}
+      <section className="hero">
+        <span className="badge live">Live on Walrus Mainnet</span>
+        <h2 className="hero-title">
+          Make your call.
+          <br />
+          <span className="grad">Live with it.</span>
+        </h2>
+        <p className="hero-sub">
+          Dendam is a grudge-holding football rival for the FIFA World Cup 2026.
+          Every prediction, hot take, and bit of trash talk you throw at it is
+          stored on <b>Walrus Memory</b> — then thrown right back the moment
+          you&rsquo;re wrong.
+        </p>
+        <div className="cta-row">
+          <Link href="/chat" className="btn">
+            🔥 Face off with Dendam
+          </Link>
+          <Link href="/dossier" className="btn ghost">
+            See a live File
+          </Link>
+        </div>
+        <p className="hero-hook">
+          Day&nbsp;1 it knows nothing about you. Day&nbsp;5 it has a{" "}
+          <b>file</b> on you.
+        </p>
+      </section>
+
+      {/* ── Before / after ───────────────────────── */}
+      <section>
+        <div className="section-head">
+          <h3>The before / after</h3>
+          <span className="count">why memory matters</span>
+        </div>
+        <div className="ba-grid">
+          <div className="ba-card">
+            <div className="ba-tag">DAY 1 · memory empty</div>
+            <div className="msg-row assistant">
+              <div className="avatar dendam" aria-hidden>
+                🔥
               </div>
-              <div className={`msg ${m.role}`}>
-                <div className="who">{isUser ? "You" : "Dendam"}</div>
-                <span>{msgText(m)}</span>
-                {streamingHere && <span className="caret" />}
+              <div className="msg assistant">
+                <div className="who">Dendam</div>
+                <span>
+                  First time I&rsquo;m hearing you, huh? No record of you yet —
+                  so go on, make a call and I&rsquo;ll remember every word.
+                </span>
               </div>
             </div>
-          );
-        })}
-
-        {status === "submitted" && (
-          <div className="msg-row assistant">
-            <div className="avatar dendam" aria-hidden>
-              🔥
-            </div>
-            <div className="msg assistant">
-              <div className="who">Dendam</div>
-              <span className="typing" aria-label="digging up your old takes">
-                <i />
-                <i />
-                <i />
-              </span>
+          </div>
+          <div className="ba-card hot">
+            <div className="ba-tag hot">DAY N · it remembers everything</div>
+            <div className="msg-row assistant">
+              <div className="avatar dendam" aria-hidden>
+                🔥
+              </div>
+              <div className="msg assistant">
+                <div className="who">Dendam</div>
+                <span>
+                  I remember you crowned Argentina champions and wrote off
+                  Brazil like they were done. Brazil just knocked them out.
+                  Still feeling clever?
+                </span>
+              </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
 
-      <form className="composer" onSubmit={handleSubmit}>
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={handleInputChange}
-          placeholder="Type your prediction / opinion / trash talk… (any language)"
-          aria-label="Message Dendam"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              (e.currentTarget.form as HTMLFormElement).requestSubmit();
-            }
-          }}
-        />
-        <button className="send" type="submit" disabled={busy || !input.trim()}>
-          Send
-        </button>
-      </form>
-      <p className="hint">
-        Tip: come back over several days. See what sticks in{" "}
-        <a href="/dossier">The File</a> — real memory stored on Walrus, not a
-        chat log.
-      </p>
+      {/* ── How it works ─────────────────────────── */}
+      <section>
+        <div className="section-head">
+          <h3>How it works</h3>
+          <span className="count">a 3-step loop on Walrus</span>
+        </div>
+        <div className="steps">
+          {STEPS.map((s) => (
+            <div key={s.n} className="step">
+              <div className="step-n">{s.n}</div>
+              <div className="step-title">{s.title}</div>
+              <p className="step-body">{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Features ─────────────────────────────── */}
+      <section>
+        <div className="section-head">
+          <h3>What makes it sting</h3>
+          <span className="count">feature set</span>
+        </div>
+        <div className="feat-grid">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="feat">
+              <div className="feat-icon" aria-hidden>
+                {f.icon}
+              </div>
+              <div className="feat-title">{f.title}</div>
+              <p className="feat-body">{f.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Built on Walrus ──────────────────────── */}
+      <section className="walrus-card">
+        <h3 style={{ margin: "0 0 8px" }}>🦭 Built on Walrus Memory</h3>
+        <p className="hint" style={{ marginTop: 0 }}>
+          Dendam&rsquo;s memory runs 100% on Walrus Memory (Mainnet). Each
+          memory is embedded, encrypted, and stored on Walrus, tied to a{" "}
+          <code>MemWalAccount</code> object on Sui — so &ldquo;the agent
+          remembers&rdquo; is genuinely verifiable, not a UI trick.
+        </p>
+        <div className="cta-row" style={{ marginTop: 14 }}>
+          <a className="btn ghost sm" href={EXPLORER} target="_blank" rel="noreferrer">
+            🔎 View the MemWalAccount on Sui
+          </a>
+          <a
+            className="btn ghost sm"
+            href="https://github.com/PugarHuda/dendam"
+            target="_blank"
+            rel="noreferrer"
+          >
+            ⌨️ Source code
+          </a>
+        </div>
+      </section>
+
+      {/* ── Final CTA ────────────────────────────── */}
+      <section className="final-cta">
+        <h3>Got a hot take for the World Cup?</h3>
+        <p className="hint" style={{ marginTop: 4, marginBottom: 16 }}>
+          Make it. Dendam will be waiting with the receipts.
+        </p>
+        <Link href="/chat" className="btn">
+          🔥 Face off now
+        </Link>
+      </section>
 
       <footer className="footer">
         <span>Memory on Walrus · Sui Mainnet</span>

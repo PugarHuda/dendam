@@ -193,7 +193,7 @@ export default function GrupPage() {
       )}
 
       <p className="hint">
-        Tip: have each member chat in <a href="/">Face off</a> first so Dendam
+        Tip: have each member chat in <a href="/chat">Face off</a> first so Dendam
         has ammo on them. The instigation it creates is also saved to each
         member&rsquo;s memory.
       </p>

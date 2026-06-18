@@ -13,17 +13,17 @@ export function TopBar({
 }) {
   return (
     <div className="topbar">
-      <div className="brand">
+      <Link href="/" className="brand" style={{ textDecoration: "none" }}>
         <span className="brand-emblem" aria-hidden>
           🔥
         </span>
         <div className="brand-text">
-          <h1>
+          <h1 style={{ color: "var(--ink)" }}>
             Dendam<span className="dot">.</span>
           </h1>
           <small>the World Cup 2026 rival that never forgets</small>
         </div>
-      </div>
+      </Link>
       <div className="topbar-right">
         <div className="handle" title="Your identity — your memory is stored per-handle on Walrus">
           <span style={{ color: "var(--muted)" }}>@</span>
@@ -36,7 +36,7 @@ export function TopBar({
           />
         </div>
         <nav className="nav">
-          <Link href="/" className={active === "chat" ? "active" : ""}>
+          <Link href="/chat" className={active === "chat" ? "active" : ""}>
             Face off
           </Link>
           <Link
