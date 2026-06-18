@@ -84,12 +84,16 @@ DX suggestions:
 ```
 
 ### Feedback on using Walrus Memory (GitHub tickets) *
-> Open the tickets in the MystenLabs/MemWal repo and paste the links. Ready-to-use drafts are in the "DRAFT GITHUB TICKETS" section below. NOTE: drafts were re-verified against SDK v0.0.7 — the old recall-schema and namespace tickets are now resolved upstream and have been dropped; file only the three below.
+> FILED in the MystenLabs/MemWal repo. Drafts were re-verified against SDK v0.0.7 — the old recall-schema and namespace tickets are now resolved upstream (dropped), and two of the remaining items overlapped with active community issues, so we contributed there instead of opening duplicates.
 ```
-1. [feature] list/enumerate API for memories per namespace with pagination (for dashboards) — <issue link>
-2. [docs] read-your-writes consistency guarantee after waitForRememberJob — <issue link>
-3. [bug] account ops throw "SuiClient not found" with @mysten/sui v2.6+ despite peer >=2.5.0 (and docstring claims internal fallback works) — <issue link>
-4. [dx] Explain MEMWAL_AGENT_ID (public key) vs delegate key in the dashboard — <issue link>
+1. [bug] createAccount/addDelegateKey throw "SuiClient not found" on @mysten/sui v2.6+ despite peer >=2.5.0 (NEW ISSUE)
+   → https://github.com/MystenLabs/MemWal/issues/300
+2. [feature] query-less list/enumerate primitive for a namespace (leaderboard/dashboard completeness) — contributed to the existing truncation issue #271
+   → https://github.com/MystenLabs/MemWal/issues/271#issuecomment-4738923047
+3. [docs] read-your-writes consistency guarantee after waitForRememberJob — contributed to the existing indexing-status issue #272
+   → https://github.com/MystenLabs/MemWal/issues/272#issuecomment-4738923217
+
+(The MEMWAL_AGENT_ID-vs-delegate-key item is a dashboard UX note, not an SDK bug — folded into the prose Feedback section above rather than filed as code-repo noise.)
 ```
 
 ---
