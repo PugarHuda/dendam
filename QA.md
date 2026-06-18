@@ -1,7 +1,7 @@
 # 🔍 QA & Audit Notes
 
 A thorough pass over correctness, edge cases, security, performance, and DX.
-Status at audit: typecheck OK · 24/24 unit tests · build green (6 API routes) ·
+Status at audit: typecheck OK · 34/34 unit tests · build green (6 API routes) ·
 live endpoints verified on Vercel (chat/recall/extract/reconcile/kompor/leaderboard,
 multilingual EN/ID/ES) · full pipeline validated on Walrus **mainnet**
 (createAccount → addDelegateKey → remember → recall).
@@ -21,6 +21,8 @@ multilingual EN/ID/ES) · full pipeline validated on Walrus **mainnet**
 | 10 | High | `reconcile` and `leaderboard` routes had **no try/catch** around their `store.list()` / `store.remember()` calls → a relayer/network error in the MemWal backend became an unhandled rejection (bare 500, no JSON body) in the serverless handler. | Wrapped both handlers' store calls in try/catch → `500 {error}` with a logged cause; mirrors the `kompor`/`memories` routes. |
 | 11 | Medium | `POST /api/results` accepted any array shape and wrote rows verbatim — a missing `id` collapsed all rows into one, a missing/`undefined` `date` later threw in `listResults`' `localeCompare` sort, non-numeric scores corrupted `winnerOf`. | `isValidResult()` validates each row (non-empty `id`/`date`/teams, finite numeric scores); `addResults` drops invalid rows and returns `-1` when none are valid → route replies `400 no_valid_results`. +2 regression tests. |
 | 12 | Low | `POST /api/chat` did an unguarded `req.json()` on the hot path → a malformed body 500'd without a JSON error. | Guarded with `.catch(() => ({}))` + a `400 no_messages` check, matching the other routes. |
+| 13 | **High** | **Cold-start 504 on Mainnet (live).** `MemWalMemoryStore.remember` blocked on `waitForRememberJob` (~tens of sec of Walrus indexing) **per memory, sequentially**. A fresh-handle chat writes 2-3 grudges → 90-135s → `FUNCTION_INVOCATION_TIMEOUT`, and the write was lost. This hit the **day-1 cold-start path** — the exact moment the demo's before/after hinges on. Reproduced live with a throwaway handle. | `remember()` now submits the job and returns on the relayer's `202 Accepted` without blocking on indexing (the wait can't help a same-request read and isn't needed cross-session — indexing finishes in the background long before the user's next session). The cold-start route also writes via Next's `after()` so the reply flushes before extraction+write run. Verified: cold-start chat now returns ~instantly and the memory appears on Mainnet within ~indexing latency. |
+| 14 | Medium | `extractJson` (free-model JSON fallback) used `lastIndexOf(closer)` → trailing prose containing a `}`/`]` after valid JSON grabbed the wrong closer and threw, defeating the fallback. | Replaced with a string-aware **balanced-brace scanner** that finds the matching closer from the first opener (and falls back to the other opener if the first is prose). +8 regression tests. |
 
 ## Known limitations & recommendations (NOT bugs)
 - **Stronger model still recommended for the recorded demo.** The cold-start guard removes day-1 fabrication on any model, but a stronger model (`DENDAM_MODEL=claude-sonnet-4-6`, or free `nex-agi/nex-n2-pro:free` which tested best) gives sharper, more on-character roasts for the recording. The free default `openai/gpt-oss-120b:free` is fine and fully working.

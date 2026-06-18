@@ -4,6 +4,7 @@ import {
   streamText,
   type CoreMessage,
 } from "ai";
+import { after } from "next/server";
 import { dendamModel } from "@/lib/model";
 import { coldStartReply } from "@/lib/coldstart";
 import { extractGrudges } from "@/lib/grudge";
@@ -65,7 +66,10 @@ export async function POST(req: Request) {
   // → safe fallback) instead of streaming and hoping the model obeys.
   if (recalled.length === 0) {
     const text = await coldStartReply(messages);
-    await remember(text);
+    // Persist grudges AFTER the response is flushed — extraction + the Walrus
+    // write must not delay the user's day-1 reply (and must not risk the 60s
+    // function limit on the critical cold-start path).
+    after(() => remember(text));
     return createDataStreamResponse({
       headers,
       execute(writer) {

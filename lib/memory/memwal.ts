@@ -63,12 +63,16 @@ export class MemWalMemoryStore implements MemoryStore {
   async remember(namespace: string, input: RememberInput): Promise<void> {
     const client = await this.getClient(namespace);
     const payload = serializeMemory(input);
-    const job = await client.remember(payload);
-    // Block until the memory is durably written to Walrus, so a subsequent
-    // recall in the same or next session actually sees it.
-    if (job?.job_id && typeof client.waitForRememberJob === "function") {
-      await client.waitForRememberJob(job.job_id);
-    }
+    // Submit the remember job and return as soon as the relayer accepts it.
+    // We deliberately do NOT block on waitForRememberJob: Walrus indexing
+    // takes tens of seconds, which (a) is far longer than any single request
+    // so it can't help a same-request read anyway, and (b) stacked per-memory
+    // and sequentially (chat writes 2-3 grudges; reconcile writes N verdicts)
+    // it blew past the 60s serverless limit — observed live as a cold-start
+    // FUNCTION_INVOCATION_TIMEOUT (504) that ALSO lost the write. Cross-session
+    // recall — the real use case — sees the memory once the relayer finishes
+    // indexing in the background, long before the user returns next session.
+    await client.remember(payload);
   }
 
   async recall(
