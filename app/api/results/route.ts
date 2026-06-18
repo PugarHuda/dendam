@@ -1,10 +1,12 @@
-import { addResults, listResults, MatchResult } from "@/lib/results";
+import { addResults, MatchResult } from "@/lib/results";
+import { getAllResults } from "@/lib/sportsapi";
 
 export const runtime = "nodejs";
 
-// GET — public list of recorded match results (powers the results feed).
+// GET — public list of match results (manual/seed merged with the live
+// football-data.org feed when FOOTBALL_DATA_TOKEN is set). Powers the feed.
 export async function GET() {
-  const results = await listResults();
+  const results = await getAllResults();
   return Response.json({ count: results.length, results });
 }
 

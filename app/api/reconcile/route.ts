@@ -1,6 +1,6 @@
 import { mapLimit } from "@/lib/async";
 import { getMemoryStore, namespaceFor } from "@/lib/memory";
-import { listResults } from "@/lib/results";
+import { getAllResults } from "@/lib/sportsapi";
 import { judgePrediction, Verdict } from "@/lib/verdict";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const store = getMemoryStore();
   const namespace = namespaceFor(handle || "anon");
 
-  const results = await listResults();
+  const results = await getAllResults();
   if (results.length === 0) {
     return Response.json({ verdicts: [], note: "no_results_yet" });
   }
