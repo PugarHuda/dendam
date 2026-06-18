@@ -13,6 +13,13 @@ export async function POST(req: Request) {
   if (list.filter((h) => h && h.trim()).length < 1) {
     return Response.json({ error: "need_handles" }, { status: 400 });
   }
-  const rows = await leaderboardForHandles(list);
-  return Response.json({ backend: getMemoryStore().backend, rows });
+  try {
+    const rows = await leaderboardForHandles(list);
+    return Response.json({ backend: getMemoryStore().backend, rows });
+  } catch (err) {
+    // One failing handle's list() (relayer/network) must not reject the
+    // whole handler as an unhandled rejection.
+    console.error("leaderboard failed:", err);
+    return Response.json({ error: "leaderboard_failed" }, { status: 500 });
+  }
 }

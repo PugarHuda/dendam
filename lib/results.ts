@@ -45,10 +45,31 @@ export async function listResults(): Promise<MatchResult[]> {
   }
 }
 
+// A row is only persisted if it has the fields the rest of the app relies on:
+// a non-empty `id` (the upsert key — a missing id would collapse rows together)
+// and `date` (used for sorting via localeCompare, which throws on undefined),
+// two team names, and numeric scores (winnerOf compares them).
+export function isValidResult(r: unknown): r is MatchResult {
+  const m = r as Partial<MatchResult> | null;
+  return (
+    !!m &&
+    typeof m.id === "string" && m.id.trim() !== "" &&
+    typeof m.date === "string" && m.date.trim() !== "" &&
+    typeof m.teamA === "string" && m.teamA.trim() !== "" &&
+    typeof m.teamB === "string" && m.teamB.trim() !== "" &&
+    typeof m.scoreA === "number" && Number.isFinite(m.scoreA) &&
+    typeof m.scoreB === "number" && Number.isFinite(m.scoreB)
+  );
+}
+
+// Returns the merged total, or -1 if every incoming row was invalid (nothing
+// was written) so callers can surface a 400 instead of a silent no-op.
 export async function addResults(results: MatchResult[]): Promise<number> {
+  const valid = results.filter(isValidResult);
+  if (valid.length === 0) return -1;
   const existing = await listResults();
   const byId = new Map(existing.map((r) => [r.id, r]));
-  for (const r of results) byId.set(r.id, r); // upsert by id
+  for (const r of valid) byId.set(r.id, r); // upsert by id
   const merged = [...byId.values()];
   const f = file();
   await fs.mkdir(path.dirname(f), { recursive: true });

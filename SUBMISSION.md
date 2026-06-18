@@ -53,7 +53,7 @@ Before/after example: Day 1, a fresh handle → Dendam admits it knows nothing a
 
 3) Result-triggered auto-roast. When World Cup scores land, Dendam automatically matches the user's predictions against reality and stores the verdict as a permanent grudge on Walrus.
 
-4) Stable technical execution: a swappable memory layer (MemoryStore interface) with a beta-safe Walrus Memory adapter (dynamic import + result normalization). Includes unit tests (22 passing), a memory round-trip preflight, bounded-concurrency fan-out to stay under serverless limits, and a green production build.
+4) Stable technical execution: a swappable memory layer (MemoryStore interface) with a beta-safe Walrus Memory adapter (dynamic import + result normalization). Includes unit tests (24 passing), a memory round-trip preflight, bounded-concurrency fan-out to stay under serverless limits, and a green production build.
 
 5) A strong, shareable persona (a vengeful rival) — not a generic assistant.
 
@@ -68,29 +68,28 @@ Before/after example: Day 1, a fresh handle → Dendam admits it knows nothing a
 ```
 What worked well:
 - The recall/remember concept fits agentic use cases perfectly — the "owner + namespace" mental model is intuitive.
-- Fast initial setup (curl skill installer, npm/pip SDK), and tying memory to an on-chain object (MemWalAccount) gives a real sense of being verifiable.
+- Fast initial setup (npm/pip SDK), and tying memory to an on-chain object (MemWalAccount) gives a real sense of being verifiable.
+- The SDK has matured fast: by v0.0.7 the TypeScript types fully describe recall()/remember() responses (RecallResult/RecallMemory, the remember job state machine), and namespace can be passed per-call as well as at create() — so the response-shape and namespace ambiguities we hit early on are now resolved in the types.
 
-Challenges we hit:
-- Walrus Memory is still beta, so the exact return type of recall() and the lifecycle of the remember() job aren't fully documented — we had to write a defensive adapter that normalizes several possible response shapes.
-- It's unclear whether namespace is set at create() or can be per-call, and the multi-user pattern (one client per namespace vs a parameter) needs an official example.
-- We found no "list/enumerate" API for a namespace; to build a full memory dashboard we had to do multi-query recall + dedupe.
+Challenges that remain (verified against SDK v0.0.7):
+- There is still no "list/enumerate" API that returns a namespace's stored memories. recall() is semantic-only and restore() returns counts (restored/skipped/total), not the texts — and is explicitly single-shot with no pagination cursor. To build a full memory dashboard ("The File") we approximate enumeration with multi-query recall + dedupe.
+- Read-your-writes consistency after waitForRememberJob() isn't documented — is a recall() immediately after the job reaches "done" guaranteed to see the new memory? We block on waitForRememberJob to be safe.
+- On-chain account ops (createAccount/addDelegateKey) still throw "SuiClient not found" on @mysten/sui v2.6+ unless you pass suiClient yourself — and the docstring claims the SDK "will create one internally," which is now misleading on a fresh install (peer >=2.5.0 pulls v2.18).
 
 DX suggestions:
-- Publish the full TypeScript schema for RecallResult & RememberJob.
-- Add an endpoint/method to list memories per namespace with pagination.
+- Add a method to list memories per namespace with pagination (decrypted text, not just restore() counts).
 - Document read-your-writes consistency after waitForRememberJob.
+- Either auto-detect the v2.6+ Sui client internally or update the docstring/quickstart to say suiClient is required.
 (GitHub ticket details below.)
 ```
 
 ### Feedback on using Walrus Memory (GitHub tickets) *
-> Open the tickets in the MystenLabs/MemWal repo and paste the links. Ready-to-use drafts are in the "DRAFT GITHUB TICKETS" section below.
+> Open the tickets in the MystenLabs/MemWal repo and paste the links. Ready-to-use drafts are in the "DRAFT GITHUB TICKETS" section below. NOTE: drafts were re-verified against SDK v0.0.7 — the old recall-schema and namespace tickets are now resolved upstream and have been dropped; file only the three below.
 ```
-1. [docs] Document the return schema of recall() (memories vs results vs items) — <issue link>
-2. [docs] remember()/job_id lifecycle + read-your-writes consistency after waitForRememberJob — <issue link>
-3. [docs] Clarify namespace semantics (create vs per-call) + multi-user pattern — <issue link>
-4. [feature] list/enumerate API for memories per namespace with pagination (for dashboards) — <issue link>
-5. [dx] Explain MEMWAL_AGENT_ID (public key) vs delegate key in the dashboard — <issue link>
-6. [bug] account ops throw "SuiClient not found" with @mysten/sui v2.6+ (client moved to /jsonRpc) despite peer >=2.5.0 — <issue link>
+1. [feature] list/enumerate API for memories per namespace with pagination (for dashboards) — <issue link>
+2. [docs] read-your-writes consistency guarantee after waitForRememberJob — <issue link>
+3. [bug] account ops throw "SuiClient not found" with @mysten/sui v2.6+ despite peer >=2.5.0 (and docstring claims internal fallback works) — <issue link>
+4. [dx] Explain MEMWAL_AGENT_ID (public key) vs delegate key in the dashboard — <issue link>
 ```
 
 ---
@@ -150,23 +149,20 @@ Public interface (The File) makes the memory visible: full memory log, verdicts,
 ---
 
 ## DRAFT GITHUB TICKETS (repo: MystenLabs/MemWal)
-> Verify against the real SDK once your credentials are active — if something is already documented, adjust/drop the related ticket before filing.
+> Re-verified against installed SDK **v0.0.7** (June 2026). Two earlier drafts are now resolved upstream and have been REMOVED so we don't file noise:
+> - ~~recall() return schema~~ — now fully typed in `dist/types.d.ts` (`RecallResult { results: RecallMemory[]; total }`, `RecallMemory { blob_id; text; distance }`) with a worked `@example` in `memwal.d.ts`.
+> - ~~namespace create-vs-per-call~~ — types now show `namespace?` is accepted per call on `remember`/`recall`/`rememberBulk` and defaults from `MemWalConfig`, so the multi-user pattern is answerable from the types.
+> File only the three below (plus the dashboard DX note).
 
-**Ticket 1 — [docs] Specify the return schema of `recall()`**
-> The SDK quickstart shows `const result = await memwal.recall({ query })` but the shape of `result` (e.g. `result.memories[]`, fields `text`/`content`/`id`/`created_at`) isn't documented. We had to write a defensive normalizer that probes several shapes. Please publish the TypeScript type for the recall response.
+**Ticket 1 — [feature] List/enumerate memories for a namespace**
+> There's still no API that returns the stored memories of a namespace. `recall(query)` is semantic-only, and `restore(namespace, limit)` returns counts (`restored`/`skipped`/`total`) — not the texts — and its own docstring notes it's single-shot with "No pagination cursor." Building a memory dashboard therefore requires enumerating everything; we approximate it with multi-query `recall` + dedupe (see `lib/memory/memwal.ts` `list()`). Request a `list({ namespace, limit, cursor })` that returns decrypted memories with pagination.
 
-**Ticket 2 — [docs] `remember()` job lifecycle & read-your-writes consistency**
-> `remember()` appears to return a job (`job_id`) and `waitForRememberJob()` blocks until written. Please document: the job object schema, expected latency/timeout, and whether a `recall()` immediately after `waitForRememberJob()` is guaranteed to see the new memory.
+**Ticket 2 — [docs] read-your-writes consistency after `waitForRememberJob`**
+> `remember()` returns `{ job_id, status }` and `waitForRememberJob()` resolves at a terminal `done` state (the job state machine is well documented in v0.0.7 — thank you). What's still unspecified: is a `recall()` issued immediately after the job reaches `done` *guaranteed* to see that new memory, or can the vector index lag? Our adapter blocks on `waitForRememberJob` before returning to be safe; a one-line consistency guarantee in the docs would let callers skip that wait when they don't need it.
 
-**Ticket 3 — [docs] `namespace` semantics & multi-user pattern**
-> Is `namespace` only settable in `MemWal.create(...)`, or can it be passed per `remember`/`recall` call? For multi-user apps, what's the recommended pattern — one client instance per namespace, or a per-call namespace? A short example would help a lot.
+**Ticket 3 — [bug] account ops throw "SuiClient not found" on `@mysten/sui` v2.6+ despite peer `>=2.5.0`**
+> In v0.0.7, `createAccount`/`addDelegateKey` (`dist/account.js`) still fall back to `const { SuiClient } = await import("@mysten/sui/client")` when `opts.suiClient` is omitted. On `@mysten/sui` v2.6+ that export is gone (the client moved to `@mysten/sui/jsonRpc` as `SuiJsonRpcClient`), so the call throws `"SuiClient not found. For @mysten/sui v2.6.0+, pass suiClient in opts."`. Because `peerDependencies` declares `@mysten/sui >=2.5.0`, a fresh install pulls v2.18 and breaks out of the box. Two extra papercuts: (a) the `suiClient?` docstring says the SDK "will create one internally if omitted," which is misleading on v2.6+; (b) the internal fallback URLs are hardcoded fullnodes. Workaround that works for us: build `new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network) })` and pass it as `suiClient`. Repro + fix in our setup script: https://github.com/PugarHuda/dendam (scripts/setup-memwal.ts).
 
-**Ticket 4 — [feature] List/enumerate memories for a namespace**
-> There's no documented way to list all memories in a namespace (only semantic `recall(query)`). Building a memory dashboard requires enumerating everything; we approximate this with multi-query recall + dedupe. Request a `list({ namespace, limit, cursor })` API with pagination.
-
-**Ticket 5 — [dx] Clarify `MEMWAL_AGENT_ID` vs delegate key in the dashboard**
+**Ticket 4 — [dx] Clarify `MEMWAL_AGENT_ID` vs delegate key in the dashboard**
 > The submission form says `MEMWAL_AGENT_ID` is the "Public key part" of the delegate key. The dashboard could label this explicitly (e.g. "MEMWAL_AGENT_ID = this public key") to remove ambiguity between the private delegate key and the agent id.
-
-**Ticket 6 — [bug] account ops break with `@mysten/sui` v2.6+ even though peer is `>=2.5.0`**
-> `createAccount`/`addDelegateKey` auto-construct a `SuiClient` from `@mysten/sui/client`, but in `@mysten/sui` v2.6+ the JSON-RPC client moved to `@mysten/sui/jsonRpc` as `SuiJsonRpcClient` — so `@mysten/sui/client` no longer exports `SuiClient` and the call throws `"SuiClient not found. For @mysten/sui v2.6.0+, pass suiClient in opts."`. Since `peerDependencies` declares `@mysten/sui >=2.5.0`, a fresh install pulls v2.18 and breaks out of the box. The workaround (build `new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network) })` and pass `suiClient`) works, but it should either be auto-detected internally or documented in the quickstart. Repro + fix in our setup script: https://github.com/PugarHuda/dendam (scripts/setup-memwal.ts).
 ```

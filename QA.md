@@ -1,9 +1,9 @@
 # 🔍 QA & Audit Notes
 
 A thorough pass over correctness, edge cases, security, performance, and DX.
-Status at audit: typecheck OK · 22/22 unit tests · build green (6 API routes) ·
+Status at audit: typecheck OK · 24/24 unit tests · build green (6 API routes) ·
 live endpoints verified on Vercel (chat/recall/extract/reconcile/kompor/leaderboard,
-multilingual EN/ID/ES) · full pipeline validated on Walrus **testnet**
+multilingual EN/ID/ES) · full pipeline validated on Walrus **mainnet**
 (createAccount → addDelegateKey → remember → recall).
 
 ## Issues found & FIXED
@@ -12,18 +12,21 @@ multilingual EN/ID/ES) · full pipeline validated on Walrus **testnet**
 | 1 | High | `reconcile` judged predictions **sequentially** (one LLM call each) → with many predictions it could exceed Vercel's 60s function limit and time out mid-write. | Bounded-concurrency judging (`mapLimit`, 5 at a time), cap at 12 per call, returns `skipped`. |
 | 2 | High | `LocalMemoryStore.remember` did read-modify-write on one shared JSON file → **concurrent writes clobbered** (lost memories, duplicate ids). | Added a write-serializing queue (mutex) + stable sequence ids. Regression test fires 25 concurrent writes and asserts none are lost. |
 | 3 | Medium | UI badge always read **"Walrus Mainnet"** even when talking to the testnet relayer. | `classifyNetwork()` / `memoryNetwork()`; chat + memories expose `network`; badge now shows Mainnet / Testnet / Local accurately. |
-| 4 | Medium | MemWal account ops threw `"SuiClient not found"` with `@mysten/sui` v2.6+ (client moved to `/jsonRpc`). | `setup-memwal.ts` builds `SuiJsonRpcClient` and passes `suiClient`. Filed as feedback ticket #6. |
+| 4 | Medium | MemWal account ops threw `"SuiClient not found"` with `@mysten/sui` v2.6+ (client moved to `/jsonRpc`). | `setup-memwal.ts` builds `SuiJsonRpcClient` and passes `suiClient`. Still present in SDK v0.0.7 → filed as feedback ticket #3. |
 | 5 | Low | `chat` recalled even on an empty query. | Skip recall when the query is blank. |
 | 6 | Low | `Dockerfile` used `--omit=optional`, skipping the `@mysten/*` peers the Walrus backend needs. | Install with optional deps. |
 | 7 | High | **Day-1 memory fabrication** — on an empty memory, a weak free model sometimes invented a fake past ("like when you predicted…"), undermining the before/after demo. | **Deterministic cold-start guard** (`lib/coldstart.ts`): on empty recall, generate non-streamed → regex-check for fabricated-past phrasing (multilingual) → retry cooler → hard-coded fallback. Stays free + model-agnostic. Verified clean across EN/ID/ES live. |
-| 8 | Medium | `POST /api/results` was open (scoreboard vandalism) when no token set. | `DENDAM_ADMIN_TOKEN` set on the deployment → writes require `x-admin-token`. |
+| 8 | Medium | `POST /api/results` was open (scoreboard vandalism) when no token set. | Now **fails closed in code**: no `DENDAM_ADMIN_TOKEN` configured → `503 admin_disabled`; otherwise writes require a matching `x-admin-token`. (Dev seeding uses the `seed:results` script, not this route.) |
 | 9 | Medium | `kompor` / `leaderboard` loaded each member's memories **sequentially**, and `memwal.list()` ran its 5 theme-recalls sequentially → a group of N members fanned out to ~N×5 serial relayer round-trips, risking the 60s limit (same class as #1). | Shared `mapLimit` util (`lib/async.ts`, reused by `reconcile`): member loads run at concurrency 4, theme-recalls within `list()` run concurrently. Regression tests assert order is preserved and the concurrency cap is honored. |
+| 10 | High | `reconcile` and `leaderboard` routes had **no try/catch** around their `store.list()` / `store.remember()` calls → a relayer/network error in the MemWal backend became an unhandled rejection (bare 500, no JSON body) in the serverless handler. | Wrapped both handlers' store calls in try/catch → `500 {error}` with a logged cause; mirrors the `kompor`/`memories` routes. |
+| 11 | Medium | `POST /api/results` accepted any array shape and wrote rows verbatim — a missing `id` collapsed all rows into one, a missing/`undefined` `date` later threw in `listResults`' `localeCompare` sort, non-numeric scores corrupted `winnerOf`. | `isValidResult()` validates each row (non-empty `id`/`date`/teams, finite numeric scores); `addResults` drops invalid rows and returns `-1` when none are valid → route replies `400 no_valid_results`. +2 regression tests. |
+| 12 | Low | `POST /api/chat` did an unguarded `req.json()` on the hot path → a malformed body 500'd without a JSON error. | Guarded with `.catch(() => ({}))` + a `400 no_messages` check, matching the other routes. |
 
 ## Known limitations & recommendations (NOT bugs)
 - **Stronger model still recommended for the recorded demo.** The cold-start guard removes day-1 fabrication on any model, but a stronger model (`DENDAM_MODEL=claude-sonnet-4-6`, or free `nex-agi/nex-n2-pro:free` which tested best) gives sharper, more on-character roasts for the recording. The free default `openai/gpt-oss-120b:free` is fine and fully working.
 - **Privacy model.** Handles are public identifiers: anyone can read `/api/memories?handle=X` and call `/api/chat|kompor|leaderboard` for any handle. Intentional for a shareable demo; add real auth + rate-limiting for production. (`/api/results` writes are now token-gated.)
 - **Scoreboard is ephemeral on Vercel.** `data/results.json` lives in `/tmp` on serverless (per-instance, wiped on cold start). Re-feed via `/api/results` after deploy, or move to a persistent store. **User memory is unaffected once `MEMWAL_*` is set** (it's on Walrus).
-- **`list()` on the MemWal backend is approximate.** There's no enumerate API, so `list()` does multi-query recall + dedupe; it may miss some memories, which can let `reconcile` re-judge or the leaderboard undercount. Filed as feedback ticket #4.
+- **`list()` on the MemWal backend is approximate.** There's no enumerate API, so `list()` does multi-query recall + dedupe; it may miss some memories, which can let `reconcile` re-judge or the leaderboard undercount. Confirmed still missing in SDK v0.0.7 (only semantic `recall` + `restore` counts) → filed as feedback ticket #1.
 - **Namespace collisions.** `namespaceFor` maps non-alphanumerics to `_`, so e.g. `a.b` and `a_b` collide. Fine for a demo; derive from real auth in production.
 - **Rotate the OpenRouter key.** The key used during development was pasted in chat and is set on Vercel — rotate it and update the Vercel env var before judging.
 

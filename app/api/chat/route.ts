@@ -14,10 +14,13 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const { messages, handle } = (await req.json()) as {
-    messages: CoreMessage[];
+  const { messages, handle } = (await req.json().catch(() => ({}))) as {
+    messages?: CoreMessage[];
     handle?: string;
   };
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return Response.json({ error: "no_messages" }, { status: 400 });
+  }
 
   const store = getMemoryStore();
   const namespace = namespaceFor(handle || "anon");

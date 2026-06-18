@@ -12,7 +12,13 @@ export async function GET() {
 // live scoreboard. Set DENDAM_ADMIN_TOKEN and send it as `x-admin-token`.
 export async function POST(req: Request) {
   const token = process.env.DENDAM_ADMIN_TOKEN;
-  if (token && req.headers.get("x-admin-token") !== token) {
+  // Fail closed: if no token is configured, this write endpoint is disabled
+  // entirely (rather than open to anyone). Seeding in dev goes through the
+  // seed:results script, not this route, so this doesn't block local work.
+  if (!token) {
+    return Response.json({ error: "admin_disabled" }, { status: 503 });
+  }
+  if (req.headers.get("x-admin-token") !== token) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
   let body: { results?: MatchResult[] };
@@ -26,5 +32,8 @@ export async function POST(req: Request) {
     return Response.json({ error: "no_results" }, { status: 400 });
   }
   const total = await addResults(incoming);
-  return Response.json({ ok: true, added: incoming.length, total });
+  if (total === -1) {
+    return Response.json({ error: "no_valid_results" }, { status: 400 });
+  }
+  return Response.json({ ok: true, total });
 }

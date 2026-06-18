@@ -33,6 +33,7 @@ Show `/grup` with a couple of handles → **🔥 Stir it up** → Dendam pits tw
 - **Captions**: add the on-screen text (right column) as captions — many judges watch muted.
 - **Duration**: keep it ≤ 3 minutes. If tight, cut the "planting memory" part into a 10-second montage.
 - **Language**: Dendam defaults to English and mirrors the user — you can demo in English or your own language (it understands both).
+- **Sharper roasts for the recording (optional)**: the free model (`openai/gpt-oss-120b:free`) is fine, but for the cleanest, most on-character cuts while filming, point Dendam at Claude — set `ANTHROPIC_API_KEY` and `DENDAM_MODEL=claude-sonnet-4-6` (provider auto-switches to Anthropic; no code change — see `lib/model.ts`). Cold-start guard, recall, and auto-roast all behave the same; only the prose gets sharper. Switch back to the free model after recording if you want to keep it zero-cost.
 
 ## Sample dialogue script (paste-ready while recording)
 **Day 1 (@rookie):**
