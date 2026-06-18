@@ -14,12 +14,17 @@ export function TopBar({
   return (
     <div className="topbar">
       <div className="brand">
-        <h1>
-          Dendam<span className="dot">.</span>
-        </h1>
-        <small>the World Cup 2026 rival that never forgets</small>
+        <span className="brand-emblem" aria-hidden>
+          🔥
+        </span>
+        <div className="brand-text">
+          <h1>
+            Dendam<span className="dot">.</span>
+          </h1>
+          <small>the World Cup 2026 rival that never forgets</small>
+        </div>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div className="topbar-right">
         <div className="handle" title="Your identity — your memory is stored per-handle on Walrus">
           <span style={{ color: "var(--muted)" }}>@</span>
           <input
@@ -27,6 +32,7 @@ export function TopBar({
             onChange={(e) => setHandle(e.target.value)}
             placeholder="your handle"
             spellCheck={false}
+            aria-label="Your handle"
           />
         </div>
         <nav className="nav">

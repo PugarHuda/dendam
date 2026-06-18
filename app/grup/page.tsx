@@ -19,6 +19,9 @@ function parseHandles(raw: string): string[] {
     .filter(Boolean);
 }
 
+const RANK_CLASS = ["gold", "silver", "bronze"];
+const RANK_MEDAL = ["🥇", "🥈", "🥉"];
+
 export default function GrupPage() {
   const [handle, setHandle] = useState("anon");
   const [members, setMembers] = useState("");
@@ -89,37 +92,36 @@ export default function GrupPage() {
     }
   }
 
+  const maxWrong = Math.max(1, ...rows.map((r) => r.wrong));
+
   return (
     <div className="shell">
       <TopBar handle={handle} setHandle={setHandle} active="grup" />
 
-      <h2 style={{ marginBottom: 4 }}>🔥 The Hot Seat</h2>
+      <h2 className="page-title">🔥 The Hot Seat</h2>
       <p className="hint" style={{ marginTop: 0 }}>
         Add your group&rsquo;s handles. Dendam pits them against each other
         using the predictions &amp; insults <b>actually stored</b> in each
         member&rsquo;s memory.
       </p>
 
-      <div className="handle" style={{ width: "100%", marginTop: 8 }}>
+      <div className="handle" style={{ width: "100%", marginTop: 10 }}>
+        <span style={{ color: "var(--muted)" }}>@</span>
         <input
           style={{ width: "100%" }}
           value={members}
           onChange={(e) => setMembers(e.target.value)}
           placeholder="e.g. hud, andi, budi"
           spellCheck={false}
+          aria-label="Group handles"
         />
       </div>
 
       <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <button className="send" onClick={stirItUp} disabled={busy}>
+        <button className="btn" onClick={stirItUp} disabled={busy}>
           {busy ? "Dendam is pouring fuel…" : "🔥 Stir it up"}
         </button>
-        <button
-          className="send"
-          style={{ background: "var(--panel-2)" }}
-          onClick={loadBoard}
-          disabled={loadingBoard}
-        >
+        <button className="btn ghost" onClick={loadBoard} disabled={loadingBoard}>
           {loadingBoard ? "Tallying…" : "🏆 Hall of Shame"}
         </button>
       </div>
@@ -132,45 +134,55 @@ export default function GrupPage() {
 
       {topic && (
         <p className="hint">
-          Today&rsquo;s fuel: <b>{topic}</b>
+          Today&rsquo;s fuel: <b style={{ color: "var(--ink)" }}>{topic}</b>
         </p>
       )}
 
       <div className="dossier-grid" style={{ marginTop: 14 }}>
         {lines.map((l, i) => (
-          <div key={i} className="grudge">
-            <div>{l}</div>
+          <div key={i} className="msg-row assistant" style={{ animationDelay: `${i * 0.06}s` }}>
+            <div className="avatar dendam" aria-hidden>
+              🔥
+            </div>
+            <div className="msg assistant" style={{ maxWidth: "100%" }}>
+              <div className="who">Dendam</div>
+              <span>{l}</span>
+            </div>
           </div>
         ))}
       </div>
 
       {rows.length > 0 && (
         <>
-          <h3 style={{ marginTop: 28, marginBottom: 8 }}>
-            🏆 Hall of Shame{" "}
-            <span className="hint" style={{ fontWeight: 400 }}>
-              (most wrong calls first)
-            </span>
-          </h3>
+          <div className="section-head">
+            <h3>🏆 Hall of Shame</h3>
+            <span className="count">most wrong calls first</span>
+          </div>
           <div className="dossier-grid">
             {rows.map((r, i) => (
               <div
                 key={r.handle}
                 className={`grudge ${r.wrong > 0 ? "wrong" : ""}`}
               >
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <b>
-                    #{i + 1} @{r.handle}
-                  </b>
-                  <span style={{ color: "var(--muted)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span className={`rank ${RANK_CLASS[i] ?? ""}`}>
+                      {RANK_MEDAL[i] ?? i + 1}
+                    </span>
+                    <b>@{r.handle}</b>
+                  </div>
+                  <span style={{ color: "var(--muted)", fontSize: 13 }}>
                     {r.accuracy === null
                       ? "no verdicts yet"
                       : `${Math.round(r.accuracy * 100)}% accuracy`}
                   </span>
                 </div>
+                <div className="acc-bar" title={`${r.wrong} wrong calls`}>
+                  <span style={{ width: `${(r.wrong / maxWrong) * 100}%` }} />
+                </div>
                 <div className="meta">
                   <span className="tag wrong">{r.wrong} wrong</span>
-                  <span className="tag">{r.correct} correct</span>
+                  <span className="tag ok">{r.correct} correct</span>
                   <span className="tag">{r.predictions} predictions</span>
                   <span className="tag kind">{r.insults} insults</span>
                 </div>
@@ -185,6 +197,16 @@ export default function GrupPage() {
         has ammo on them. The instigation it creates is also saved to each
         member&rsquo;s memory.
       </p>
+
+      <footer className="footer">
+        <span>Memory on Walrus · Sui Mainnet</span>
+        <span>
+          <a href="https://github.com/PugarHuda/dendam" target="_blank" rel="noreferrer">
+            Source
+          </a>{" "}
+          · #Walrus
+        </span>
+      </footer>
     </div>
   );
 }

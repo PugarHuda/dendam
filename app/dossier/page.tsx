@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { HANDLE_KEY, TopBar } from "@/components/TopBar";
 
 type Memory = {
@@ -37,6 +37,30 @@ const KIND_LABEL: Record<string, string> = {
   fact: "fact",
 };
 
+const FILTERS: { key: string; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "prediction", label: "Predictions" },
+  { key: "result", label: "Verdicts" },
+  { key: "insult", label: "Insults" },
+  { key: "hot_take", label: "Hot takes" },
+  { key: "favorite", label: "Teams" },
+];
+
+function NetworkBadge({ network }: { network: string }) {
+  if (!network) return null;
+  const label =
+    network === "mainnet"
+      ? "Walrus Mainnet"
+      : network === "testnet"
+        ? "Walrus Testnet"
+        : "Local (dev)";
+  return (
+    <span className={`badge ${network === "local" ? "local" : "live"}`}>
+      {label}
+    </span>
+  );
+}
+
 export default function DossierPage() {
   const [handle, setHandle] = useState("anon");
   const [memories, setMemories] = useState<Memory[]>([]);
@@ -45,6 +69,7 @@ export default function DossierPage() {
   const [network, setNetwork] = useState("");
   const [loading, setLoading] = useState(false);
   const [reconciling, setReconciling] = useState(false);
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     const saved = localStorage.getItem(HANDLE_KEY);
@@ -96,21 +121,29 @@ export default function DossierPage() {
   const predictions = memories.filter((m) => m.kind === "prediction");
   const wrong = memories.filter((m) => m.wasWrong).length;
   const insults = memories.filter((m) => m.kind === "insult").length;
+  const resolved = memories.filter(
+    (m) => m.kind === "result" && m.wasWrong !== undefined,
+  );
+  const correct = resolved.filter((m) => m.wasWrong === false).length;
+  const accuracy =
+    resolved.length > 0
+      ? Math.round((correct / resolved.length) * 100)
+      : null;
+
+  const shown = useMemo(
+    () => (filter === "all" ? memories : memories.filter((m) => m.kind === filter)),
+    [memories, filter],
+  );
+
+  const countFor = (key: string) =>
+    key === "all" ? memories.length : memories.filter((m) => m.kind === key).length;
 
   return (
     <div className="shell">
       <TopBar handle={handle} setHandle={setHandle} active="dossier" />
 
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        {network && (
-          <span className={`badge ${network === "local" ? "local" : "live"}`}>
-            {network === "mainnet"
-              ? "● Walrus Mainnet"
-              : network === "testnet"
-                ? "● Walrus Testnet"
-                : "● Local (dev)"}
-          </span>
-        )}
+      <div className="badge-row">
+        <NetworkBadge network={network} />
         <span className="badge">file on @{handle || "anon"}</span>
       </div>
 
@@ -125,9 +158,9 @@ export default function DossierPage() {
         </div>
         <div className="stat">
           <div className="n" style={{ color: "var(--accent-2)" }}>
-            {wrong}
+            {accuracy === null ? "—" : `${accuracy}%`}
           </div>
-          <div className="l">wrong calls</div>
+          <div className="l">accuracy</div>
         </div>
         <div className="stat">
           <div className="n" style={{ color: "var(--accent)" }}>
@@ -137,9 +170,9 @@ export default function DossierPage() {
         </div>
       </div>
 
-      <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center" }}>
+      <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         <button
-          className="send"
+          className="btn"
           onClick={reconcile}
           disabled={reconciling || results.length === 0}
           title={
@@ -151,7 +184,8 @@ export default function DossierPage() {
           {reconciling ? "Dendam is judging…" : "⚖️ Hold me to it"}
         </button>
         <span className="hint" style={{ margin: 0 }}>
-          {results.length} match results recorded
+          {results.length} match result{results.length === 1 ? "" : "s"} recorded ·{" "}
+          {wrong} wrong call{wrong === 1 ? "" : "s"} so far
         </span>
       </div>
 
@@ -164,7 +198,7 @@ export default function DossierPage() {
               </div>
               <div style={{ marginTop: 6 }}>{v.roast}</div>
               <div className="meta">
-                <span className={`tag ${v.status === "wrong" ? "wrong" : "kind"}`}>
+                <span className={`tag ${v.status === "wrong" ? "wrong" : "ok"}`}>
                   {v.status === "wrong" ? "‼️ WRONG" : "✓ nailed it"}
                 </span>
               </div>
@@ -173,9 +207,17 @@ export default function DossierPage() {
         </div>
       )}
 
-      {loading && <p className="hint">Opening the grudge file…</p>}
+      {loading && (
+        <div className="dossier-grid" style={{ marginTop: 24 }}>
+          <div className="skeleton" />
+          <div className="skeleton" />
+          <div className="skeleton" />
+        </div>
+      )}
+
       {!loading && memories.length === 0 && (
         <div className="empty">
+          <div className="big">🗂️</div>
           @{handle || "anon"}&rsquo;s file is empty. Dendam has nothing on you
           yet.
           <br />
@@ -183,24 +225,51 @@ export default function DossierPage() {
         </div>
       )}
 
-      <h3 style={{ marginTop: 28, marginBottom: 0 }}>Memory file</h3>
-      <div className="dossier-grid">
-        {memories.map((m) => (
-          <div key={m.id} className={`grudge ${m.wasWrong ? "wrong" : ""}`}>
-            <div>{m.text}</div>
-            <div className="meta">
-              <span className="tag kind">{KIND_LABEL[m.kind] ?? m.kind}</span>
-              {m.team && <span className="tag">{m.team}</span>}
-              {m.wasWrong && <span className="tag wrong">‼️ meleset</span>}
-              {m.createdAt && <span>{m.createdAt.slice(0, 10)}</span>}
-            </div>
+      {!loading && memories.length > 0 && (
+        <>
+          <div className="section-head">
+            <h3>Memory file</h3>
+            <span className="count">{shown.length} shown</span>
           </div>
-        ))}
-      </div>
+
+          <div className="chips" style={{ justifyContent: "flex-start" }}>
+            {FILTERS.map((f) => {
+              const c = countFor(f.key);
+              if (f.key !== "all" && c === 0) return null;
+              return (
+                <button
+                  key={f.key}
+                  className={`filter-chip ${filter === f.key ? "on" : ""}`}
+                  onClick={() => setFilter(f.key)}
+                >
+                  {f.label} {c > 0 && <span style={{ opacity: 0.6 }}>· {c}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="dossier-grid">
+            {shown.map((m) => (
+              <div key={m.id} className={`grudge ${m.wasWrong ? "wrong" : ""}`}>
+                <div>{m.text}</div>
+                <div className="meta">
+                  <span className="tag kind">{KIND_LABEL[m.kind] ?? m.kind}</span>
+                  {m.team && <span className="tag">{m.team}</span>}
+                  {m.wasWrong && <span className="tag wrong">‼️ wrong</span>}
+                  {m.createdAt && <span>{m.createdAt.slice(0, 10)}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {results.length > 0 && (
         <>
-          <h3 style={{ marginTop: 28, marginBottom: 0 }}>Scoreboard (real results)</h3>
+          <div className="section-head">
+            <h3>Scoreboard</h3>
+            <span className="count">real results</span>
+          </div>
           <div className="dossier-grid">
             {results.map((r) => (
               <div key={r.id} className="grudge" style={{ borderLeftColor: "var(--green)" }}>
@@ -222,6 +291,16 @@ export default function DossierPage() {
         <code>MemWalAccount</code> object on Sui. This is exactly what Dendam
         reads before clapping back at you.
       </p>
+
+      <footer className="footer">
+        <span>Memory on Walrus · Sui Mainnet</span>
+        <span>
+          <a href="https://github.com/PugarHuda/dendam" target="_blank" rel="noreferrer">
+            Source
+          </a>{" "}
+          · #Walrus
+        </span>
+      </footer>
     </div>
   );
 }
