@@ -117,10 +117,13 @@ Demo video:                                             <upload, follow DEMO.md,
 ## Promo copy (paste-ready)
 
 ### Tweet/X (#Walrus) — required in the form
-```
-Meet Dendam 🔥⚽ — a FIFA World Cup 2026 rival AI that NEVER forgets.
+> Pick ONE primary (all under 280 chars incl. the link). Tag **@WalrusProtocol** for reach. Attach a 10–20s before/after clip or the 2-up landing screenshot for best engagement.
 
-Every prediction & hot take you make is stored on Walrus Memory, then thrown back when you're wrong. It even stirs up your group chat.
+**A · Punchy (recommended)**
+```
+Meet Dendam 🔥⚽ — a World Cup 2026 rival AI that NEVER forgets.
+
+Every prediction & hot take you make is stored on @WalrusProtocol Memory, then thrown back when you're wrong.
 
 Day 1 it knows nothing. Day 5 it has a FILE on you.
 
@@ -128,12 +131,34 @@ Day 1 it knows nothing. Day 5 it has a FILE on you.
 https://dendam.vercel.app
 ```
 
-Optional follow-up thread (reply):
+**B · Before/after lead**
+```
+Day 1: my football bot knows nothing about me.
+Day 5: "you crowned Argentina champs and wrote off Brazil — they just knocked them out. Still feeling clever?"
+
+Real cross-session memory on @WalrusProtocol Mainnet. It remembers, then roasts. 🔥⚽
+
+#Walrus
+https://dendam.vercel.app
+```
+
+**C · Group-chat angle**
+```
+I built an AI that holds a grudge over your World Cup 2026 takes 🔥⚽
+
+It stores every prediction on @WalrusProtocol Memory, roasts you when you're wrong, and even pits your group chat against each other using what they ACTUALLY said.
+
+#Walrus
+https://dendam.vercel.app
+```
+
+Optional follow-up thread (reply to whichever you post):
 ```
 2/ Real persistent memory on @WalrusProtocol Mainnet — not a chat log.
 • Predictions auto-roasted when results land
 • "Hall of Shame" leaderboard for your group
 • Speaks your language (EN default, mirrors yours), shrugs off typos
+Verify it: every memory ties to a MemWalAccount object on Sui.
 Try it 👉 dendam.vercel.app
 ```
 

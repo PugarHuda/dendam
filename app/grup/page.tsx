@@ -127,7 +127,7 @@ export default function GrupPage() {
       </div>
 
       {err && (
-        <p className="hint" style={{ color: "var(--accent)" }}>
+        <p className="hint" style={{ color: "var(--accent-2)" }}>
           {err}
         </p>
       )}
