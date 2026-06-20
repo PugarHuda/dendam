@@ -50,13 +50,13 @@ async function retry(fn, attempts = 4, delayMs = 5000) {
   console.log(`# Deploy with bundled seed live: ${deployed ? "yes" : "NOT YET (checking current anyway)"}\n`);
 
   // ── Pages ───────────────────────────────────────────────
-  for (const p of ["/", "/chat", "/dossier", "/grup", `/share/${H}`, `/share/vs/${H}/nobody-xyz`]) {
+  for (const p of ["/", "/chat", "/dossier", "/grup", `/share/${H}`, `/share/vs/${H}/nobody-xyz`, "/roast?by=demo&text=Argentina%20is%20done"]) {
     const { res } = await get(p);
     check(`GET ${p}`, res.status === 200, `status=${res.status}`);
   }
 
-  // ── OG images ───────────────────────────────────────────
-  for (const p of ["/opengraph-image", `/share/${H}/opengraph-image`, `/share/vs/${H}/nobody-xyz/opengraph-image`]) {
+  // ── OG / card images ────────────────────────────────────
+  for (const p of ["/opengraph-image", `/share/${H}/opengraph-image`, `/share/vs/${H}/nobody-xyz/opengraph-image`, "/api/roast-card?by=demo&text=busted"]) {
     const { res, ct } = await get(p);
     check(`GET ${p}`, res.status === 200 && ct.startsWith("image/"), `status=${res.status} ${ct}`);
   }
@@ -115,6 +115,26 @@ async function retry(fn, attempts = 4, delayMs = 5000) {
     });
     check("POST /api/leaderboard (ok)", ok, `status=${last?.res?.status} rows=${last?.body?.rows?.length}`);
   }
+
+  // ── Semantic recall (Ask the file) + the seeded demo handle ──
+  {
+    let last;
+    const ok = await retry(async () => {
+      const { res, body } = await post("/api/recall", { handle: "demo", query: "what do you remember" });
+      last = { res, body };
+      return res.status === 200 && Array.isArray(body?.memories) && body.memories.length > 0;
+    });
+    check("POST /api/recall (demo, has matches)", ok, `status=${last?.res?.status} count=${last?.body?.memories?.length}`);
+  }
+  {
+    const { res } = await post("/api/recall", { handle: "demo" });
+    check("POST /api/recall (no query) → 400/429", [400, 429].includes(res.status), `status=${res.status}`);
+  }
+  // NB: the recall check above already proves @demo is pre-seeded. We don't
+  // assert /api/memories?handle=demo here because list() fires ~5 concurrent
+  // relayer recalls and the relayer can throttle them to empty under the
+  // smoke's own load (a known, documented best-effort limit) — that would
+  // flake the run without indicating a real fault.
 
   console.log(`\n# ${pass} passed, ${fail} failed`);
   process.exit(fail === 0 ? 0 : 1);

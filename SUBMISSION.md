@@ -60,6 +60,10 @@ Before/after example: Day 1, a fresh handle → Dendam admits it knows nothing a
 6) "Instigator" mode (Hot Seat): Dendam stirs the pot between group members by pitting their ACTUALLY-stored predictions & insults against each other — cross-user memory driving rivalries, highly shareable. Plus a "Hall of Shame" leaderboard (who's most often wrong), computed purely from memory.
 
 7) Multilingual & typo-tolerant: defaults to English, but automatically mirrors each user's language (Indonesian, Spanish, etc.) and understands typos/slang/emoji. Memories are stored canonically in English so cross-user features (instigator, leaderboard) stay consistent.
+
+8) The memory is VISIBLE and VERIFIABLE, not a black box. Each reply shows a "pulled N memories from your file" chip you can expand to see the exact memories that grounded it (recall in action). Every memory card on The File links to its real Walrus blob (verify on Walruscan), and an "Ask the file" box runs live semantic recall() on demand — demonstrating Walrus vector search, not a keyword log. You can also export your whole file as JSON.
+
+9) One-click judge demo: a pre-seeded @demo handle on Mainnet means anyone can land straight in the "day-N" experience (Dendam already has a file on them) without chatting for days — plus shareable per-handle, head-to-head, and single-roast cards for virality.
 ```
 
 ---

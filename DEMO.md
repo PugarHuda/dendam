@@ -8,6 +8,22 @@ Goal: win the judges on **3 criteria** — Memory Depth & Authenticity (the befo
 
 ---
 
+## ⚡ Fast path (recommended) — record in one take with demo mode
+
+You no longer have to "plant memory over days" on camera. The `@demo` handle is **pre-seeded on Mainnet** with a thick file (Argentina + Mbappé predictions, a VAR hot take, an insult, and a busted-Argentina verdict). So:
+
+1. **0:00 Hook** — landing page `dendam.vercel.app`. VO: *"Most football bots forget you the second you close the tab. This one keeps a file."* Click **🔥 Try the demo — it already remembers**.
+2. **0:12 Day-N recall (the money shot)** — you land in `/chat` as `@demo` (note the demo banner + **● Walrus Mainnet**). Type **`what do you remember about me?`** → Dendam immediately dredges up the Argentina call, the VAR take, the "dumb bot" insult. **Zoom in.** Then click the **📂 pulled N memories** chip to reveal the exact memories it retrieved — the recall is literally visible.
+3. **0:45 Contrast (Day 1)** — click **Start fresh** (handle `@rookie`), say `Hey` → Dendam **admits it has nothing on you** (no fabrication). VO: *"A brand-new handle? It owns up — no fake history."*
+4. **1:10 The File** — `/dossier?handle=demo`. Show stats, the **🔥 Grudge of the day**, **Insights**, and **Ask the file** (type `what did I say about Brazil?` → live semantic recall). Click **⛓ on Walrus ↗** on a memory card → the actual encrypted blob on Walruscan. VO: *"Every memory is a real Walrus blob — verifiable, one click."*
+5. **1:45 Kill shot** — back on The File, **⚖️ Hold me to it** → the Argentina prediction is flagged **‼️ WRONG** with a roast. Hit **🔥 Share this roast** on a chat reply (or the roast card) to show the shareable image.
+6. **2:15 Proof** — the **Sui explorer** tab on the `MemWalAccount` (Shared object). VO: *"Tied to a MemWalAccount on Sui. Anyone can verify it."*
+7. **2:40 Close** — Hot Seat (`/grup`) one quick stir + **🆚 head-to-head** card, or just the logo + link. VO: *"Dendam. Make your call… and live with it."*
+
+This hits all three criteria in ~3 min with **zero waiting**. The manual before/after script below still works if you'd rather show planting live.
+
+---
+
 ## Before you hit record (5-min prep)
 1. **Open 3 browser tabs**, all on `dendam.vercel.app`:
    - Tab A — `/chat` with a **fresh handle** (e.g. `@rookie`) → this is DAY 1.
