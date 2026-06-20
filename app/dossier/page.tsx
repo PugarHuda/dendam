@@ -144,6 +144,14 @@ export default function DossierPage() {
       <div className="badge-row">
         <NetworkBadge network={network} />
         <span className="badge">file on @{handle || "anon"}</span>
+        <a
+          className="badge"
+          href={`/share/${encodeURIComponent(handle || "anon")}`}
+          style={{ cursor: "pointer" }}
+          title="A public, shareable card of this file"
+        >
+          📣 Share
+        </a>
       </div>
 
       <div className="stat-row">
