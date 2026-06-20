@@ -1,7 +1,7 @@
 # 🔍 QA & Audit Notes
 
 A thorough pass over correctness, edge cases, security, performance, and DX.
-Status: typecheck OK · **53/53 unit tests** · build green (**16 routes** incl.
+Status: typecheck OK · **55/55 unit tests** · build green (**16 routes** incl.
 dynamic share/OG) · live smoke sweep 17/17 (`node scripts/smoke.mjs`) ·
 live endpoints verified on Vercel (chat/recall/extract/reconcile/kompor/leaderboard,
 multilingual EN/ID/ES) · full pipeline validated on Walrus **mainnet**
@@ -36,6 +36,7 @@ and the auto-roast kill-shot verified end-to-end live.
 | 19 | Medium | **Unbounded fan-out.** `kompor`/`leaderboard` accepted any number of handles → one request could fan out hundreds of relayer recalls. | Cap at `MAX_HANDLES = 12` per request. |
 | 20 | Low | Admin-token check used `!==` (timing side-channel). | `sha256` + `timingSafeEqual` (constant-time, no length leak). |
 | 21 | Low | An absurdly long URL-supplied handle could overflow share/OG layouts. | `shortHandle()` caps display to 28 chars (lookups keep the full handle); `maxLength=40` on the handle input. Verified: a 57-char handle truncates cleanly. |
+| 22 | Medium | **Memory metadata injection.** `serializeMemory` appends `::dendam:: {meta}` to the LLM-written memory text and `parseMemory` keys on the FIRST tag — so a crafted memory whose text embedded a `::dendam:: {...}` could override its own metadata (e.g. flip a wrong prediction's `wasWrong` to game accuracy/leaderboard) or inject extra lines into the recalled-memory prompt block. | `serializeMemory` now strips the delimiter and collapses all whitespace before tagging (memories are a single sentence). +2 regression tests (faked-metadata + newline injection). Also widened the cold-start fabrication regex (PT/FR + generic). |
 
 ## Known limitations & recommendations (NOT bugs)
 - **Stronger model still recommended for the recorded demo.** The cold-start guard removes day-1 fabrication on any model, but a stronger model (`DENDAM_MODEL=claude-sonnet-4-6`, or free `nex-agi/nex-n2-pro:free` which tested best) gives sharper, more on-character roasts for the recording. The free default `openai/gpt-oss-120b:free` is fine and fully working.
@@ -44,6 +45,10 @@ and the auto-roast kill-shot verified end-to-end live.
 - **Match results: live feed OR manual.** Set `FOOTBALL_DATA_TOKEN` (free, football-data.org) and FINISHED World Cup matches are pulled automatically and merged into the scoreboard + auto-roast — no manual entry (`lib/sportsapi.ts`, 60s in-memory cache, graceful no-op without a token). Without a token, results are fed manually via `POST /api/results` / `npm run seed:results`. Either way, manually-seeded `data/results.json` lives in `/tmp` on serverless (per-instance, wiped on cold start) — the live feed sidesteps this since it re-fetches. **User memory is unaffected either way once `MEMWAL_*` is set** (it's on Walrus).
 - **`list()` on the MemWal backend is approximate.** There's no enumerate API, so `list()` does multi-query recall + dedupe; it may miss some memories, which can let `reconcile` re-judge or the leaderboard undercount. Confirmed still missing in SDK v0.0.7 (only semantic `recall` + `restore` counts) → filed as feedback ticket #1.
 - **Namespace collisions.** `namespaceFor` maps non-alphanumerics to `_`, so e.g. `a.b` and `a_b` collide. Fine for a demo; derive from real auth in production.
+- **Second-order prompt injection is LLM-guarded, not airtight.** User text → an extracted memory `text` → re-injected into the persona prompt (self) and the Hot Seat roster (other users), whose output is shown to the group and saved to each member's memory. A user could seed their own memory to try to steer Dendam toward targeted content about another `@handle`. Mitigations: the extractor paraphrases to a single English sentence (not a verbatim copy); the persona/instigator prompts forbid identity attacks and inventing anything not in the memory block; the block is framed as data; and #22's defang stops newline/line-injection. The residual risk is inherent to "user content → LLM memory" and would need real content moderation to fully close — out of scope for the demo.
+- **First-order jailbreak.** Chat takes arbitrary text, so a user could coax Dendam out of character or to paraphrase its persona prompt. Low impact: there are **no secrets** in the prompt (it's open-source) — worst case is breaking character.
+- **Cold-start fabrication guard is a heuristic.** `mentionsFabricatedPast` covers EN/ID/ES/PT/FR trigger phrasings; a fabrication in another language or with novel wording could slip it. Backstopped by a strong system constraint + a hard-coded fallback, and empirically clean on the default model.
+- **`list()` cache vs. read-your-writes.** The 15s `list()` cache isn't busted on `remember()`, so the dossier's stat tiles can lag a fresh write by ≤15s. Not observable in practice: Walrus indexing latency (tens of seconds) already dominates, and reconcile shows new verdicts directly (not via the cached list). Invalidating on write wouldn't help (the relayer hasn't indexed the write yet) and would only add load — so it's left as-is by design.
 - **Rotate the OpenRouter key.** The key used during development was pasted in chat and is set on Vercel — rotate it and update the Vercel env var before judging.
 
 ## What was checked

@@ -48,12 +48,21 @@ export interface MemoryStore {
 const TAG = "::dendam::";
 
 export function serializeMemory(input: RememberInput): string {
+  // Defang the stored text so a crafted memory can't (a) FAKE its metadata —
+  // parseMemory keys on the FIRST `::dendam::` tag, so an embedded tag would
+  // win over the real one we append — or (b) inject extra "memory" lines into
+  // the recalled-memory prompt block. Memories are a single sentence, so we
+  // can safely strip our delimiter and collapse all whitespace to one space.
+  const safeText = input.text
+    .replace(/::dendam::/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
   const meta = JSON.stringify({
     kind: input.kind,
     team: input.team ?? null,
     wasWrong: input.wasWrong ?? null,
   });
-  return `${input.text}\n${TAG} ${meta}`;
+  return `${safeText}\n${TAG} ${meta}`;
 }
 
 export function parseMemory(

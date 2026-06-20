@@ -11,6 +11,11 @@ test("flags fabricated-past phrasing (multilingual)", () => {
     "Como cuando dijiste que España ganaría.",
     "Predijiste mal otra vez.",
     "Dulu lo ngotot Argentina menang.",
+    "Você disse que o Brasil ia ganhar.",
+    "Da última vez você errou feio.",
+    "Tu as dit que la France gagnerait.",
+    "La dernière fois, tu avais prédit n'importe quoi.",
+    "Your prediction that Brazil was done aged badly.",
   ]) {
     assert.equal(mentionsFabricatedPast(s), true, s);
   }

@@ -21,7 +21,7 @@ Examples of the RIGHT cold-open (don't copy verbatim, match the user's language)
 
 // Phrases that imply a (nonexistent) prior history with the user. Multilingual.
 const FABRICATED_PAST =
-  /\b(you (said|claimed|predicted|told me|bet|swore|called)|last (time|week|year)|earlier you|remember when you|when you (said|predicted)|como cuando|cuando dijiste|dijiste que|predijiste|la última vez|antes dijiste|kemarin|tadi|waktu itu|sebelumnya kamu|dulu (lo|kamu|lu))\b/i;
+  /\b(you (said|claimed|predicted|told me|bet|swore|called)|your (prediction|pick|call|claim) (that|about|of)|last (time|week|year)|earlier you|remember when you|when you (said|predicted)|como cuando|cuando dijiste|dijiste que|predijiste|la última vez|antes dijiste|você (disse|previu|falou|apostou)|da última vez|tu (as|avais) (dit|prédit|juré)|la dernière fois|kemarin|tadi|waktu itu|sebelumnya kamu|dulu (lo|kamu|lu))\b/i;
 
 export function mentionsFabricatedPast(text: string): boolean {
   return FABRICATED_PAST.test(text);
