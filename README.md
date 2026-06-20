@@ -43,7 +43,7 @@ Page `/grup`: enter several member handles. `POST /api/kompor` reads each member
 Real results are fed via `POST /api/results` (token-gated), `npm run seed:results`, or the optional live football-data.org feed (`FOOTBALL_DATA_TOKEN`). A small **bundled seed result** is also compiled into the build (`SEED` in `lib/sportsapi.ts`, merged in by `getAllResults`) so the auto-roast has something to judge **out of the box** for a demo — even before any real result is fed (set `DENDAM_SEED_RESULTS=off` to drop it). On The File, the **⚖️ Hold me to it** button calls `/api/reconcile`: Dendam matches stored predictions against real results, flags the **wrong** ones (`wasWrong`), and stores the **verdict** as a permanent grudge on Walrus. That's the demo "kill shot" — an "Argentina wins it all" prediction gets auto-roasted the moment Argentina loses.
 
 ### 📣 Shareable file (virality)
-Every file has a public, link-shareable page at **`/share/<handle>`** (server-rendered, read-only): stat tiles, an "on the record" quote, and CTAs that deep-link into the chat / dossier. Each page renders a **dynamic social card** (`/share/<handle>/opengraph-image`) showing that handle's real stats + most damning line, so pasting the link into X/WhatsApp unfurls a tailored "Dendam has a file on @you" image. The dossier has a **📣 Share** / **🔗 Copy link** button (Web Share API with clipboard fallback). Handles deep-link everywhere via `?handle=` (e.g. `/dossier?handle=hud`), which also makes demos with multiple handles smooth.
+Every file has a public, link-shareable page at **`/share/<handle>`** (server-rendered, read-only): stat tiles, an "on the record" quote, and CTAs that deep-link into the chat / dossier. Each page renders a **dynamic social card** (`/share/<handle>/opengraph-image`) showing that handle's real stats + most damning line, so pasting the link into X/WhatsApp unfurls a tailored "Dendam has a file on @you" image. The dossier has a **📣 Share** / **🔗 Copy link** button (Web Share API with clipboard fallback) and a **Post to X** intent. A **head-to-head** card at **`/share/vs/<a>/<b>`** (with its own OG image) pits two handles against each other — "who's the bigger World Cup 2026 fraud?" — linked straight from the Hot Seat leaderboard. Handles deep-link everywhere via `?handle=` (e.g. `/dossier?handle=hud`), which also makes demos with multiple handles smooth. `robots.txt` + `sitemap.xml` are generated for shareability.
 
 ---
 
@@ -63,7 +63,9 @@ app/
   grup/page.tsx            "Hot Seat" — group instigator + leaderboard
   share/[handle]/page.tsx  public, link-shareable file card (per handle)
   share/[handle]/opengraph-image.tsx  dynamic OG/Twitter card with that handle's stats
+  share/vs/[a]/[b]/        head-to-head rivalry card (page + dynamic OG image)
   opengraph-image.tsx      site-wide social share card
+  robots.ts / sitemap.ts   generated robots.txt + sitemap.xml
 components/
   TopBar.tsx               nav + handle input (?handle= deep-link aware)
   ShareButton.tsx          copy-link / native-share button

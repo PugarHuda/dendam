@@ -101,6 +101,11 @@ export default function ChatPage() {
                 </button>
               ))}
             </div>
+            <p className="hint" style={{ marginTop: 22 }}>
+              New here? <b>1.</b> Make a call &nbsp;·&nbsp; <b>2.</b> Dendam saves it
+              to Walrus Memory &nbsp;·&nbsp; <b>3.</b> Come back later — it remembers,
+              and roasts you when you&rsquo;re wrong.
+            </p>
           </div>
         )}
 

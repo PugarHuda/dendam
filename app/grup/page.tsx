@@ -188,6 +188,16 @@ export default function GrupPage() {
               </div>
             ))}
           </div>
+          {rows.length >= 2 && (
+            <p className="hint">
+              <a
+                href={`/share/vs/${encodeURIComponent(rows[0].handle)}/${encodeURIComponent(rows[1].handle)}`}
+              >
+                🆚 Share the head-to-head
+              </a>{" "}
+              — @{rows[0].handle} vs @{rows[1].handle} as a card.
+            </p>
+          )}
         </>
       )}
 

@@ -14,10 +14,16 @@ export const SITE = "https://dendam.vercel.app";
 // Build a pre-filled X/Twitter compose link for a handle's public file.
 export function tweetIntent(shareUrl: string, handle: string): string {
   const text = `Dendam has a file on @${handle} 🔥⚽ It remembers every World Cup 2026 take — then roasts you the moment you're wrong.`;
-  const params = new URLSearchParams({
-    text,
-    url: shareUrl,
-    hashtags: "Walrus",
-  });
+  return tweetUrl(text, shareUrl);
+}
+
+// Compose link for a head-to-head rivalry card.
+export function tweetIntentVs(shareUrl: string, a: string, b: string): string {
+  const text = `@${a} vs @${b}: who's the bigger World Cup 2026 fraud? Dendam keeps the receipts. 🔥⚽`;
+  return tweetUrl(text, shareUrl);
+}
+
+function tweetUrl(text: string, url: string): string {
+  const params = new URLSearchParams({ text, url, hashtags: "Walrus" });
   return `https://twitter.com/intent/tweet?${params.toString()}`;
 }
