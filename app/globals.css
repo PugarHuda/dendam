@@ -29,6 +29,7 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--ink);
+  overflow-x: hidden; /* no horizontal scroll on narrow viewports */
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -140,6 +141,7 @@ a:hover {
 
 .nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -474,6 +476,8 @@ button.send,
   border-radius: var(--radius);
   padding: 0 20px;
   min-height: 52px;
+  max-width: 100%;
+  text-align: center;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
