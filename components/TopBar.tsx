@@ -32,6 +32,7 @@ export function TopBar({
             onChange={(e) => setHandle(e.target.value)}
             placeholder="your handle"
             spellCheck={false}
+            maxLength={40}
             aria-label="Your handle"
           />
         </div>

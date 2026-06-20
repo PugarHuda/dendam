@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { emptyStats, statsForHandle, type HandleStats } from "@/lib/stats";
+import { shortHandle } from "@/lib/links";
 
 export const runtime = "nodejs";
 export const alt = "A Dendam file";
@@ -95,7 +96,7 @@ export default async function Image({ params }: { params: Promise<{ handle: stri
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", fontSize: 30, color: MUTED }}>Dendam has a file on</div>
           <div style={{ display: "flex", fontSize: 78, fontWeight: 900, letterSpacing: -2, color: INK }}>
-            @{handle}
+            @{shortHandle(handle)}
             <span style={{ color: MINT_DK }}>.</span>
           </div>
         </div>

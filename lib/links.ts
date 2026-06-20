@@ -11,6 +11,13 @@ export const REPO_URL = "https://github.com/PugarHuda/dendam";
 
 export const SITE = "https://dendam.vercel.app";
 
+// Cap a handle for DISPLAY only (titles, headings, OG cards) so an absurdly
+// long URL-supplied handle can't break the layout. Lookups keep the full
+// handle so they still match the stored namespace.
+export function shortHandle(handle: string, max = 28): string {
+  return handle.length > max ? handle.slice(0, max - 1) + "…" : handle;
+}
+
 // Build a pre-filled X/Twitter compose link for a handle's public file.
 export function tweetIntent(shareUrl: string, handle: string): string {
   const text = `Dendam has a file on @${handle} 🔥⚽ It remembers every World Cup 2026 take — then roasts you the moment you're wrong.`;

@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { biggerFraud, emptyStats, statsForHandle, type HandleStats } from "@/lib/stats";
+import { shortHandle } from "@/lib/links";
 
 export const runtime = "nodejs";
 export const alt = "A Dendam head-to-head";
@@ -50,7 +51,7 @@ function Column({ s, loser }: { s: HandleStats; loser: boolean }) {
     >
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", fontSize: 40, fontWeight: 900, color: INK, letterSpacing: -1 }}>
-          @{s.handle}
+          @{shortHandle(s.handle, 18)}
         </div>
         {loser && (
           <div style={{ display: "flex", fontSize: 22, fontWeight: 700, color: AMBER, marginTop: 4 }}>
@@ -120,7 +121,7 @@ export default async function Image({ params }: { params: Promise<{ a: string; b
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 24, color: MUTED, fontWeight: 700 }}>
           <div style={{ display: "flex" }}>
-            {loser ? `@${loser.handle} is losing the bragging war.` : "Dead even — both equally full of it."}
+            {loser ? `@${shortHandle(loser.handle, 18)} is losing the bragging war.` : "Dead even — both equally full of it."}
           </div>
           <div style={{ display: "flex" }}>dendam.vercel.app&nbsp;&nbsp;·&nbsp;&nbsp;#Walrus</div>
         </div>

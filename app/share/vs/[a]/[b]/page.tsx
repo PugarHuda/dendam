@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { biggerFraud, emptyStats, statsForHandle, type HandleStats } from "@/lib/stats";
 import { ShareButton } from "@/components/ShareButton";
-import { SITE, tweetIntentVs } from "@/lib/links";
+import { shortHandle, SITE, tweetIntentVs } from "@/lib/links";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +24,7 @@ async function load(raw: string): Promise<HandleStats> {
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { a: ra, b: rb } = await params;
-  const [a, b] = [clean(ra), clean(rb)];
+  const [a, b] = [shortHandle(clean(ra)), shortHandle(clean(rb))];
   const title = `@${a} vs @${b} — Dendam head-to-head`;
   const description = `Who's the bigger World Cup 2026 fraud, @${a} or @${b}? Dendam keeps the receipts.`;
   return {
@@ -40,7 +40,7 @@ function PlayerCard({ s, loser }: { s: HandleStats; loser: boolean }) {
   return (
     <div className="grudge" style={loser ? { borderLeftColor: "var(--accent-2)" } : undefined}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-        <b style={{ fontSize: 18 }}>@{s.handle}</b>
+        <b style={{ fontSize: 18, wordBreak: "break-all" }}>@{shortHandle(s.handle)}</b>
         {loser && <span className="tag wrong">bigger fraud</span>}
       </div>
       <div className="meta" style={{ marginTop: 12 }}>
@@ -81,12 +81,12 @@ export default async function VsPage({ params }: Params) {
       </div>
 
       <h2 className="page-title" style={{ marginTop: 14, fontSize: 28 }}>
-        <span style={{ color: "var(--accent-soft)" }}>@{sa.handle}</span> vs{" "}
-        <span style={{ color: "var(--accent-soft)" }}>@{sb.handle}</span>
+        <span style={{ color: "var(--accent-soft)" }}>@{shortHandle(sa.handle)}</span> vs{" "}
+        <span style={{ color: "var(--accent-soft)" }}>@{shortHandle(sb.handle)}</span>
       </h2>
       <p className="hint" style={{ marginTop: 0 }}>
         {loser
-          ? `Dendam's verdict: @${loser.handle} is losing the bragging war.`
+          ? `Dendam's verdict: @${shortHandle(loser.handle)} is losing the bragging war.`
           : "Dendam's verdict: dead even — both equally full of it."}
       </p>
 
@@ -99,8 +99,8 @@ export default async function VsPage({ params }: Params) {
         <a className="btn" href={tweetIntentVs(shareUrl, sa.handle, sb.handle)} target="_blank" rel="noreferrer">
           𝕏 Post the matchup
         </a>
-        <Link className="btn ghost" href={`/share/${enc(sa.handle)}`}>@{sa.handle}&rsquo;s file</Link>
-        <Link className="btn ghost" href={`/share/${enc(sb.handle)}`}>@{sb.handle}&rsquo;s file</Link>
+        <Link className="btn ghost" href={`/share/${enc(sa.handle)}`}>@{shortHandle(sa.handle, 16)}&rsquo;s file</Link>
+        <Link className="btn ghost" href={`/share/${enc(sb.handle)}`}>@{shortHandle(sb.handle, 16)}&rsquo;s file</Link>
         <ShareButton url={`/share/vs/${enc(sa.handle)}/${enc(sb.handle)}`} title={`@${sa.handle} vs @${sb.handle}`} />
       </div>
 

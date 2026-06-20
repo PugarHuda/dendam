@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { emptyStats, statsForHandle, type HandleStats } from "@/lib/stats";
 import { ShareButton } from "@/components/ShareButton";
-import { EXPLORER_URL, SITE, tweetIntent } from "@/lib/links";
+import { EXPLORER_URL, shortHandle, SITE, tweetIntent } from "@/lib/links";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,7 +25,7 @@ async function load(raw: string): Promise<HandleStats> {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { handle: raw } = await params;
   const s = await load(raw);
-  const title = `@${s.handle}'s Dendam file`;
+  const title = `@${shortHandle(s.handle)}'s Dendam file`;
   const acc = s.accuracy === null ? "" : ` · ${Math.round(s.accuracy * 100)}% accuracy`;
   const description =
     s.total === 0
@@ -78,11 +78,11 @@ export default async function SharePage({ params }: Params) {
             {netLabel}
           </span>
         )}
-        <span className="badge">the file on @{s.handle}</span>
+        <span className="badge">the file on @{shortHandle(s.handle)}</span>
       </div>
 
       <h2 className="page-title" style={{ marginTop: 14, fontSize: 28 }}>
-        Dendam has a file on <span style={{ color: "var(--accent-soft)" }}>@{s.handle}</span>.
+        Dendam has a file on <span style={{ color: "var(--accent-soft)" }}>@{shortHandle(s.handle)}</span>.
       </h2>
 
       {s.total === 0 ? (

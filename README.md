@@ -188,6 +188,8 @@ npm run check:memory  # round-trip remember → recall (active backend)
 Verified: typecheck OK · 44/44 tests pass · build green (6 API routes + dynamic share/OG routes) · endpoints tested live on Walrus Mainnet (chat/recall/extract/reconcile/kompor/leaderboard), including the day-1 vs day-N before/after, multilingual replies (EN/ID/ES), English-canonical memory extraction, and the auto-roast kill-shot.
 
 ## Supporting docs
+- [`REVIEW.md`](./REVIEW.md) — 60-second reviewer walkthrough (what to click, in order).
+- [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md) — done-vs-your-actions checklist.
 - [`DEMO.md`](./DEMO.md) — 3-minute demo video storyboard (shot list + dialogue script).
 - [`DEPLOY.md`](./DEPLOY.md) — deployment paths (Vercel / Node host / Walrus Site).
 - [`SUBMISSION.md`](./SUBMISSION.md) — paste-ready Airtable form text, promo copy, and 6 draft GitHub feedback tickets.
