@@ -11,4 +11,6 @@ next-env.d.ts
 .vercel
 .tmp-test*
 .tmp-smoke*
+.shot*
+.commitmsg.tmp
 tsconfig.tsbuildinfo
