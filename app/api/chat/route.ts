@@ -57,6 +57,17 @@ export async function POST(req: Request) {
     // How many memories grounded this reply — surfaced in the UI so the
     // recall→respond loop is visible (0 = cold start, first encounter).
     "x-dendam-recalled": String(recalled.length),
+    // The actual recalled lines (compact, header-safe) so the UI can reveal
+    // exactly which memories Dendam used. Headers are latin1, so URL-encode.
+    "x-dendam-recalled-items": encodeURIComponent(
+      JSON.stringify(
+        recalled.slice(0, 8).map((m) => ({
+          t: m.text.slice(0, 140),
+          k: m.kind,
+          w: !!m.wasWrong,
+        })),
+      ),
+    ),
   };
 
   // Helper: persist durable grudges from an exchange (best-effort).

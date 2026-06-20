@@ -325,8 +325,36 @@ a:hover {
   background: rgba(20, 184, 166, 0.1);
   border: 1px solid #b7e6df;
   border-radius: 999px;
-  padding: 2px 9px;
+  padding: 3px 10px;
   margin-bottom: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+.recall-chip:hover {
+  background: rgba(20, 184, 166, 0.18);
+}
+
+.recall-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 9px;
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.recall-item {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.recall-item .tag {
+  flex: none;
 }
 
 .roast-share {

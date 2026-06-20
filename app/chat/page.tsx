@@ -29,8 +29,12 @@ function NetworkBadge({ network }: { network: string }) {
 export default function ChatPage() {
   const [handle, setHandle] = useState("anon");
   const [network, setNetwork] = useState<string>("");
+  type RecallItem = { t: string; k: string; w: boolean };
   const [recalledMap, setRecalledMap] = useState<Record<string, number>>({});
+  const [recalledItems, setRecalledItems] = useState<Record<string, RecallItem[]>>({});
+  const [openRecall, setOpenRecall] = useState<Record<string, boolean>>({});
   const pendingRecalled = useRef<number | null>(null);
+  const pendingItems = useRef<RecallItem[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -52,11 +56,19 @@ export default function ChatPage() {
       // assistant message once it finishes (below) so the recall is visible.
       const r = res.headers.get("x-dendam-recalled");
       pendingRecalled.current = r == null ? null : parseInt(r, 10);
+      const items = res.headers.get("x-dendam-recalled-items");
+      try {
+        pendingItems.current = items ? JSON.parse(decodeURIComponent(items)) : [];
+      } catch {
+        pendingItems.current = [];
+      }
     },
     onFinish(message) {
       if (pendingRecalled.current != null) {
         const n = pendingRecalled.current;
+        const its = pendingItems.current;
         setRecalledMap((m) => ({ ...m, [message.id]: n }));
+        if (its.length) setRecalledItems((m) => ({ ...m, [message.id]: its }));
       }
     },
   });
@@ -135,10 +147,28 @@ export default function ChatPage() {
               </div>
               <div className={`msg ${m.role}`}>
                 {!isUser && recalledMap[m.id] > 0 && (
-                  <div className="recall-chip" title="Dendam grounded this reply in your stored memories">
-                    📂 pulled {recalledMap[m.id]}{" "}
-                    {recalledMap[m.id] === 1 ? "memory" : "memories"} from your file
-                  </div>
+                  <>
+                    <button
+                      className="recall-chip"
+                      onClick={() => setOpenRecall((o) => ({ ...o, [m.id]: !o[m.id] }))}
+                      title="Show the memories Dendam used for this reply"
+                    >
+                      📂 pulled {recalledMap[m.id]}{" "}
+                      {recalledMap[m.id] === 1 ? "memory" : "memories"} from your file
+                      {recalledItems[m.id]?.length ? (openRecall[m.id] ? " ▲" : " ▼") : ""}
+                    </button>
+                    {openRecall[m.id] && recalledItems[m.id]?.length > 0 && (
+                      <div className="recall-list">
+                        {recalledItems[m.id].map((it, j) => (
+                          <div key={j} className="recall-item">
+                            <span className={`tag kind`}>{it.k}</span>
+                            <span>{it.t}</span>
+                            {it.w && <span className="tag wrong">‼️</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
                 <div className="who">{isUser ? "You" : "Dendam"}</div>
                 <span>{msgText(m)}</span>

@@ -74,6 +74,9 @@ export default function DossierPage() {
   const [reconciling, setReconciling] = useState(false);
   const [filter, setFilter] = useState("all");
   const [err, setErr] = useState("");
+  const [askQuery, setAskQuery] = useState("");
+  const [askResults, setAskResults] = useState<Memory[] | null>(null);
+  const [asking, setAsking] = useState(false);
 
   useEffect(() => {
     setHandle(initialHandle());
@@ -180,6 +183,57 @@ export default function DossierPage() {
     URL.revokeObjectURL(url);
   }
 
+  async function ask() {
+    const q = askQuery.trim();
+    if (!q) return;
+    setAsking(true);
+    setAskResults(null);
+    setErr("");
+    try {
+      const res = await fetch("/api/recall", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ handle: handle || "anon", query: q }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(res.status === 429 ? "Slow down a moment — too many requests." : "Recall failed — try again.");
+        return;
+      }
+      setAskResults(data.memories ?? []);
+    } catch {
+      setErr("Recall failed — try again.");
+    } finally {
+      setAsking(false);
+    }
+  }
+
+  // Insights computed from the file — order-independent so they're robust even
+  // when Walrus doesn't return per-memory timestamps.
+  const insights = useMemo(() => {
+    const teamCount = new Map<string, number>();
+    for (const m of memories) if (m.team) teamCount.set(m.team, (teamCount.get(m.team) ?? 0) + 1);
+    const topTeam = [...teamCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+    // % of predictions proven wrong. `wrong` counts wasWrong across all memory
+    // kinds (incl. verdicts), so clamp to 100 to avoid a nonsensical >100%.
+    const bustRate =
+      predictions.length > 0
+        ? Math.min(100, Math.round((wrong / predictions.length) * 100))
+        : null;
+    return { topTeam, bustRate };
+  }, [memories, predictions.length, wrong]);
+
+  // Grudge of the day: Dendam resurfaces an old busted call/insult unprompted.
+  // Rotates once per calendar day so it feels alive without being random.
+  const grudgeOfDay = useMemo(() => {
+    const pool = memories.filter(
+      (m) => m.wasWrong || m.kind === "insult" || m.kind === "prediction",
+    );
+    if (pool.length === 0) return null;
+    const day = Math.floor(Date.now() / 86_400_000);
+    return pool[day % pool.length];
+  }, [memories]);
+
   const countFor = (key: string) =>
     key === "all" ? memories.length : memories.filter((m) => m.kind === key).length;
 
@@ -255,6 +309,34 @@ export default function DossierPage() {
         </span>
       </div>
 
+      {(insights.topTeam || insights.bustRate !== null) && (
+        <p className="hint" style={{ marginTop: 12 }}>
+          {insights.topTeam && (
+            <>Pet subject: <b style={{ color: "var(--ink)" }}>{insights.topTeam}</b>. </>
+          )}
+          {insights.bustRate !== null && (
+            <>
+              <b style={{ color: "var(--accent-2)" }}>{insights.bustRate}%</b> of your
+              logged predictions have been busted.
+            </>
+          )}
+        </p>
+      )}
+
+      {grudgeOfDay && (
+        <div className="grudge wrong" style={{ marginTop: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--accent-2)", marginBottom: 6 }}>
+            🔥 Grudge of the day
+          </div>
+          <div>&ldquo;{grudgeOfDay.text}&rdquo;</div>
+          <div className="meta">
+            <span className="tag kind">{KIND_LABEL[grudgeOfDay.kind] ?? grudgeOfDay.kind}</span>
+            {grudgeOfDay.wasWrong && <span className="tag wrong">‼️ still wrong</span>}
+            <span style={{ color: "var(--muted)" }}>Dendam hasn&rsquo;t forgotten this one.</span>
+          </div>
+        </div>
+      )}
+
       {verdicts.length > 0 && (
         <div className="dossier-grid" style={{ marginTop: 14 }}>
           {verdicts.map((v, i) => (
@@ -293,6 +375,47 @@ export default function DossierPage() {
 
       {!loading && memories.length > 0 && (
         <>
+          <div className="section-head">
+            <h3>Ask the file</h3>
+            <span className="count">live semantic recall on Walrus</span>
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div className="handle" style={{ flex: 1, minWidth: 220 }}>
+              <span style={{ color: "var(--muted)" }}>🔎</span>
+              <input
+                style={{ width: "100%" }}
+                value={askQuery}
+                onChange={(e) => setAskQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && ask()}
+                placeholder="e.g. what did I say about Brazil?"
+                aria-label="Ask Dendam's memory"
+              />
+            </div>
+            <button className="btn sm" onClick={ask} disabled={asking || !askQuery.trim()}>
+              {asking ? "Recalling…" : "Recall"}
+            </button>
+          </div>
+          {askResults && (
+            <div className="dossier-grid" style={{ marginTop: 12 }}>
+              {askResults.length === 0 ? (
+                <p className="hint" style={{ margin: 0 }}>
+                  Nothing relevant surfaced for that. Try other words.
+                </p>
+              ) : (
+                askResults.map((m) => (
+                  <div key={m.id} className={`grudge ${m.wasWrong ? "wrong" : ""}`}>
+                    <div>{m.text}</div>
+                    <div className="meta">
+                      <span className="tag kind">{KIND_LABEL[m.kind] ?? m.kind}</span>
+                      {m.team && <span className="tag">{m.team}</span>}
+                      {m.wasWrong && <span className="tag wrong">‼️ wrong</span>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
           <div className="section-head">
             <h3>Memory file</h3>
             <span className="count">{shown.length} shown · newest first</span>
