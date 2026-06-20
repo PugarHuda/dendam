@@ -92,19 +92,19 @@ async function retry(fn, attempts = 4, delayMs = 5000) {
     check("GET /api/results (seed present)", res.status === 200 && hasSeed, `status=${res.status} count=${body?.count} seed=${hasSeed}`);
   }
 
-  // ── Input guards (should reject) ────────────────────────
+  // ── Input guards (should reject — 429 also acceptable if rate-limited) ──
   {
     const { res, body } = await post("/api/chat", {});
-    check("POST /api/chat {} → 400", res.status === 400, `status=${res.status} ${body?.error ?? ""}`);
+    check("POST /api/chat {} → 400/429", [400, 429].includes(res.status), `status=${res.status} ${body?.error ?? ""}`);
   }
   {
     const { res } = await post("/api/kompor", { handles: ["only-one"] });
-    check("POST /api/kompor (1 handle) → 400", res.status === 400, `status=${res.status}`);
+    check("POST /api/kompor (1 handle) → 400/429", [400, 429].includes(res.status), `status=${res.status}`);
   }
   {
     const { res, body } = await post("/api/results", { results: [] });
-    // 503 admin_disabled (no token) OR 401 unauthorized (token set, none sent) OR 400 no_results
-    check("POST /api/results (no token) → 401/503/400", [400, 401, 503].includes(res.status), `status=${res.status} ${body?.error ?? ""}`);
+    // 503 admin_disabled / 401 unauthorized / 400 no_results / 429 rate-limited
+    check("POST /api/results (no token) → 401/503/400/429", [400, 401, 503, 429].includes(res.status), `status=${res.status} ${body?.error ?? ""}`);
   }
   {
     let last;
