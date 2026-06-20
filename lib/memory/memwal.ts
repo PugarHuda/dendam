@@ -28,9 +28,19 @@ export interface MemWalConfig {
 // because the package may not ship types in every environment.
 type MemWalClient = any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
+// How long a list() result is reused per namespace (per serverless instance).
+// list() fans out ~5 relayer recalls; the dossier / share / leaderboard / vs
+// pages each call it on every request, so a burst of clicks fired dozens of
+// concurrent recalls and rate-limited the relayer into returning empty sets.
+// New memories take tens of seconds to index anyway, so a brief cache doesn't
+// change observable freshness. Only non-empty results are cached (so a
+// transient empty/throttled read isn't pinned).
+const LIST_TTL_MS = 15_000;
+
 export class MemWalMemoryStore implements MemoryStore {
   readonly backend = "memwal" as const;
   private clients = new Map<string, Promise<MemWalClient>>();
+  private listCache = new Map<string, { at: number; data: MemoryRecord[] }>();
 
   constructor(private cfg: MemWalConfig) {}
 
@@ -86,6 +96,17 @@ export class MemWalMemoryStore implements MemoryStore {
   }
 
   async list(namespace: string, limit = 100): Promise<MemoryRecord[]> {
+    const cached = this.listCache.get(namespace);
+    if (cached && Date.now() - cached.at < LIST_TTL_MS) {
+      return cached.data.slice(0, limit);
+    }
+    const recs = await this.computeList(namespace, limit);
+    // Only cache a real result — never pin an empty/throttled read.
+    if (recs.length) this.listCache.set(namespace, { at: Date.now(), data: recs });
+    return recs;
+  }
+
+  private async computeList(namespace: string, limit: number): Promise<MemoryRecord[]> {
     const client = await this.getClient(namespace);
     // Prefer a real list API if the SDK exposes one.
     if (typeof client.list === "function") {
