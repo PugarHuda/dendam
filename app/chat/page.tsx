@@ -29,6 +29,8 @@ function NetworkBadge({ network }: { network: string }) {
 export default function ChatPage() {
   const [handle, setHandle] = useState("anon");
   const [network, setNetwork] = useState<string>("");
+  const [recalledMap, setRecalledMap] = useState<Record<string, number>>({});
+  const pendingRecalled = useRef<number | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,6 +48,16 @@ export default function ChatPage() {
     onResponse(res) {
       const n = res.headers.get("x-dendam-network");
       if (n) setNetwork(n);
+      // Capture how many memories grounded this reply; attach it to the
+      // assistant message once it finishes (below) so the recall is visible.
+      const r = res.headers.get("x-dendam-recalled");
+      pendingRecalled.current = r == null ? null : parseInt(r, 10);
+    },
+    onFinish(message) {
+      if (pendingRecalled.current != null) {
+        const n = pendingRecalled.current;
+        setRecalledMap((m) => ({ ...m, [message.id]: n }));
+      }
     },
   });
 
@@ -122,9 +134,27 @@ export default function ChatPage() {
                 {isUser ? "🧑" : "🔥"}
               </div>
               <div className={`msg ${m.role}`}>
+                {!isUser && recalledMap[m.id] > 0 && (
+                  <div className="recall-chip" title="Dendam grounded this reply in your stored memories">
+                    📂 pulled {recalledMap[m.id]}{" "}
+                    {recalledMap[m.id] === 1 ? "memory" : "memories"} from your file
+                  </div>
+                )}
                 <div className="who">{isUser ? "You" : "Dendam"}</div>
                 <span>{msgText(m)}</span>
                 {streamingHere && <span className="caret" />}
+                {!isUser && !streamingHere && msgText(m).trim() && (
+                  <a
+                    className="roast-share"
+                    href={`/roast?by=${encodeURIComponent(handle || "anon")}&text=${encodeURIComponent(
+                      msgText(m).slice(0, 280),
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    🔥 Share this roast
+                  </a>
+                )}
               </div>
             </div>
           );

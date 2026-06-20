@@ -18,6 +18,9 @@ export interface MemoryRecord {
   // Whether the predicted/claimed thing turned out wrong. Drives the roast.
   wasWrong?: boolean;
   createdAt: string; // ISO timestamp
+  // Walrus blob id this memory is stored in, when the backend exposes it —
+  // used for per-memory "verify on Walrus" provenance links.
+  blobId?: string;
 }
 
 export interface RememberInput {

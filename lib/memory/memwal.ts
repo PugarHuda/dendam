@@ -164,7 +164,14 @@ export function normalize(result: any, limit: number): MemoryRecord[] {
     const createdAt = String(
       item?.createdAt ?? item?.created_at ?? item?.timestamp ?? "",
     );
-    out.push(parseMemory(raw, { id, createdAt }));
+    const blobId =
+      typeof item?.blob_id === "string"
+        ? item.blob_id
+        : typeof item?.blobId === "string"
+          ? item.blobId
+          : undefined;
+    const rec = parseMemory(raw, { id, createdAt });
+    out.push(blobId ? { ...rec, blobId } : rec);
   }
   return out;
 }

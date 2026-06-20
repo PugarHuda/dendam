@@ -54,6 +54,9 @@ export async function POST(req: Request) {
   const headers = {
     "x-dendam-backend": store.backend,
     "x-dendam-network": memoryNetwork(),
+    // How many memories grounded this reply — surfaced in the UI so the
+    // recall→respond loop is visible (0 = cold start, first encounter).
+    "x-dendam-recalled": String(recalled.length),
   };
 
   // Helper: persist durable grudges from an exchange (best-effort).

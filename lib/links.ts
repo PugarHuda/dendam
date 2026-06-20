@@ -7,6 +7,11 @@ export const MEMWAL_ACCOUNT =
 
 export const EXPLORER_URL = `https://suiscan.xyz/mainnet/object/${MEMWAL_ACCOUNT}`;
 
+// Per-memory provenance: view the Walrus blob a memory is stored in.
+export function walrusBlobUrl(blobId: string): string {
+  return `https://walruscan.com/mainnet/blob/${encodeURIComponent(blobId)}`;
+}
+
 export const REPO_URL = "https://github.com/PugarHuda/dendam";
 
 export const SITE = "https://dendam.vercel.app";
@@ -28,6 +33,11 @@ export function tweetIntent(shareUrl: string, handle: string): string {
 export function tweetIntentVs(shareUrl: string, a: string, b: string): string {
   const text = `@${a} vs @${b}: who's the bigger World Cup 2026 fraud? Dendam keeps the receipts. 🔥⚽`;
   return tweetUrl(text, shareUrl);
+}
+
+// Compose link for sharing a single roast.
+export function tweetIntentRoast(shareUrl: string): string {
+  return tweetUrl("Dendam roasted me 🔥⚽ It never forgets a World Cup 2026 take.", shareUrl);
 }
 
 function tweetUrl(text: string, url: string): string {

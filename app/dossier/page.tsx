@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 import { ShareButton } from "@/components/ShareButton";
-import { EXPLORER_URL } from "@/lib/links";
+import { EXPLORER_URL, walrusBlobUrl } from "@/lib/links";
 
 type Memory = {
   id: string;
@@ -12,6 +12,7 @@ type Memory = {
   team?: string;
   wasWrong?: boolean;
   createdAt: string;
+  blobId?: string;
 };
 
 type MatchResult = {
@@ -155,10 +156,29 @@ export default function DossierPage() {
       ? Math.round((correct / resolved.length) * 100)
       : null;
 
-  const shown = useMemo(
-    () => (filter === "all" ? memories : memories.filter((m) => m.kind === filter)),
-    [memories, filter],
-  );
+  const shown = useMemo(() => {
+    const filtered =
+      filter === "all" ? memories : memories.filter((m) => m.kind === filter);
+    // Timeline order: newest first. Stable sort keeps undated memories in
+    // their original order at the end (Walrus doesn't always return a date).
+    return [...filtered].sort((a, b) =>
+      (b.createdAt || "").localeCompare(a.createdAt || ""),
+    );
+  }, [memories, filter]);
+
+  function exportFile() {
+    const payload = JSON.stringify(
+      { handle: handle || "anon", network, source: "https://dendam.vercel.app", count: memories.length, memories },
+      null,
+      2,
+    );
+    const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dendam-file-${handle || "anon"}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const countFor = (key: string) =>
     key === "all" ? memories.length : memories.filter((m) => m.kind === key).length;
@@ -275,7 +295,15 @@ export default function DossierPage() {
         <>
           <div className="section-head">
             <h3>Memory file</h3>
-            <span className="count">{shown.length} shown</span>
+            <span className="count">{shown.length} shown · newest first</span>
+            <button
+              className="badge"
+              onClick={exportFile}
+              style={{ cursor: "pointer", marginLeft: "auto" }}
+              title="Download this file as JSON (your data, your memory)"
+            >
+              ⬇ Export
+            </button>
           </div>
 
           <div className="chips" style={{ justifyContent: "flex-start" }}>
@@ -303,6 +331,16 @@ export default function DossierPage() {
                   {m.team && <span className="tag">{m.team}</span>}
                   {m.wasWrong && <span className="tag wrong">‼️ wrong</span>}
                   {m.createdAt && <span>{m.createdAt.slice(0, 10)}</span>}
+                  {m.blobId && (
+                    <a
+                      href={walrusBlobUrl(m.blobId)}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="View the Walrus blob this memory is stored in"
+                    >
+                      ⛓ on Walrus ↗
+                    </a>
+                  )}
                 </div>
               </div>
             ))}
