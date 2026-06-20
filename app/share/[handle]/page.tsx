@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { emptyStats, statsForHandle, type HandleStats } from "@/lib/stats";
 import { ShareButton } from "@/components/ShareButton";
+import { EXPLORER_URL, SITE, tweetIntent } from "@/lib/links";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -136,6 +137,14 @@ export default async function SharePage({ params }: Params) {
         <Link className="btn ghost" href={`/dossier?handle=${enc}`}>
           See the full File
         </Link>
+        <a
+          className="btn ghost"
+          href={tweetIntent(`${SITE}/share/${enc}`, s.handle)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          𝕏 Post to X
+        </a>
         <ShareButton
           url={`/share/${enc}`}
           title={`@${s.handle}'s Dendam file`}
@@ -144,8 +153,11 @@ export default async function SharePage({ params }: Params) {
       </div>
 
       <p className="hint">
-        Every memory is stored on Walrus Memory and tied to a MemWalAccount object
-        on Sui — not a chat log. Make your call, and live with it.
+        Every memory is stored on Walrus Memory and tied to a{" "}
+        <a href={EXPLORER_URL} target="_blank" rel="noreferrer">
+          MemWalAccount object on Sui ↗
+        </a>{" "}
+        — not a chat log. Make your call, and live with it.
       </p>
 
       <footer className="footer">

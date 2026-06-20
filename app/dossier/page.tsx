@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 import { ShareButton } from "@/components/ShareButton";
+import { EXPLORER_URL } from "@/lib/links";
 
 type Memory = {
   id: string;
@@ -303,8 +304,10 @@ export default function DossierPage() {
 
       <p className="hint">
         Everything above is stored encrypted on Walrus Memory and tied to a{" "}
-        <code>MemWalAccount</code> object on Sui. This is exactly what Dendam
-        reads before clapping back at you.
+        <a href={EXPLORER_URL} target="_blank" rel="noreferrer">
+          <code>MemWalAccount</code> object on Sui ↗
+        </a>
+        . This is exactly what Dendam reads before clapping back at you.
       </p>
 
       <footer className="footer">

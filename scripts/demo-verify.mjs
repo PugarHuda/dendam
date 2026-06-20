@@ -58,5 +58,16 @@ const turn = (role, content) => ({ role, content });
   // DAY N — brand new session, no reminder. Must recall the planted past.
   await chat([turn("user", "So what do you think of me?")], "DAY N (new session — recall)");
 
+  // KILL SHOT — confront predictions with results (bundled seed makes this
+  // work out of the box). The Argentina call should come back WRONG.
+  const rec = await fetch(`${BASE}/api/reconcile`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ handle }),
+  });
+  const recJson = await rec.json().catch(() => ({}));
+  console.log(`\n=== KILL SHOT · /api/reconcile === [${rec.status} · judged=${recJson.judged}]`);
+  for (const v of recJson.verdicts || []) console.log(` • [${v.status}] "${v.prediction}" → ${v.roast}`);
+
   console.log(`\n# Done. Throwaway handle: @${handle}`);
 })();
