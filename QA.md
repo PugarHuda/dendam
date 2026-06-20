@@ -1,10 +1,12 @@
 # 🔍 QA & Audit Notes
 
 A thorough pass over correctness, edge cases, security, performance, and DX.
-Status at audit: typecheck OK · 34/34 unit tests · build green (6 API routes) ·
+Status: typecheck OK · **53/53 unit tests** · build green (**16 routes** incl.
+dynamic share/OG) · live smoke sweep 17/17 (`node scripts/smoke.mjs`) ·
 live endpoints verified on Vercel (chat/recall/extract/reconcile/kompor/leaderboard,
 multilingual EN/ID/ES) · full pipeline validated on Walrus **mainnet**
-(createAccount → addDelegateKey → remember → recall).
+(createAccount → addDelegateKey → remember → recall) · day-1→day-N before/after
+and the auto-roast kill-shot verified end-to-end live.
 
 ## Issues found & FIXED
 | # | Severity | Issue | Fix |
@@ -24,9 +26,21 @@ multilingual EN/ID/ES) · full pipeline validated on Walrus **mainnet**
 | 13 | **High** | **Cold-start 504 on Mainnet (live).** `MemWalMemoryStore.remember` blocked on `waitForRememberJob` (~tens of sec of Walrus indexing) **per memory, sequentially**. A fresh-handle chat writes 2-3 grudges → 90-135s → `FUNCTION_INVOCATION_TIMEOUT`, and the write was lost. This hit the **day-1 cold-start path** — the exact moment the demo's before/after hinges on. Reproduced live with a throwaway handle. | `remember()` now submits the job and returns on the relayer's `202 Accepted` without blocking on indexing (the wait can't help a same-request read and isn't needed cross-session — indexing finishes in the background long before the user's next session). The cold-start route also writes via Next's `after()` so the reply flushes before extraction+write run. Verified: cold-start chat now returns ~instantly and the memory appears on Mainnet within ~indexing latency. |
 | 14 | Medium | `extractJson` (free-model JSON fallback) used `lastIndexOf(closer)` → trailing prose containing a `}`/`]` after valid JSON grabbed the wrong closer and threw, defeating the fallback. | Replaced with a string-aware **balanced-brace scanner** that finds the matching closer from the first opener (and falls back to the other opener if the first is prose). +8 regression tests. |
 
+## Later QA pass — gap analysis (found & FIXED)
+| # | Severity | Issue | Fix |
+|---|----------|-------|-----|
+| 15 | **High** | **Empty-body 500 crash on `/api/leaderboard`.** Under bursty reads the Walrus relayer made several concurrent recalls fail at once; `mapLimit` awaited workers with `Promise.all`, which rejects on the first failure while siblings are still in flight — a later sibling rejection was **unhandled** and crashed the invocation (bare 500, no JSON). | Each worker now catches its own error, records the first, and stops; all workers are awaited (never reject) then the first error is thrown. Same contract, zero floating rejections. Regression test asserts the reject **and** no `unhandledRejection`. Verified live: empty-body 500s → 0 (now graceful JSON 500). |
+| 16 | Medium | **Relayer rate-limits under load.** A burst of clicks (dossier + share + leaderboard + vs all call `list()` = ~5 recalls each) throttled the relayer into returning empty sets (`count=0`, leaderboard 500s). | Short per-namespace cache for `list()` (15s, per instance, non-empty results only). Verified live: 12/12 leaderboard 200 + 10/10 memories `count=8` under rapid load. |
+| 17 | High | **No rate limiting** on the public LLM/relayer endpoints (chat/reconcile/kompor/leaderboard/memories) → spam could burn LLM credits or hammer the relayer. | Added `lib/ratelimit.ts` (per-(bucket,IP) sliding window) → `429 + Retry-After` (chat 20/min, reconcile/kompor 15, leaderboard 40, memories 80). See the honest limitation note below. |
+| 18 | Medium | **Silent client errors.** `dossier`/`grup` didn't check `res.ok` before `.json()`, so a relayer hiccup rendered an empty file — indistinguishable from "no memory" (a demo trap). | Both now check `res.ok` / the relayer's `error` field and show a banner; `JSON.parse`/`res.json()` are guarded. |
+| 19 | Medium | **Unbounded fan-out.** `kompor`/`leaderboard` accepted any number of handles → one request could fan out hundreds of relayer recalls. | Cap at `MAX_HANDLES = 12` per request. |
+| 20 | Low | Admin-token check used `!==` (timing side-channel). | `sha256` + `timingSafeEqual` (constant-time, no length leak). |
+| 21 | Low | An absurdly long URL-supplied handle could overflow share/OG layouts. | `shortHandle()` caps display to 28 chars (lookups keep the full handle); `maxLength=40` on the handle input. Verified: a 57-char handle truncates cleanly. |
+
 ## Known limitations & recommendations (NOT bugs)
 - **Stronger model still recommended for the recorded demo.** The cold-start guard removes day-1 fabrication on any model, but a stronger model (`DENDAM_MODEL=claude-sonnet-4-6`, or free `nex-agi/nex-n2-pro:free` which tested best) gives sharper, more on-character roasts for the recording. The free default `openai/gpt-oss-120b:free` is fine and fully working.
-- **Privacy model.** Handles are public identifiers: anyone can read `/api/memories?handle=X` and call `/api/chat|kompor|leaderboard` for any handle. Intentional for a shareable demo; add real auth + rate-limiting for production. (`/api/results` writes are now token-gated.)
+- **Privacy model.** Handles are public identifiers: anyone can read `/api/memories?handle=X`, view `/share/<handle>`, and call `/api/chat|kompor|leaderboard` for any handle. Intentional for a shareable demo; add real auth for production. (`/api/results` writes are token-gated.)
+- **Rate limiting is best-effort on Vercel.** `lib/ratelimit.ts` is an in-memory per-(bucket,IP) limiter, so it only sees one serverless instance. **Measured live:** Vercel spreads even sequential requests across many instances (each request showed a distinct `x-vercel-id`), so a single client's burst is split across fresh counters and the 429 only fires occasionally. It's a genuine deterrent against hammering one warm instance, **not** a hard cross-instance cap. The real cost protections are: rotating the leaked OpenRouter key, the free default model, and OpenRouter's own per-key limits. For a hard guarantee, front it with a distributed store (e.g. Upstash Redis + `@upstash/ratelimit`) — deliberately not added to keep the submission self-contained.
 - **Match results: live feed OR manual.** Set `FOOTBALL_DATA_TOKEN` (free, football-data.org) and FINISHED World Cup matches are pulled automatically and merged into the scoreboard + auto-roast — no manual entry (`lib/sportsapi.ts`, 60s in-memory cache, graceful no-op without a token). Without a token, results are fed manually via `POST /api/results` / `npm run seed:results`. Either way, manually-seeded `data/results.json` lives in `/tmp` on serverless (per-instance, wiped on cold start) — the live feed sidesteps this since it re-fetches. **User memory is unaffected either way once `MEMWAL_*` is set** (it's on Walrus).
 - **`list()` on the MemWal backend is approximate.** There's no enumerate API, so `list()` does multi-query recall + dedupe; it may miss some memories, which can let `reconcile` re-judge or the leaderboard undercount. Confirmed still missing in SDK v0.0.7 (only semantic `recall` + `restore` counts) → filed as feedback ticket #1.
 - **Namespace collisions.** `namespaceFor` maps non-alphanumerics to `_`, so e.g. `a.b` and `a_b` collide. Fine for a demo; derive from real auth in production.
