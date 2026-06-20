@@ -10,11 +10,16 @@ import { coldStartReply } from "@/lib/coldstart";
 import { extractGrudges } from "@/lib/grudge";
 import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 import { DENDAM_SYSTEM, renderMemoryBlock } from "@/lib/persona";
+import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
+  // Each chat turn calls the LLM, so cap per-IP to deter credit-burning spam.
+  const rl = rateLimit("chat", clientIp(req), 20, 60_000);
+  if (!rl.ok) return tooMany(rl);
+
   const { messages, handle } = (await req.json().catch(() => ({}))) as {
     messages?: CoreMessage[];
     handle?: string;

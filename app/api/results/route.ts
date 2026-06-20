@@ -1,7 +1,15 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { addResults, MatchResult } from "@/lib/results";
 import { getAllResults } from "@/lib/sportsapi";
 
 export const runtime = "nodejs";
+
+// Constant-time secret comparison (hash first so length never leaks via timing).
+function safeEqual(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
 
 // GET — public list of match results (manual/seed merged with the live
 // football-data.org feed when FOOTBALL_DATA_TOKEN is set). Powers the feed.
@@ -20,7 +28,7 @@ export async function POST(req: Request) {
   if (!token) {
     return Response.json({ error: "admin_disabled" }, { status: 503 });
   }
-  if (req.headers.get("x-admin-token") !== token) {
+  if (!safeEqual(req.headers.get("x-admin-token") ?? "", token)) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
   let body: { results?: MatchResult[] };

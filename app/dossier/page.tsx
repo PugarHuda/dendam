@@ -72,6 +72,7 @@ export default function DossierPage() {
   const [loading, setLoading] = useState(false);
   const [reconciling, setReconciling] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [err, setErr] = useState("");
 
   useEffect(() => {
     setHandle(initialHandle());
@@ -82,16 +83,28 @@ export default function DossierPage() {
 
   const load = useCallback(async (h: string) => {
     setLoading(true);
+    setErr("");
     try {
       const [mRes, rRes] = await Promise.all([
         fetch(`/api/memories?handle=${encodeURIComponent(h)}`),
         fetch(`/api/results`),
       ]);
-      const m = await mRes.json();
-      const r = await rRes.json();
+      const m = await mRes.json().catch(() => ({}));
+      const r = await rRes.json().catch(() => ({}));
+      // /api/memories returns 200 with an `error` field when the relayer
+      // fails — surface it so an empty file isn't mistaken for "no memory".
+      if (!mRes.ok || m?.error) {
+        setErr(
+          mRes.status === 429
+            ? "Slow down a moment — too many requests."
+            : "Couldn't reach Walrus memory just now. Try again in a sec.",
+        );
+      }
       setMemories(m.memories ?? []);
       setNetwork(m.network ?? "");
       setResults(r.results ?? []);
+    } catch {
+      setErr("Couldn't reach Walrus memory just now. Try again in a sec.");
     } finally {
       setLoading(false);
     }
@@ -105,15 +118,26 @@ export default function DossierPage() {
   const reconcile = useCallback(async () => {
     setReconciling(true);
     setVerdicts([]);
+    setErr("");
     try {
       const res = await fetch(`/api/reconcile`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ handle: handle || "anon" }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(
+          res.status === 429
+            ? "Slow down a moment — too many requests."
+            : "Dendam couldn't reach the results just now. Try again.",
+        );
+        return;
+      }
       setVerdicts(data.verdicts ?? []);
       await load(handle || "anon"); // refresh stats with new verdict memories
+    } catch {
+      setErr("Dendam couldn't reach the results just now. Try again.");
     } finally {
       setReconciling(false);
     }
@@ -162,6 +186,12 @@ export default function DossierPage() {
           label="🔗 Copy link"
         />
       </div>
+
+      {err && (
+        <p className="hint" style={{ color: "var(--accent-2)" }} role="alert">
+          ⚠️ {err}
+        </p>
+      )}
 
       <div className="stat-row">
         <div className="stat">

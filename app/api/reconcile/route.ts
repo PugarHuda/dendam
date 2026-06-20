@@ -2,6 +2,7 @@ import { mapLimit } from "@/lib/async";
 import { getMemoryStore, namespaceFor } from "@/lib/memory";
 import { getAllResults } from "@/lib/sportsapi";
 import { judgePrediction, Verdict } from "@/lib/verdict";
+import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -10,6 +11,10 @@ export const maxDuration = 60;
 // results. Each newly-resolved prediction becomes a permanent "result"
 // grudge stored on Walrus (wasWrong flag drives the roast + dossier stats).
 export async function POST(req: Request) {
+  // Judges up to 12 predictions via the LLM — cap per-IP to deter spam.
+  const rl = rateLimit("reconcile", clientIp(req), 15, 60_000);
+  if (!rl.ok) return tooMany(rl);
+
   const { handle } = (await req.json().catch(() => ({}))) as {
     handle?: string;
   };

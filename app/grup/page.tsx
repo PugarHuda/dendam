@@ -47,14 +47,25 @@ export default function GrupPage() {
     const handles = parseHandles(members);
     if (handles.length < 1) return;
     setLoadingBoard(true);
+    setErr("");
     try {
       const res = await fetch("/api/leaderboard", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ handles }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(
+          res.status === 429
+            ? "Slow down a moment — too many requests."
+            : "Couldn't tally the board just now. Try again.",
+        );
+        return;
+      }
       setRows(data.rows ?? []);
+    } catch {
+      setErr("Couldn't tally the board just now. Try again.");
     } finally {
       setLoadingBoard(false);
     }
@@ -76,9 +87,15 @@ export default function GrupPage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ handles }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setErr(data.error || "failed");
+        setErr(
+          res.status === 429
+            ? "Slow down a moment — too many requests."
+            : data.error === "need_at_least_2_handles"
+              ? "Enter at least 2 handles."
+              : "Dendam couldn't stir it up just now. Try again.",
+        );
         return;
       }
       setTopic(data.topic || "");
