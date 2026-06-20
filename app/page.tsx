@@ -92,16 +92,19 @@ export default function LandingPage() {
           you&rsquo;re wrong.
         </p>
         <div className="cta-row">
-          <Link href="/chat" className="btn">
-            🔥 Face off with Dendam
+          <Link href="/chat?handle=demo" className="btn">
+            🔥 Try the demo — it already remembers
           </Link>
-          <Link href="/dossier" className="btn ghost">
+          <Link href="/chat" className="btn ghost">
+            Start fresh
+          </Link>
+          <Link href="/share/demo" className="btn ghost">
             See a live File
           </Link>
         </div>
         <p className="hero-hook">
           Day&nbsp;1 it knows nothing about you. Day&nbsp;5 it has a{" "}
-          <b>file</b> on you.
+          <b>file</b> on you. The demo drops you straight into Day&nbsp;N.
         </p>
       </section>
 

@@ -107,6 +107,15 @@ export default function ChatPage() {
         <span className="badge">memory for @{handle || "anon"}</span>
       </div>
 
+      {handle === "demo" && (
+        <div className="demo-banner" role="note">
+          👀 <b>You&rsquo;re in the demo.</b> Dendam already has a file on{" "}
+          <code>@demo</code> from earlier sessions — ask it{" "}
+          <i>&ldquo;what do you remember about me?&rdquo;</i> to see real cross-session
+          recall, or change the handle (top right) to start fresh.
+        </div>
+      )}
+
       <div className="chat" ref={scroller}>
         {messages.length === 0 && (
           <div className="empty">
