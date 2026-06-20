@@ -29,6 +29,22 @@ export function emptyStats(handle: string): HandleStats {
   };
 }
 
+// Who's the bigger fraud between two files: most wrong calls, then worst
+// accuracy (an unresolved file counts as a perfect 1.0 so it never "loses"
+// to someone who's actually been wrong), then the most trash talk. Returns
+// null on a dead heat. Pure — shared by the /share/vs page and its OG image.
+export function biggerFraud(
+  a: HandleStats,
+  b: HandleStats,
+): HandleStats | null {
+  if (a.wrong !== b.wrong) return a.wrong > b.wrong ? a : b;
+  const accA = a.accuracy ?? 1;
+  const accB = b.accuracy ?? 1;
+  if (accA !== accB) return accA < accB ? a : b;
+  if (a.insults !== b.insults) return a.insults > b.insults ? a : b;
+  return null;
+}
+
 export async function statsForHandle(
   handle: string,
   limit = 200,

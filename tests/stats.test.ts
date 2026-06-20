@@ -1,7 +1,41 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { statsForHandle } from "../lib/stats";
+import { biggerFraud, emptyStats, statsForHandle } from "../lib/stats";
 import { getMemoryStore, namespaceFor } from "../lib/memory";
+
+// ── biggerFraud (pure head-to-head comparison) ──────────────
+const mk = (handle: string, over: Partial<ReturnType<typeof emptyStats>>) => ({
+  ...emptyStats(handle),
+  ...over,
+});
+
+test("biggerFraud: more wrong calls is the bigger fraud", () => {
+  assert.equal(biggerFraud(mk("a", { wrong: 3 }), mk("b", { wrong: 1 }))?.handle, "a");
+});
+
+test("biggerFraud: tie on wrong → worse accuracy is the bigger fraud", () => {
+  const a = mk("a", { wrong: 2, accuracy: 0.2 });
+  const b = mk("b", { wrong: 2, accuracy: 0.8 });
+  assert.equal(biggerFraud(a, b)?.handle, "a");
+});
+
+test("biggerFraud: an unresolved file (null accuracy) counts as perfect, never loses on accuracy", () => {
+  const a = mk("a", { wrong: 0, accuracy: null }); // 1.0
+  const b = mk("b", { wrong: 0, accuracy: 0.5 });
+  assert.equal(biggerFraud(a, b)?.handle, "b");
+});
+
+test("biggerFraud: tie on wrong + accuracy → more trash talk is the bigger fraud", () => {
+  const a = mk("a", { wrong: 1, accuracy: 0.5, insults: 5 });
+  const b = mk("b", { wrong: 1, accuracy: 0.5, insults: 1 });
+  assert.equal(biggerFraud(a, b)?.handle, "a");
+});
+
+test("biggerFraud: a dead heat returns null", () => {
+  const a = mk("a", { wrong: 1, accuracy: 0.5, insults: 2 });
+  const b = mk("b", { wrong: 1, accuracy: 0.5, insults: 2 });
+  assert.equal(biggerFraud(a, b), null);
+});
 
 // Drive the real (local) store end-to-end, like the leaderboard tests.
 test("statsForHandle tallies kinds, accuracy, and features the busted prediction", async () => {

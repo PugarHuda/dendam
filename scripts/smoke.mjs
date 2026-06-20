@@ -27,6 +27,16 @@ async function post(path, json, headers = {}) {
   return { res, body };
 }
 
+// Walrus relayer calls (recall/list) can be slow or hiccup on a cold instance,
+// so memory-backed checks retry a few times before being treated as a failure.
+async function retry(fn, attempts = 4, delayMs = 5000) {
+  for (let i = 0; i < attempts; i++) {
+    try { if (await fn()) return true; } catch {}
+    if (i < attempts - 1) await sleep(delayMs);
+  }
+  return false;
+}
+
 (async () => {
   // Wait (up to ~3 min) for the new deploy: seed result present in the feed.
   let deployed = false;
@@ -40,23 +50,39 @@ async function post(path, json, headers = {}) {
   console.log(`# Deploy with bundled seed live: ${deployed ? "yes" : "NOT YET (checking current anyway)"}\n`);
 
   // ── Pages ───────────────────────────────────────────────
-  for (const p of ["/", "/chat", "/dossier", "/grup", `/share/${H}`]) {
+  for (const p of ["/", "/chat", "/dossier", "/grup", `/share/${H}`, `/share/vs/${H}/nobody-xyz`]) {
     const { res } = await get(p);
     check(`GET ${p}`, res.status === 200, `status=${res.status}`);
   }
 
   // ── OG images ───────────────────────────────────────────
-  for (const p of ["/opengraph-image", `/share/${H}/opengraph-image`]) {
+  for (const p of ["/opengraph-image", `/share/${H}/opengraph-image`, `/share/vs/${H}/nobody-xyz/opengraph-image`]) {
     const { res, ct } = await get(p);
     check(`GET ${p}`, res.status === 200 && ct.startsWith("image/"), `status=${res.status} ${ct}`);
   }
 
-  // ── Memory / Mainnet ────────────────────────────────────
+  // ── SEO files ───────────────────────────────────────────
   {
-    const { res, body } = await get(`/api/memories?handle=${H}`);
-    check("GET /api/memories (mainnet, has memories)",
-      res.status === 200 && body?.backend === "memwal" && body?.network === "mainnet" && body?.count > 0,
-      `status=${res.status} backend=${body?.backend} network=${body?.network} count=${body?.count}`);
+    const { res } = await get("/robots.txt");
+    const body = await (await fetch(BASE + "/robots.txt")).text();
+    check("GET /robots.txt (has sitemap)", res.status === 200 && /sitemap/i.test(body), `status=${res.status}`);
+  }
+  {
+    const res = await fetch(BASE + "/sitemap.xml");
+    const body = await res.text();
+    check("GET /sitemap.xml (has urls)", res.status === 200 && body.includes("<urlset") && body.includes("/chat"), `status=${res.status}`);
+  }
+
+  // ── Memory / Mainnet (relayer can be slow on cold start → retry) ──
+  {
+    let last;
+    const ok = await retry(async () => {
+      const { res, body } = await get(`/api/memories?handle=${H}`);
+      last = { res, body };
+      return res.status === 200 && body?.backend === "memwal" && body?.network === "mainnet" && body?.count > 0;
+    });
+    check("GET /api/memories (mainnet, has memories)", ok,
+      `status=${last?.res?.status} backend=${last?.body?.backend} network=${last?.body?.network} count=${last?.body?.count}`);
   }
 
   // ── Results feed + seed ─────────────────────────────────
@@ -81,8 +107,13 @@ async function post(path, json, headers = {}) {
     check("POST /api/results (no token) → 401/503/400", [400, 401, 503].includes(res.status), `status=${res.status} ${body?.error ?? ""}`);
   }
   {
-    const { res, body } = await post("/api/leaderboard", { handles: [H] });
-    check("POST /api/leaderboard (ok)", res.status === 200 && Array.isArray(body?.rows), `status=${res.status} rows=${body?.rows?.length}`);
+    let last;
+    const ok = await retry(async () => {
+      const { res, body } = await post("/api/leaderboard", { handles: [H] });
+      last = { res, body };
+      return res.status === 200 && Array.isArray(body?.rows);
+    });
+    check("POST /api/leaderboard (ok)", ok, `status=${last?.res?.status} rows=${last?.body?.rows?.length}`);
   }
 
   console.log(`\n# ${pass} passed, ${fail} failed`);

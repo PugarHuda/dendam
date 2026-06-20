@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { emptyStats, statsForHandle, type HandleStats } from "@/lib/stats";
+import { biggerFraud, emptyStats, statsForHandle, type HandleStats } from "@/lib/stats";
 import { ShareButton } from "@/components/ShareButton";
 import { SITE, tweetIntentVs } from "@/lib/links";
 
@@ -20,17 +20,6 @@ async function load(raw: string): Promise<HandleStats> {
   } catch {
     return emptyStats(handle);
   }
-}
-
-// Who's the bigger fraud: most wrong calls, then worst accuracy, then most
-// trash talk. Returns null on a dead heat.
-function biggerFraud(a: HandleStats, b: HandleStats): HandleStats | null {
-  if (a.wrong !== b.wrong) return a.wrong > b.wrong ? a : b;
-  const accA = a.accuracy ?? 1;
-  const accB = b.accuracy ?? 1;
-  if (accA !== accB) return accA < accB ? a : b;
-  if (a.insults !== b.insults) return a.insults > b.insults ? a : b;
-  return null;
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
