@@ -64,6 +64,8 @@ app/
   share/[handle]/page.tsx  public, link-shareable file card (per handle)
   share/[handle]/opengraph-image.tsx  dynamic OG/Twitter card with that handle's stats
   share/vs/[a]/[b]/        head-to-head rivalry card (page + dynamic OG image)
+  roast/page.tsx           shareable single-roast page
+  api/roast-card/route.tsx query-driven roast OG image (next/og)
   opengraph-image.tsx      site-wide social share card
   robots.ts / sitemap.ts   generated robots.txt + sitemap.xml
 components/
@@ -169,6 +171,7 @@ See **[`DEPLOY.md`](./DEPLOY.md)** for full options. Currently deployed on **Ver
 
 ## What sets Dendam apart
 - **Memory as a weapon, not a log.** Every wrong call becomes roasting ammo; The File visualizes your accuracy and "insults at Dendam".
+- **The memory loop is visible.** Each reply shows a "📂 pulled N memories from your file" chip (recall→respond in action), and every memory card on The File links to its actual **Walrus blob** (`⛓ on Walrus ↗`) — per-memory, verifiable provenance. Plus a one-click **Export** of your file as JSON.
 - **Cross-user memory:** the Hot Seat instigator + Hall of Shame leaderboard use multiple users' real memories to spark rivalries.
 - **Multilingual + typo-tolerant:** English default, mirrors each user, shrugs off typos.
 - **Strong persona** (a vengeful rival) — not a generic assistant.
