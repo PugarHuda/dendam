@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mapApiMatches, mergeResults } from "../lib/sportsapi";
+import { getAllResults, mapApiMatches, mergeResults } from "../lib/sportsapi";
 import type { MatchResult } from "../lib/results";
 
 const apiMatch = (over: Record<string, unknown> = {}) => ({
@@ -56,4 +56,23 @@ test("mergeResults dedupes by id with live winning, sorted by date", () => {
   assert.equal(merged.length, 3); // A (deduped), B, C
   assert.deepEqual(merged.map((r) => r.id), ["C", "B", "A"]); // date asc
   assert.equal(merged.find((r) => r.id === "A")!.scoreA, 3); // live overwrote
+});
+
+test("getAllResults includes the bundled demo seed when no file/live results", async () => {
+  delete process.env.DENDAM_SEED_RESULTS;
+  delete process.env.FOOTBALL_DATA_TOKEN;
+  process.env.DENDAM_DATA_DIR = `${process.cwd()}/.tmp-test-seed-${Date.now()}`;
+  const all = await getAllResults();
+  // The seed (Brazil beat Argentina) ships in the bundle so the auto-roast
+  // has something to judge even before any real result is fed.
+  assert.ok(all.some((r) => r.id === "WC2026-BRA-ARG-QF"));
+});
+
+test("getAllResults drops the seed when DENDAM_SEED_RESULTS=off", async () => {
+  process.env.DENDAM_SEED_RESULTS = "off";
+  delete process.env.FOOTBALL_DATA_TOKEN;
+  process.env.DENDAM_DATA_DIR = `${process.cwd()}/.tmp-test-seed-off-${Date.now()}`;
+  const all = await getAllResults();
+  assert.equal(all.length, 0);
+  delete process.env.DENDAM_SEED_RESULTS; // reset for any later tests
 });

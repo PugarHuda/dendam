@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
+import { ShareButton } from "@/components/ShareButton";
 
 type Memory = {
   id: string;
@@ -148,10 +149,17 @@ export default function DossierPage() {
           className="badge"
           href={`/share/${encodeURIComponent(handle || "anon")}`}
           style={{ cursor: "pointer" }}
-          title="A public, shareable card of this file"
+          title="Open the public, shareable card of this file"
         >
           📣 Share
         </a>
+        <ShareButton
+          url={`/share/${encodeURIComponent(handle || "anon")}`}
+          title={`@${handle || "anon"}'s Dendam file`}
+          text={`Dendam has a file on @${handle || "anon"}. 🔥⚽`}
+          className="badge"
+          label="🔗 Copy link"
+        />
       </div>
 
       <div className="stat-row">

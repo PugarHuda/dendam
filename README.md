@@ -40,7 +40,10 @@ Defaults to **English**, but automatically **mirrors each user's language** (Ind
 Page `/grup`: enter several member handles. `POST /api/kompor` reads each member's **real** memories (predictions, insults, favorite teams) and makes Dendam **pit them against each other** — quoting one person's take at a rival and tagging `@handle`. Cross-user memory drives the rivalry, not just 1-on-1. The instigation it creates is also saved to each member's memory. A **Hall of Shame** leaderboard (`POST /api/leaderboard`) ranks who's been most often wrong — computed purely from stored memories.
 
 ### Auto-roast when results land
-Real results are fed via `POST /api/results` (token-gated) or `npm run seed:results`. On The File, the **⚖️ Hold me to it** button calls `/api/reconcile`: Dendam matches stored predictions against real results, flags the **wrong** ones (`wasWrong`), and stores the **verdict** as a permanent grudge on Walrus. That's the demo "kill shot" — a "Argentina wins it all" prediction gets auto-roasted the moment Argentina loses.
+Real results are fed via `POST /api/results` (token-gated), `npm run seed:results`, or the optional live football-data.org feed (`FOOTBALL_DATA_TOKEN`). A small **bundled seed result** is also compiled into the build (`SEED` in `lib/sportsapi.ts`, merged in by `getAllResults`) so the auto-roast has something to judge **out of the box** for a demo — even before any real result is fed (set `DENDAM_SEED_RESULTS=off` to drop it). On The File, the **⚖️ Hold me to it** button calls `/api/reconcile`: Dendam matches stored predictions against real results, flags the **wrong** ones (`wasWrong`), and stores the **verdict** as a permanent grudge on Walrus. That's the demo "kill shot" — an "Argentina wins it all" prediction gets auto-roasted the moment Argentina loses.
+
+### 📣 Shareable file (virality)
+Every file has a public, link-shareable page at **`/share/<handle>`** (server-rendered, read-only): stat tiles, an "on the record" quote, and CTAs that deep-link into the chat / dossier. Each page renders a **dynamic social card** (`/share/<handle>/opengraph-image`) showing that handle's real stats + most damning line, so pasting the link into X/WhatsApp unfurls a tailored "Dendam has a file on @you" image. The dossier has a **📣 Share** / **🔗 Copy link** button (Web Share API with clipboard fallback). Handles deep-link everywhere via `?handle=` (e.g. `/dossier?handle=hud`), which also makes demos with multiple handles smooth.
 
 ---
 
@@ -54,9 +57,16 @@ app/
   api/reconcile/route.ts   match predictions vs results → verdict + grudge
   api/kompor/route.ts      instigator: pit group members against each other
   api/leaderboard/route.ts Hall of Shame standings (pure compute)
-  page.tsx                 "Face off" screen (chat)
+  page.tsx                 landing page ("Make your call. Live with it.")
+  chat/page.tsx            "Face off" screen (chat)
   dossier/page.tsx         "The File" — memory, verdicts, scoreboard
   grup/page.tsx            "Hot Seat" — group instigator + leaderboard
+  share/[handle]/page.tsx  public, link-shareable file card (per handle)
+  share/[handle]/opengraph-image.tsx  dynamic OG/Twitter card with that handle's stats
+  opengraph-image.tsx      site-wide social share card
+components/
+  TopBar.tsx               nav + handle input (?handle= deep-link aware)
+  ShareButton.tsx          copy-link / native-share button
 lib/
   memory/
     types.ts               MemoryStore interface + metadata (de)serialization
@@ -70,7 +80,9 @@ lib/
   verdict.ts               prediction-vs-result judgment (auto-roast)
   kompor.ts                instigator logic (pits members' memories)
   leaderboard.ts           Hall of Shame computation
+  stats.ts                 per-handle file summary (shared by /share + its OG image)
   results.ts               match-results store (scoreboard)
+  sportsapi.ts             live results feed + bundled-seed merge (SEED const = demo result)
   datadir.ts               writable data dir (serverless-safe: /tmp on Vercel)
 scripts/
   setup-check.ts           memory round-trip preflight (npm run check:memory)
@@ -158,18 +170,20 @@ See **[`DEPLOY.md`](./DEPLOY.md)** for full options. Currently deployed on **Ver
 - **Cross-user memory:** the Hot Seat instigator + Hall of Shame leaderboard use multiple users' real memories to spark rivalries.
 - **Multilingual + typo-tolerant:** English default, mirrors each user, shrugs off typos.
 - **Strong persona** (a vengeful rival) — not a generic assistant.
+- **Built-in virality:** public `/share/<handle>` pages with per-handle social cards, one-click copy/share, and `?handle=` deep-links.
+- **Clean, flat UI** (light Walrus-mint palette, no framework) with shareable OG metadata.
 - **Swappable memory layer + beta-safe adapter** → stable technical execution.
 
 ---
 
 ## Testing & QA
 ```bash
-npm test            # 15 unit tests (serialize/parse, LocalMemoryStore, MemWal normalize, results)
+npm test            # 44 unit tests (serialize/parse, LocalMemoryStore, MemWal normalize, results, leaderboard, stats, sportsapi seed)
 npm run typecheck   # tsc --noEmit
 npm run build       # Next.js production build
 npm run check:memory  # round-trip remember → recall (active backend)
 ```
-Verified: typecheck OK · 15/15 tests pass · build green (6 API routes) · endpoints tested live (chat/recall/extract/reconcile/kompor/leaderboard), including multilingual replies (EN/ID/ES) and English-canonical memory extraction.
+Verified: typecheck OK · 44/44 tests pass · build green (6 API routes + dynamic share/OG routes) · endpoints tested live on Walrus Mainnet (chat/recall/extract/reconcile/kompor/leaderboard), including the day-1 vs day-N before/after, multilingual replies (EN/ID/ES), English-canonical memory extraction, and the auto-roast kill-shot.
 
 ## Supporting docs
 - [`DEMO.md`](./DEMO.md) — 3-minute demo video storyboard (shot list + dialogue script).

@@ -1,5 +1,28 @@
 import { isValidResult, listResults, MatchResult } from "./results";
 
+// Bundled "seed" results compiled into the build (not the ephemeral /tmp
+// results file, which is empty on a fresh serverless instance). This
+// guarantees the auto-roast has something to judge against for a demo even
+// before any real result is fed — e.g. the classic "Argentina wins it all,
+// Brazil's done" prediction gets busted the moment Brazil knocks them out.
+// Lowest priority: a manually-fed result or the live feed overrides a seed
+// row with the same id. Set DENDAM_SEED_RESULTS=off to drop them entirely.
+const SEED: MatchResult[] = [
+  {
+    id: "WC2026-BRA-ARG-QF",
+    date: "2026-07-04",
+    teamA: "Brazil",
+    teamB: "Argentina",
+    scoreA: 2,
+    scoreB: 1,
+    stage: "quarter-final",
+  },
+].filter(isValidResult);
+
+function seedResults(): MatchResult[] {
+  return process.env.DENDAM_SEED_RESULTS === "off" ? [] : SEED;
+}
+
 // Optional live match-results feed.
 //
 // When FOOTBALL_DATA_TOKEN is set, Dendam pulls FINISHED matches from
@@ -91,5 +114,6 @@ export async function fetchLiveResults(): Promise<MatchResult[]> {
 // pulled live.
 export async function getAllResults(): Promise<MatchResult[]> {
   const [stored, live] = await Promise.all([listResults(), fetchLiveResults()]);
-  return mergeResults(stored, live);
+  // Priority (low → high): bundled seed < manual/tmp file < live feed.
+  return mergeResults(mergeResults(seedResults(), stored), live);
 }

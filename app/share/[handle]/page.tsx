@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { emptyStats, statsForHandle, type HandleStats } from "@/lib/stats";
+import { ShareButton } from "@/components/ShareButton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -135,6 +136,11 @@ export default async function SharePage({ params }: Params) {
         <Link className="btn ghost" href={`/dossier?handle=${enc}`}>
           See the full File
         </Link>
+        <ShareButton
+          url={`/share/${enc}`}
+          title={`@${s.handle}'s Dendam file`}
+          text={`Dendam has a file on @${s.handle}. 🔥⚽`}
+        />
       </div>
 
       <p className="hint">
