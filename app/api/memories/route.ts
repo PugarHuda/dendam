@@ -1,6 +1,8 @@
 import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 
 export const runtime = "nodejs";
+// list() fans out several relayer recalls; allow headroom on a slow relayer.
+export const maxDuration = 60;
 
 // Public read of a user's grudge file — powers the "Buku Dendam" dossier
 // where the memory is visible (a hackathon submission requirement).

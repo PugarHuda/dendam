@@ -29,3 +29,24 @@ test("mapLimit passes the index and handles an empty list", async () => {
   assert.deepEqual(idx, [0, 1, 2]);
   assert.deepEqual(await mapLimit([], 3, async () => 1), []);
 });
+
+test("mapLimit rejects with the first error and leaves NO unhandled rejection", async () => {
+  const unhandled: unknown[] = [];
+  const onUnhandled = (e: unknown) => unhandled.push(e);
+  process.on("unhandledRejection", onUnhandled);
+  try {
+    // Two items reject at different times. Under a naive Promise.all the later
+    // rejection (after the first already settled the race) would float and
+    // crash the process — this guards that regression.
+    const run = mapLimit([10, 30, 5, 20], 4, async (n) => {
+      await new Promise((r) => setTimeout(r, n));
+      if (n === 10 || n === 30) throw new Error(`boom ${n}`);
+      return n;
+    });
+    await assert.rejects(run, /boom/);
+    await new Promise((r) => setTimeout(r, 60)); // let any float surface
+    assert.equal(unhandled.length, 0, `unexpected unhandled rejections: ${unhandled.length}`);
+  } finally {
+    process.off("unhandledRejection", onUnhandled);
+  }
+});

@@ -2,6 +2,9 @@ import { leaderboardForHandles } from "@/lib/leaderboard";
 import { getMemoryStore } from "@/lib/memory";
 
 export const runtime = "nodejs";
+// Fans out a list() per handle (each = several relayer recalls); give it room
+// so a slow relayer degrades to a clean JSON 500, not a platform timeout.
+export const maxDuration = 60;
 
 // POST { handles: string[] } — Hall of Shame standings for a group,
 // computed from stored memories (no LLM).
