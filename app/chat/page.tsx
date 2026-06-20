@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
-import { HANDLE_KEY, TopBar } from "@/components/TopBar";
+import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 
 const SUGGESTIONS = [
   "Argentina wins it all, Brazil won't escape the group 😎",
@@ -33,8 +33,7 @@ export default function ChatPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem(HANDLE_KEY);
-    if (saved) setHandle(saved);
+    setHandle(initialHandle());
   }, []);
   useEffect(() => {
     localStorage.setItem(HANDLE_KEY, handle);

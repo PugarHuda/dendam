@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HANDLE_KEY, TopBar } from "@/components/TopBar";
+import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 
 type Row = {
   handle: string;
@@ -33,8 +33,7 @@ export default function GrupPage() {
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem(HANDLE_KEY);
-    if (saved) setHandle(saved);
+    setHandle(initialHandle());
   }, []);
   useEffect(() => {
     localStorage.setItem(HANDLE_KEY, handle);

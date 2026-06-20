@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { HANDLE_KEY, TopBar } from "@/components/TopBar";
+import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 
 type Memory = {
   id: string;
@@ -72,8 +72,7 @@ export default function DossierPage() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    const saved = localStorage.getItem(HANDLE_KEY);
-    if (saved) setHandle(saved);
+    setHandle(initialHandle());
   }, []);
   useEffect(() => {
     localStorage.setItem(HANDLE_KEY, handle);

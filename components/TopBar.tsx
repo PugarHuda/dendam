@@ -56,3 +56,15 @@ export function TopBar({
 
 // Shared localStorage-backed handle hook.
 export const HANDLE_KEY = "dendam:handle";
+
+// Resolve the handle to start with: a `?handle=` URL param wins (handy for
+// sharing a link straight to someone's File / a demo handle), then the
+// last-used handle from localStorage, then the "anon" default.
+export function initialHandle(): string {
+  if (typeof window === "undefined") return "anon";
+  const fromUrl = new URLSearchParams(window.location.search).get("handle");
+  const h = (fromUrl ?? localStorage.getItem(HANDLE_KEY) ?? "")
+    .trim()
+    .replace(/^@/, "");
+  return h || "anon";
+}
