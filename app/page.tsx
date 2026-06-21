@@ -24,6 +24,7 @@ export default function LandingPage() {
           <Link href="/chat" title="Chat with Dendam (Face off)">💬 Chat</Link>
           <Link href="/dossier" title="What Dendam remembers about you (The File)">📂 Memory</Link>
           <Link href="/grup" title="Pit your group against each other (Hot Seat)">🔥 Group</Link>
+          <Link href="/room" title="Prediction rooms per match">🏟️ Rooms</Link>
         </nav>
       </header>
 

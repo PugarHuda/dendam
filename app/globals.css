@@ -412,6 +412,64 @@ a:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* match rooms */
+.prize-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.08), var(--panel));
+  border: 1px solid #f0d49a;
+}
+.prize-amount {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--ink);
+}
+.prize-sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.prize-mock {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  border: 1px dashed #e8c772;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.room-join {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.room-pred {
+  flex: 1;
+  min-width: 200px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  padding: 11px 13px;
+  font-size: 14.5px;
+  font-family: inherit;
+  outline: none;
+}
+.room-pred:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.13);
+}
+
 /* first-visit welcome modal */
 .modal-overlay {
   position: fixed;
