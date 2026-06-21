@@ -47,6 +47,40 @@ export function RoomClient({
     if (h && h !== "anon") setMe(h);
   }, []);
 
+  // Lightweight "live": poll the room's Walrus thread so other people's posts
+  // appear without a manual refresh. Not true realtime (that needs a dedicated
+  // socket backend), but it keeps the room feeling alive. New messages are
+  // merged in; local optimistic posts and Dendam's lines are never dropped.
+  useEffect(() => {
+    let alive = true;
+    async function poll() {
+      try {
+        const res = await fetch(
+          `/api/memories?handle=${encodeURIComponent("room-" + room.id)}`,
+        );
+        const data = await res.json().catch(() => ({}));
+        const incoming: ChatMsg[] = (data?.memories || []).map(
+          (m: { team?: string; text: string }) => ({ handle: m.team || "anon", text: m.text }),
+        );
+        if (!alive || incoming.length === 0) return;
+        setChat((cur) => {
+          const seen = new Set(cur.map((m) => m.handle.toLowerCase() + "|" + m.text));
+          const fresh = incoming.filter(
+            (m) => !seen.has(m.handle.toLowerCase() + "|" + m.text),
+          );
+          return fresh.length ? [...cur, ...fresh] : cur;
+        });
+      } catch {
+        /* ignore a hiccup; next tick retries */
+      }
+    }
+    const t = setInterval(poll, 12000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [room.id]);
+
   const open = !resolution.resolved;
   const payoutEach =
     resolution.winners.length > 0 ? room.poolWal / resolution.winners.length : 0;
@@ -202,7 +236,7 @@ export function RoomClient({
           {stirring ? "Dendam is pouring fuel…" : "🔥 Dendam, weigh in"}
         </button>
         <span className="hint" style={{ margin: 0 }}>
-          Async — refresh to see others&rsquo; posts. Real chat, on Walrus.
+          🟢 Live — others&rsquo; posts appear automatically. Real chat, on Walrus.
         </span>
       </div>
 
