@@ -26,6 +26,30 @@ This hits all three criteria in ~3 min with **zero waiting**. The manual before/
 
 ---
 
+## 🎙️ Voiceover script (read aloud while you click — ~3 min)
+
+Continuous narration for the Fast path. Read it naturally; the timings are a guide.
+
+> **[0:00 — landing]** "Most football bots forget you the second you close the tab. This one keeps a file." *(click **🔥 Try the demo**)*
+>
+> **[0:12 — chat as @demo]** "This is Dendam, and it already remembers me. Watch — no setup." *(type `what do you remember about me?`)* "Without any reminder it dredges up my Argentina pick, my VAR rant, even the time I called it a dumb bot — and roasts me for all of it."
+>
+> **[0:35 — recall chip]** *(click **📂 pulled N memories**)* "And it's not bluffing. Here are the exact memories it pulled from my file to write that."
+>
+> **[0:50 — Start fresh]** *(switch to a new handle, say `Hey`)* "A brand-new handle? It owns up — no fake history. That honesty is the whole trick."
+>
+> **[1:05 — The File]** *(open 📂 Memory)* "This is the file. Every prediction, hot take, and insult — and each one is a real encrypted blob on Walrus. I click '⛓ on Walrus' and there it is, on-chain. I can even ask the file in plain language —" *(Ask the file: `what did I say about Brazil?`)* "— that's live semantic recall."
+>
+> **[1:35 — kill shot]** *(click **⚖️ Hold me to it**)* "Then the results land. Argentina lost to the team I wrote off, and Dendam calls it — automatically. Wrong."
+>
+> **[1:55 — Match Rooms]** *(open 🏟️ Rooms → a room)* "It goes multiplayer, too: a room per match. Everyone drops a call — stored on Walrus — Dendam stirs the pot, and whoever called it splits the pool. The prize is a mock-up; the memory is real."
+>
+> **[2:25 — Sui explorer]** "All of it ties back to a MemWalAccount on Sui. Anyone can verify it — this isn't a chat log, it's memory you can audit."
+>
+> **[2:45 — close]** "Dendam. Make your call… and live with it."
+
+---
+
 ## Before you hit record (5-min prep)
 1. **Open 3 browser tabs**, all on `dendam.vercel.app`:
    - Tab A — `/chat` with a **fresh handle** (e.g. `@rookie`) → this is DAY 1.

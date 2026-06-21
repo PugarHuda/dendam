@@ -158,14 +158,24 @@ It stores every prediction on @WalrusProtocol Memory, roasts you when you're wro
 https://dendam.vercel.app
 ```
 
+**D · Show-the-memory angle (new features)**
+```
+My World Cup AI doesn't hide its memory — it flaunts it 🔥⚽
+
+Every reply shows the exact memories it pulled, and each one is a real blob on @WalrusProtocol you can verify on-chain. Ask its file in plain English. It never forgets.
+
+#Walrus
+https://dendam.vercel.app
+```
+
 Optional follow-up thread (reply to whichever you post):
 ```
-2/ Real persistent memory on @WalrusProtocol Mainnet — not a chat log.
-• Predictions auto-roasted when results land
-• "Hall of Shame" leaderboard for your group
-• Speaks your language (EN default, mirrors yours), shrugs off typos
-Verify it: every memory ties to a MemWalAccount object on Sui.
-Try it 👉 dendam.vercel.app
+2/ Real persistent memory on @WalrusProtocol Mainnet — not a chat log:
+• Each reply shows the exact memories it recalled, every one a verifiable Walrus blob
+• Predictions auto-roasted when real results land
+• Match Rooms: a prediction room per game, winner takes the pool
+• "Hall of Shame" leaderboard; speaks your language; shrugs off typos
+Verify it: every memory ties to a MemWalAccount on Sui 👉 dendam.vercel.app
 ```
 
 ### DeepSurge project description
