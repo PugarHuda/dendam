@@ -26,7 +26,7 @@ function RoomHeader() {
       <nav className="nav">
         <Link href="/chat">💬 Chat</Link>
         <Link href="/dossier">📂 Memory</Link>
-        <Link href="/grup">🔥 Group</Link>
+        <Link href="/room" className="active">🏟️ Rooms</Link>
       </nav>
     </header>
   );

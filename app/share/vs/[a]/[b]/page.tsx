@@ -76,7 +76,9 @@ export default async function VsPage({ params }: Params) {
           </div>
         </Link>
         <nav className="nav">
-          <Link href="/grup">Hot Seat</Link>
+          <Link href="/chat">💬 Chat</Link>
+          <Link href="/dossier">📂 Memory</Link>
+          <Link href="/room">🏟️ Rooms</Link>
         </nav>
       </div>
 

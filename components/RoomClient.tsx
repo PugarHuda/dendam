@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { initialHandle } from "@/components/TopBar";
 
 type Player = { handle: string; prediction: string };
@@ -39,25 +39,28 @@ export function RoomClient({
   const [joined, setJoined] = useState(false);
   const [busy, setBusy] = useState(false);
   const [posting, setPosting] = useState(false);
-  const [stirring, setStirring] = useState(false);
+  const [dendamTyping, setDendamTyping] = useState(false);
   const [claimed, setClaimed] = useState(false);
+  const msgsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const h = initialHandle();
     if (h && h !== "anon") setMe(h);
   }, []);
 
+  // Keep the thread scrolled to the newest message.
+  useEffect(() => {
+    msgsRef.current?.scrollTo({ top: 1e9, behavior: "smooth" });
+  }, [chat, dendamTyping]);
+
   // Lightweight "live": poll the room's Walrus thread so other people's posts
-  // appear without a manual refresh. Not true realtime (that needs a dedicated
-  // socket backend), but it keeps the room feeling alive. New messages are
-  // merged in; local optimistic posts and Dendam's lines are never dropped.
+  // show up without a manual refresh. Merge only what's new; never drop local
+  // optimistic posts or Dendam's lines.
   useEffect(() => {
     let alive = true;
     async function poll() {
       try {
-        const res = await fetch(
-          `/api/memories?handle=${encodeURIComponent("room-" + room.id)}`,
-        );
+        const res = await fetch(`/api/memories?handle=${encodeURIComponent("room-" + room.id)}`);
         const data = await res.json().catch(() => ({}));
         const incoming: ChatMsg[] = (data?.memories || []).map(
           (m: { team?: string; text: string }) => ({ handle: m.team || "anon", text: m.text }),
@@ -65,13 +68,11 @@ export function RoomClient({
         if (!alive || incoming.length === 0) return;
         setChat((cur) => {
           const seen = new Set(cur.map((m) => m.handle.toLowerCase() + "|" + m.text));
-          const fresh = incoming.filter(
-            (m) => !seen.has(m.handle.toLowerCase() + "|" + m.text),
-          );
+          const fresh = incoming.filter((m) => !seen.has(m.handle.toLowerCase() + "|" + m.text));
           return fresh.length ? [...cur, ...fresh] : cur;
         });
       } catch {
-        /* ignore a hiccup; next tick retries */
+        /* next tick retries */
       }
     }
     const t = setInterval(poll, 12000);
@@ -82,26 +83,37 @@ export function RoomClient({
   }, [room.id]);
 
   const open = !resolution.resolved;
-  const payoutEach =
-    resolution.winners.length > 0 ? room.poolWal / resolution.winners.length : 0;
+  const payoutEach = resolution.winners.length > 0 ? room.poolWal / resolution.winners.length : 0;
   const iWon = !!me && resolution.winners.includes(me.trim().toLowerCase());
 
   async function post() {
     const handle = me.trim().replace(/^@/, "");
     const text = msg.trim();
-    if (!handle || !text) return;
+    if (!handle || !text || posting) return;
     setPosting(true);
-    setChat((c) => [...c, { handle, text }]);
+    const next = [...chat, { handle, text }];
+    setChat(next);
     setMsg("");
+    // persist to Walrus (best-effort, in the background)
+    fetch("/api/room/post", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ roomId: room.id, handle, message: text }),
+    }).catch(() => {});
+    // Dendam automatically jumps in — no button.
+    setDendamTyping(true);
     try {
-      await fetch("/api/room/post", {
+      const res = await fetch("/api/room/dendam", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ roomId: room.id, handle, message: text }),
+        body: JSON.stringify({ teamA: room.teamA, teamB: room.teamB, messages: next.slice(-8) }),
       });
+      const data = await res.json().catch(() => ({}));
+      if (data?.line) setChat((c) => [...c, { handle: "Dendam", text: data.line }]);
     } catch {
-      /* optimistic entry stays; the write is best-effort */
+      /* Dendam stays quiet on error */
     } finally {
+      setDendamTyping(false);
       setPosting(false);
     }
   }
@@ -126,26 +138,22 @@ export function RoomClient({
     }
   }
 
-  async function weighIn() {
-    const handles = players.map((p) => p.handle).slice(0, 12);
-    if (handles.length < 2) return;
-    setStirring(true);
-    try {
-      const res = await fetch("/api/kompor", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ handles }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        const lines: string[] = (data.provocations || []).map((p: { line: string }) => p.line);
-        setChat((c) => [...c, ...lines.map((l) => ({ handle: "Dendam", text: l }))]);
-      }
-    } catch {
-      /* ignore */
-    } finally {
-      setStirring(false);
-    }
+  function Bubble({ m }: { m: ChatMsg }) {
+    const isDendam = m.handle.toLowerCase() === "dendam";
+    const isMe = !!me && m.handle.toLowerCase() === me.trim().toLowerCase();
+    const side = isMe ? "user" : "";
+    const bubble = isDendam ? "assistant" : isMe ? "user" : "peer";
+    return (
+      <div className={`msg-row ${side}`}>
+        <div className={`avatar ${isDendam ? "dendam" : "you"}`} aria-hidden>
+          {isDendam ? "🔥" : "🧑"}
+        </div>
+        <div className={`msg ${bubble}`}>
+          <div className="who">{isDendam ? "Dendam" : "@" + m.handle}</div>
+          <span>{m.text}</span>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -163,7 +171,7 @@ export function RoomClient({
 
       <p className="hint" style={{ marginTop: 14 }}>
         {open ? (
-          <>🟢 <b>Open</b> — {players.length} predicting. Talk it out below.</>
+          <>🟢 <b>Open</b> — {players.length} predicting. Jump in the chat.</>
         ) : (
           <>
             🏁 <b>Full time:</b> {resolution.score} ·{" "}
@@ -179,71 +187,63 @@ export function RoomClient({
         )}
       </p>
 
-      {/* ── Room chat ───────────────────────────── */}
-      <div className="section-head" style={{ marginTop: 22 }}>
+      {/* ── Room chat (real chat-room look) ─────── */}
+      <div className="section-head" style={{ marginTop: 20 }}>
         <h3>💬 Room chat</h3>
-        <span className="count">everyone in this match · saved on Walrus</span>
+        <span className="count">🟢 live · {room.teamA} vs {room.teamB} · on Walrus</span>
       </div>
 
-      {chat.length === 0 ? (
-        <p className="hint" style={{ marginTop: 0 }}>
-          No messages yet — be the first to talk trash about {room.teamA} vs {room.teamB}.
-        </p>
-      ) : (
-        <div className="room-chat">
-          {chat.map((m, i) => {
-            const isDendam = m.handle.toLowerCase() === "dendam";
-            return (
-              <div key={i} className={`msg-row ${isDendam ? "" : "user"}`}>
-                <div className={`avatar ${isDendam ? "dendam" : "you"}`} aria-hidden>
-                  {isDendam ? "🔥" : "🧑"}
-                </div>
-                <div className={`msg ${isDendam ? "assistant" : "user"}`}>
-                  <div className="who">{isDendam ? "Dendam" : "@" + m.handle}</div>
-                  <span>{m.text}</span>
-                </div>
+      <div className="chatroom">
+        <div className="chatroom-msgs" ref={msgsRef}>
+          {chat.length === 0 && (
+            <div className="chatroom-empty">
+              No messages yet — say something about {room.teamA} vs {room.teamB}. Dendam&rsquo;s listening.
+            </div>
+          )}
+          {chat.map((m, i) => (
+            <Bubble key={i} m={m} />
+          ))}
+          {dendamTyping && (
+            <div className="msg-row">
+              <div className="avatar dendam" aria-hidden>🔥</div>
+              <div className="msg assistant">
+                <div className="who">Dendam</div>
+                <span className="typing" aria-label="Dendam is typing">
+                  <i /><i /><i />
+                </span>
               </div>
-            );
-          })}
+            </div>
+          )}
         </div>
-      )}
-
-      <div className="room-join" style={{ marginTop: 12 }}>
-        <div className="handle" style={{ minWidth: 110 }}>
-          <span style={{ color: "var(--muted)" }}>@</span>
+        <div className="chatroom-composer">
+          <span className="chatroom-as" title="Your nickname in this room">
+            @
+            <input
+              value={me}
+              onChange={(e) => setMe(e.target.value)}
+              placeholder="you"
+              maxLength={40}
+              aria-label="Your nickname"
+            />
+          </span>
           <input
-            value={me}
-            onChange={(e) => setMe(e.target.value)}
-            placeholder="nickname"
-            maxLength={40}
-            aria-label="Your nickname"
+            className="chatroom-input"
+            value={msg}
+            onChange={(e) => setMsg(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && post()}
+            placeholder="Message the room…"
+            aria-label="Message the room"
           />
+          <button className="btn sm" onClick={post} disabled={posting || !me.trim() || !msg.trim()}>
+            {posting ? "…" : "Send"}
+          </button>
         </div>
-        <input
-          className="room-pred"
-          value={msg}
-          onChange={(e) => setMsg(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && post()}
-          placeholder="Say something to the room…"
-          aria-label="Message the room"
-        />
-        <button className="btn sm" onClick={post} disabled={posting || !me.trim() || !msg.trim()}>
-          {posting ? "…" : "Send"}
-        </button>
-      </div>
-      <div className="cta-row" style={{ justifyContent: "flex-start", marginTop: 10 }}>
-        <button className="btn ghost sm" onClick={weighIn} disabled={stirring || players.length < 2}>
-          {stirring ? "Dendam is pouring fuel…" : "🔥 Dendam, weigh in"}
-        </button>
-        <span className="hint" style={{ margin: 0 }}>
-          🟢 Live — others&rsquo; posts appear automatically. Real chat, on Walrus.
-        </span>
       </div>
 
       {/* ── Calls (predictions) ─────────────────── */}
       <div className="section-head" style={{ marginTop: 24 }}>
         <h3>📣 The calls</h3>
-        <span className="count">who&rsquo;s backing whom</span>
+        <span className="count">who&rsquo;s backing whom · winner takes the pool</span>
       </div>
       {open && !joined && (
         <div className="room-join">
@@ -256,14 +256,13 @@ export function RoomClient({
             aria-label="Your prediction"
           />
           <button className="btn sm" onClick={join} disabled={busy || !me.trim() || !pred.trim()}>
-            {busy ? "Joining…" : `Stake ${room.stakeWal} WAL & lock it`}
+            {busy ? "Locking…" : `Stake ${room.stakeWal} WAL & lock it`}
           </button>
         </div>
       )}
       {joined && (
         <p className="hint" style={{ color: "var(--accent-soft)" }}>
-          ✓ Call locked — staked {room.stakeWal} WAL (mock). It&rsquo;s saved on Walrus
-          and now lives in your File too.
+          ✓ Call locked — staked {room.stakeWal} WAL (mock). It&rsquo;s saved on Walrus and now lives in your File too.
         </p>
       )}
 

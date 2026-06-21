@@ -59,8 +59,9 @@ export default async function RoomPage({ params }: Params) {
           </div>
         </Link>
         <nav className="nav">
-          <Link href="/room">🏟️ Rooms</Link>
           <Link href="/chat">💬 Chat</Link>
+          <Link href="/dossier">📂 Memory</Link>
+          <Link href="/room" className="active">🏟️ Rooms</Link>
         </nav>
       </header>
 

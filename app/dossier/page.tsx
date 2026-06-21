@@ -380,7 +380,7 @@ export default function DossierPage() {
           @{handle || "anon"}&rsquo;s file is empty. Dendam has nothing on you
           yet.
           <br />
-          Head to <a href="/chat">Face off</a> and start making predictions.
+          Head to <a href="/chat">💬 Chat</a> and start making predictions.
         </div>
       )}
 

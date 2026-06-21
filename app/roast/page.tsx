@@ -54,7 +54,9 @@ export default async function RoastPage({ searchParams }: Search) {
           </div>
         </Link>
         <nav className="nav">
-          <Link href="/chat">Face off</Link>
+          <Link href="/chat">💬 Chat</Link>
+          <Link href="/dossier">📂 Memory</Link>
+          <Link href="/room">🏟️ Rooms</Link>
         </nav>
       </div>
 
