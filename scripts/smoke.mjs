@@ -50,7 +50,7 @@ async function retry(fn, attempts = 4, delayMs = 5000) {
   console.log(`# Deploy with bundled seed live: ${deployed ? "yes" : "NOT YET (checking current anyway)"}\n`);
 
   // ── Pages ───────────────────────────────────────────────
-  for (const p of ["/", "/chat", "/dossier", "/grup", `/share/${H}`, `/share/vs/${H}/nobody-xyz`, "/roast?by=demo&text=Argentina%20is%20done"]) {
+  for (const p of ["/", "/chat", "/dossier", "/grup", `/share/${H}`, `/share/vs/${H}/nobody-xyz`, "/roast?by=demo&text=Argentina%20is%20done", "/room", "/room/WC2026-BRA-ARG-QF"]) {
     const { res } = await get(p);
     check(`GET ${p}`, res.status === 200, `status=${res.status}`);
   }
@@ -129,6 +129,25 @@ async function retry(fn, attempts = 4, delayMs = 5000) {
   {
     const { res } = await post("/api/recall", { handle: "demo" });
     check("POST /api/recall (no query) → 400/429", [400, 429].includes(res.status), `status=${res.status}`);
+  }
+
+  // ── Match rooms ─────────────────────────────────────────
+  {
+    const { res } = await post("/api/room/post", {});
+    check("POST /api/room/post {} → 400/429", [400, 429].includes(res.status), `status=${res.status}`);
+  }
+  {
+    // Dendam auto-reaction: should return a non-empty in-character line.
+    let last;
+    const ok = await retry(async () => {
+      const { res, body } = await post("/api/room/dendam", {
+        teamA: "France", teamB: "Spain",
+        messages: [{ handle: "smoke", text: "Spain are bottlers, France walk it" }],
+      });
+      last = { res, body };
+      return res.status === 200 && typeof body?.line === "string" && body.line.length > 0;
+    });
+    check("POST /api/room/dendam (Dendam reacts)", ok, `status=${last?.res?.status} line="${(last?.body?.line || "").slice(0, 50)}"`);
   }
   // NB: the recall check above already proves @demo is pre-seeded. We don't
   // assert /api/memories?handle=demo here because list() fires ~5 concurrent
