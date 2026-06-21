@@ -870,6 +870,42 @@ button.send:disabled,
   text-decoration: none;
 }
 
+.howto {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+.howto-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+.howto-step b {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.14);
+  color: var(--accent-soft);
+  font-size: 12px;
+}
+.howto-arrow {
+  color: var(--muted-2);
+  font-weight: 700;
+}
+
 .hero-hook {
   margin-top: 22px;
   color: var(--muted);

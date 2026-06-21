@@ -71,9 +71,9 @@ export default function LandingPage() {
           </div>
         </Link>
         <nav className="nav">
-          <Link href="/chat">Face off</Link>
-          <Link href="/dossier">The File</Link>
-          <Link href="/grup">Hot Seat</Link>
+          <Link href="/chat" title="Chat with Dendam">💬 Face off</Link>
+          <Link href="/dossier" title="What Dendam remembers about you">📂 The File</Link>
+          <Link href="/grup" title="Pit your group against each other">🔥 Hot Seat</Link>
         </nav>
       </header>
 
@@ -102,9 +102,16 @@ export default function LandingPage() {
             See a live File
           </Link>
         </div>
+        <div className="howto">
+          <span className="howto-step"><b>1</b> Make a call</span>
+          <span className="howto-arrow" aria-hidden>→</span>
+          <span className="howto-step"><b>2</b> Dendam saves it on Walrus</span>
+          <span className="howto-arrow" aria-hidden>→</span>
+          <span className="howto-step"><b>3</b> Come back — it roasts your misses</span>
+        </div>
         <p className="hero-hook">
-          Day&nbsp;1 it knows nothing about you. Day&nbsp;5 it has a{" "}
-          <b>file</b> on you. The demo drops you straight into Day&nbsp;N.
+          New here? Hit <b>Try the demo</b> to skip the wait and see it remember
+          you right now.
         </p>
       </section>
 

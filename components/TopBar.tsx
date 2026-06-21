@@ -25,29 +25,30 @@ export function TopBar({
         </div>
       </Link>
       <div className="topbar-right">
-        <div className="handle" title="Your identity — your memory is stored per-handle on Walrus">
+        <div className="handle" title="Your nickname = your identity. Dendam saves your memory under it, so use the same one to be remembered.">
           <span style={{ color: "var(--muted)" }}>@</span>
           <input
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
-            placeholder="your handle"
+            placeholder="your nickname"
             spellCheck={false}
             maxLength={40}
-            aria-label="Your handle"
+            aria-label="Your nickname — your memory is saved under it"
           />
         </div>
         <nav className="nav">
-          <Link href="/chat" className={active === "chat" ? "active" : ""}>
-            Face off
+          <Link href="/chat" className={active === "chat" ? "active" : ""} title="Chat with Dendam">
+            💬 Face off
           </Link>
           <Link
             href="/dossier"
             className={active === "dossier" ? "active" : ""}
+            title="Everything Dendam remembers about you"
           >
-            The File
+            📂 The File
           </Link>
-          <Link href="/grup" className={active === "grup" ? "active" : ""}>
-            Hot Seat
+          <Link href="/grup" className={active === "grup" ? "active" : ""} title="Pit your group against each other">
+            🔥 Hot Seat
           </Link>
         </nav>
       </div>

@@ -135,10 +135,17 @@ export default function ChatPage() {
               ))}
             </div>
             <p className="hint" style={{ marginTop: 22 }}>
-              New here? <b>1.</b> Make a call &nbsp;·&nbsp; <b>2.</b> Dendam saves it
-              to Walrus Memory &nbsp;·&nbsp; <b>3.</b> Come back later — it remembers,
-              and roasts you when you&rsquo;re wrong.
+              <b>How it works:</b> 1. drop a prediction or hot take below &nbsp;·&nbsp;
+              2. Dendam saves it to Walrus under <b>@{handle || "anon"}</b> (your
+              nickname, top-right) &nbsp;·&nbsp; 3. come back any time — it remembers
+              and roasts your misses.
             </p>
+            {handle !== "demo" && (
+              <p className="hint" style={{ marginTop: 8 }}>
+                Don&rsquo;t want to wait? <a href="/chat?handle=demo">Try the demo →</a>{" "}
+                — Dendam already has a file on that handle.
+              </p>
+            )}
           </div>
         )}
 
