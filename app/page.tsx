@@ -71,9 +71,9 @@ export default function LandingPage() {
           </div>
         </Link>
         <nav className="nav">
-          <Link href="/chat" title="Chat with Dendam">💬 Face off</Link>
-          <Link href="/dossier" title="What Dendam remembers about you">📂 The File</Link>
-          <Link href="/grup" title="Pit your group against each other">🔥 Hot Seat</Link>
+          <Link href="/chat" title="Chat with Dendam (Face off)">💬 Chat</Link>
+          <Link href="/dossier" title="What Dendam remembers about you (The File)">📂 Memory</Link>
+          <Link href="/grup" title="Pit your group against each other (Hot Seat)">🔥 Group</Link>
         </nav>
       </header>
 

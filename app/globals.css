@@ -412,6 +412,91 @@ a:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* first-visit welcome modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(16, 24, 40, 0.45);
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.2s ease both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 60px -20px rgba(16, 24, 40, 0.35);
+  padding: 26px 26px 22px;
+  animation: fadeInUp 0.28s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.modal-emblem {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  background: rgba(20, 184, 166, 0.12);
+  border: 1px solid #b7e6df;
+  margin-bottom: 14px;
+}
+.modal-card h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  letter-spacing: -0.3px;
+}
+.modal-card > p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 14.5px;
+}
+.modal-steps {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.modal-steps li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.modal-steps li b:first-child {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.14);
+  color: var(--accent-soft);
+  font-size: 13px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.modal-actions .btn {
+  flex: 1;
+  min-height: 46px;
+  font-size: 14px;
+}
+
 /* demo-mode banner */
 .demo-banner {
   margin-top: 12px;

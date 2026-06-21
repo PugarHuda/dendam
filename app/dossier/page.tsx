@@ -241,6 +241,17 @@ export default function DossierPage() {
     <div className="shell">
       <TopBar handle={handle} setHandle={setHandle} active="dossier" />
 
+      <h2 className="page-title" style={{ marginBottom: 2 }}>
+        📂 The File{" "}
+        <span style={{ color: "var(--muted)", fontWeight: 400, fontSize: 15 }}>
+          — what Dendam remembers about you
+        </span>
+      </h2>
+      <p className="hint" style={{ margin: "0 0 14px" }}>
+        This is the memory Dendam reads before every reply. Type a different
+        nickname (top-right) to view anyone&rsquo;s file.
+      </p>
+
       <div className="badge-row">
         <NetworkBadge network={network} />
         <span className="badge">file on @{handle || "anon"}</span>

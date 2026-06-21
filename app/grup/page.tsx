@@ -114,11 +114,12 @@ export default function GrupPage() {
     <div className="shell">
       <TopBar handle={handle} setHandle={setHandle} active="grup" />
 
-      <h2 className="page-title">🔥 The Hot Seat</h2>
+      <h2 className="page-title">🔥 The Hot Seat <span style={{ color: "var(--muted)", fontWeight: 400, fontSize: 15 }}>— group mode</span></h2>
       <p className="hint" style={{ marginTop: 0 }}>
-        Add your group&rsquo;s handles. Dendam pits them against each other
-        using the predictions &amp; insults <b>actually stored</b> in each
-        member&rsquo;s memory.
+        Enter a few nicknames (comma-separated) that have already chatted with
+        Dendam. Then <b>🔥 Stir it up</b> makes Dendam provoke them using what
+        each one <b>actually said</b>, and <b>🏆 Hall of Shame</b> ranks who&rsquo;s
+        been most wrong.
       </p>
 
       <div className="handle" style={{ width: "100%", marginTop: 10 }}>

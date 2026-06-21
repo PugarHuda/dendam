@@ -37,18 +37,18 @@ export function TopBar({
           />
         </div>
         <nav className="nav">
-          <Link href="/chat" className={active === "chat" ? "active" : ""} title="Chat with Dendam">
-            💬 Face off
+          <Link href="/chat" className={active === "chat" ? "active" : ""} title="Chat with Dendam (Face off)">
+            💬 Chat
           </Link>
           <Link
             href="/dossier"
             className={active === "dossier" ? "active" : ""}
-            title="Everything Dendam remembers about you"
+            title="Everything Dendam remembers about you (The File)"
           >
-            📂 The File
+            📂 Memory
           </Link>
-          <Link href="/grup" className={active === "grup" ? "active" : ""} title="Pit your group against each other">
-            🔥 Hot Seat
+          <Link href="/grup" className={active === "grup" ? "active" : ""} title="Pit your group against each other (Hot Seat)">
+            🔥 Group
           </Link>
         </nav>
       </div>

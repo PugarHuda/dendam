@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
+import { WelcomeModal } from "@/components/WelcomeModal";
 
 const SUGGESTIONS = [
   "Argentina wins it all, Brazil won't escape the group 😎",
@@ -100,6 +101,7 @@ export default function ChatPage() {
 
   return (
     <div className="shell">
+      <WelcomeModal />
       <TopBar handle={handle} setHandle={setHandle} active="chat" />
 
       <div className="badge-row">
