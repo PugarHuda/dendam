@@ -91,8 +91,17 @@ export async function POST(req: Request) {
     after(() => remember(text));
     return createDataStreamResponse({
       headers,
-      execute(writer) {
-        writer.write(formatDataStreamPart("text", text));
+      // Type the guarded reply out word-by-word so it doesn't pop in all at
+      // once — the cold-start reply is generated non-streamed (the fabrication
+      // guard needs the full text), but we can still deliver it as a stream so
+      // it feels as responsive as the memory-grounded path.
+      async execute(writer) {
+        const parts = text.split(/(\s+)/); // keep whitespace tokens
+        for (const part of parts) {
+          if (!part) continue;
+          writer.write(formatDataStreamPart("text", part));
+          if (part.trim()) await new Promise((r) => setTimeout(r, 16));
+        }
       },
     });
   }

@@ -46,7 +46,7 @@ export default function ChatPage() {
     localStorage.setItem(HANDLE_KEY, handle);
   }, [handle]);
 
-  const { messages, input, handleInputChange, handleSubmit, append, status } =
+  const { messages, setMessages, input, handleInputChange, handleSubmit, append, status } =
     useChat({
     api: "/api/chat",
     body: { handle },
@@ -73,6 +73,27 @@ export default function ChatPage() {
       }
     },
   });
+
+  // Keep the conversation across navigation (to Memory/Group and back) by
+  // mirroring it into sessionStorage. Restore once on mount, save on change.
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("dendam:chat");
+      if (saved) {
+        const arr = JSON.parse(saved);
+        if (Array.isArray(arr) && arr.length) setMessages(arr);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [setMessages]);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("dendam:chat", JSON.stringify(messages));
+    } catch {
+      /* ignore */
+    }
+  }, [messages]);
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: 1e9, behavior: "smooth" });
@@ -215,10 +236,15 @@ export default function ChatPage() {
             </div>
             <div className="msg assistant">
               <div className="who">Dendam</div>
-              <span className="typing" aria-label="digging up your old takes">
-                <i />
-                <i />
-                <i />
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <span className="typing" aria-hidden>
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                  digging up your file…
+                </span>
               </span>
             </div>
           </div>
