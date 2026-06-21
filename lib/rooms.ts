@@ -58,14 +58,17 @@ export const ROOMS: MatchRoom[] = [
   },
   {
     id: "WC2026-FINAL",
-    teamA: "Winner SF1",
-    teamB: "Winner SF2",
+    teamA: "Brazil",
+    teamB: "France",
     stage: "Final",
     date: "2026-07-19",
     poolWal: 5.0,
     stakeWal: 0.5,
     players: [
-      { handle: "demo", prediction: "Whoever beats Brazil takes the trophy.", pick: "Brazil" },
+      { handle: "demo", prediction: "Brazil finish the job — samba all the way.", pick: "Brazil" },
+      { handle: "ta", prediction: "Mbappé drags France over the line, 2-1.", pick: "France" },
+      { handle: "rafa", prediction: "France lift it, too much firepower.", pick: "France" },
+      { handle: "kontiki", prediction: "Brazil by a single goal, late winner.", pick: "Brazil" },
     ],
   },
 ];

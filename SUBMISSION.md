@@ -64,6 +64,8 @@ Before/after example: Day 1, a fresh handle → Dendam admits it knows nothing a
 8) The memory is VISIBLE and VERIFIABLE, not a black box. Each reply shows a "pulled N memories from your file" chip you can expand to see the exact memories that grounded it (recall in action). Every memory card on The File links to its real Walrus blob (verify on Walruscan), and an "Ask the file" box runs live semantic recall() on demand — demonstrating Walrus vector search, not a keyword log. You can also export your whole file as JSON.
 
 9) One-click judge demo: a pre-seeded @demo handle on Mainnet means anyone can land straight in the "day-N" experience (Dendam already has a file on them) without chatting for days — plus shareable per-handle, head-to-head, and single-roast cards for virality.
+
+10) Match Rooms: a prediction room per World Cup match where people drop a call (stored on Walrus, so it also lands in their File), Dendam stirs the room using what each said, and when the result lands the team-backers split the pool. The crypto prize pool/stake/payout is a clearly-labelled MOCK-UP (no real funds move) — the predictions and the stirring are real, on Walrus.
 ```
 
 ---

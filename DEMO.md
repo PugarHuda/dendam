@@ -22,6 +22,8 @@ You no longer have to "plant memory over days" on camera. The `@demo` handle is 
 
 This hits all three criteria in ~3 min with **zero waiting**. The manual before/after script below still works if you'd rather show planting live.
 
+**Optional flair — Match Rooms (10s):** open `/room` → a room per match with a (clearly-labelled **mock**) crypto prize pool. Open the resolved **Brazil vs Argentina** room: players' calls are stored on Walrus, and the ones who backed Brazil split the pool. Drop your own call in an open room, then **🔥 Dendam, stir the room**. Good "what's next" beat — just be explicit on camera that the prizes are a mock-up, the memory is real.
+
 ---
 
 ## Before you hit record (5-min prep)

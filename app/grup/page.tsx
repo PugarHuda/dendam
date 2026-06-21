@@ -121,6 +121,10 @@ export default function GrupPage() {
         each one <b>actually said</b>, and <b>🏆 Hall of Shame</b> ranks who&rsquo;s
         been most wrong.
       </p>
+      <p className="hint" style={{ marginTop: 6 }}>
+        Want a prediction contest per match instead?{" "}
+        <a href="/room">🏟️ Match Rooms →</a> — drop a call, winner takes the pool.
+      </p>
 
       <div className="handle" style={{ width: "100%", marginTop: 10 }}>
         <span style={{ color: "var(--muted)" }}>@</span>
