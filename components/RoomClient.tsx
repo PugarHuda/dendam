@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { initialHandle } from "@/components/TopBar";
 
 type Player = { handle: string; prediction: string };
+type ChatMsg = { handle: string; text: string };
 type Room = {
   id: string;
   teamA: string;
@@ -21,13 +22,23 @@ type Resolution = {
   score?: string;
 };
 
-export function RoomClient({ room, resolution }: { room: Room; resolution: Resolution }) {
+export function RoomClient({
+  room,
+  resolution,
+  initialChat,
+}: {
+  room: Room;
+  resolution: Resolution;
+  initialChat: ChatMsg[];
+}) {
   const [players, setPlayers] = useState<Player[]>(room.players);
+  const [chat, setChat] = useState<ChatMsg[]>(initialChat);
   const [me, setMe] = useState("");
   const [pred, setPred] = useState("");
+  const [msg, setMsg] = useState("");
   const [joined, setJoined] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [provos, setProvos] = useState<string[]>([]);
+  const [posting, setPosting] = useState(false);
   const [stirring, setStirring] = useState(false);
   const [claimed, setClaimed] = useState(false);
 
@@ -41,12 +52,31 @@ export function RoomClient({ room, resolution }: { room: Room; resolution: Resol
     resolution.winners.length > 0 ? room.poolWal / resolution.winners.length : 0;
   const iWon = !!me && resolution.winners.includes(me.trim().toLowerCase());
 
+  async function post() {
+    const handle = me.trim().replace(/^@/, "");
+    const text = msg.trim();
+    if (!handle || !text) return;
+    setPosting(true);
+    setChat((c) => [...c, { handle, text }]);
+    setMsg("");
+    try {
+      await fetch("/api/room/post", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ roomId: room.id, handle, message: text }),
+      });
+    } catch {
+      /* optimistic entry stays; the write is best-effort */
+    } finally {
+      setPosting(false);
+    }
+  }
+
   async function join() {
     const handle = me.trim().replace(/^@/, "");
     const prediction = pred.trim();
     if (!handle || !prediction) return;
     setBusy(true);
-    // Optimistic: show the call immediately; the Walrus write happens in the bg.
     setPlayers((p) => [...p.filter((x) => x.handle !== handle), { handle, prediction }]);
     setJoined(true);
     try {
@@ -56,17 +86,16 @@ export function RoomClient({ room, resolution }: { room: Room; resolution: Resol
         body: JSON.stringify({ handle, match: room.id, prediction }),
       });
     } catch {
-      /* the optimistic entry stays; the write is best-effort */
+      /* best-effort */
     } finally {
       setBusy(false);
     }
   }
 
-  async function stir() {
+  async function weighIn() {
     const handles = players.map((p) => p.handle).slice(0, 12);
     if (handles.length < 2) return;
     setStirring(true);
-    setProvos([]);
     try {
       const res = await fetch("/api/kompor", {
         method: "POST",
@@ -74,7 +103,10 @@ export function RoomClient({ room, resolution }: { room: Room; resolution: Resol
         body: JSON.stringify({ handles }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) setProvos((data.provocations || []).map((p: { line: string }) => p.line));
+      if (res.ok) {
+        const lines: string[] = (data.provocations || []).map((p: { line: string }) => p.line);
+        setChat((c) => [...c, ...lines.map((l) => ({ handle: "Dendam", text: l }))]);
+      }
     } catch {
       /* ignore */
     } finally {
@@ -95,12 +127,9 @@ export function RoomClient({ room, resolution }: { room: Room; resolution: Resol
         </span>
       </div>
 
-      {/* status */}
       <p className="hint" style={{ marginTop: 14 }}>
         {open ? (
-          <>
-            🟢 <b>Open</b> — drop your call before kickoff. {players.length} in the room.
-          </>
+          <>🟢 <b>Open</b> — {players.length} predicting. Talk it out below.</>
         ) : (
           <>
             🏁 <b>Full time:</b> {resolution.score} ·{" "}
@@ -110,51 +139,105 @@ export function RoomClient({ room, resolution }: { room: Room; resolution: Resol
                 <b>{payoutEach.toFixed(2)} WAL</b> each (mock).
               </>
             ) : (
-              "nobody called it. The pool rolls over (mock)."
+              "nobody called it — pool rolls over (mock)."
             )}
           </>
         )}
       </p>
 
-      {/* join form (open rooms) */}
+      {/* ── Room chat ───────────────────────────── */}
+      <div className="section-head" style={{ marginTop: 22 }}>
+        <h3>💬 Room chat</h3>
+        <span className="count">everyone in this match · saved on Walrus</span>
+      </div>
+
+      {chat.length === 0 ? (
+        <p className="hint" style={{ marginTop: 0 }}>
+          No messages yet — be the first to talk trash about {room.teamA} vs {room.teamB}.
+        </p>
+      ) : (
+        <div className="room-chat">
+          {chat.map((m, i) => {
+            const isDendam = m.handle.toLowerCase() === "dendam";
+            return (
+              <div key={i} className={`msg-row ${isDendam ? "" : "user"}`}>
+                <div className={`avatar ${isDendam ? "dendam" : "you"}`} aria-hidden>
+                  {isDendam ? "🔥" : "🧑"}
+                </div>
+                <div className={`msg ${isDendam ? "assistant" : "user"}`}>
+                  <div className="who">{isDendam ? "Dendam" : "@" + m.handle}</div>
+                  <span>{m.text}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="room-join" style={{ marginTop: 12 }}>
+        <div className="handle" style={{ minWidth: 110 }}>
+          <span style={{ color: "var(--muted)" }}>@</span>
+          <input
+            value={me}
+            onChange={(e) => setMe(e.target.value)}
+            placeholder="nickname"
+            maxLength={40}
+            aria-label="Your nickname"
+          />
+        </div>
+        <input
+          className="room-pred"
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && post()}
+          placeholder="Say something to the room…"
+          aria-label="Message the room"
+        />
+        <button className="btn sm" onClick={post} disabled={posting || !me.trim() || !msg.trim()}>
+          {posting ? "…" : "Send"}
+        </button>
+      </div>
+      <div className="cta-row" style={{ justifyContent: "flex-start", marginTop: 10 }}>
+        <button className="btn ghost sm" onClick={weighIn} disabled={stirring || players.length < 2}>
+          {stirring ? "Dendam is pouring fuel…" : "🔥 Dendam, weigh in"}
+        </button>
+        <span className="hint" style={{ margin: 0 }}>
+          Async — refresh to see others&rsquo; posts. Real chat, on Walrus.
+        </span>
+      </div>
+
+      {/* ── Calls (predictions) ─────────────────── */}
+      <div className="section-head" style={{ marginTop: 24 }}>
+        <h3>📣 The calls</h3>
+        <span className="count">who&rsquo;s backing whom</span>
+      </div>
       {open && !joined && (
         <div className="room-join">
-          <div className="handle" style={{ minWidth: 120 }}>
-            <span style={{ color: "var(--muted)" }}>@</span>
-            <input
-              value={me}
-              onChange={(e) => setMe(e.target.value)}
-              placeholder="your nickname"
-              maxLength={40}
-              aria-label="Your nickname"
-            />
-          </div>
           <input
             className="room-pred"
             value={pred}
             onChange={(e) => setPred(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && join()}
-            placeholder={`Your call for ${room.teamA} vs ${room.teamB}…`}
+            placeholder={`Your official call for ${room.teamA} vs ${room.teamB}…`}
             aria-label="Your prediction"
           />
           <button className="btn sm" onClick={join} disabled={busy || !me.trim() || !pred.trim()}>
-            {busy ? "Joining…" : `Stake ${room.stakeWal} WAL & join`}
+            {busy ? "Joining…" : `Stake ${room.stakeWal} WAL & lock it`}
           </button>
         </div>
       )}
       {joined && (
         <p className="hint" style={{ color: "var(--accent-soft)" }}>
-          ✓ You&rsquo;re in — staked {room.stakeWal} WAL (mock). Your call is saved on
-          Walrus and now lives in your File too.
+          ✓ Call locked — staked {room.stakeWal} WAL (mock). It&rsquo;s saved on Walrus
+          and now lives in your File too.
         </p>
       )}
 
-      {/* players */}
-      <div className="dossier-grid" style={{ marginTop: 14 }}>
+      <div className="dossier-grid" style={{ marginTop: 12 }}>
         {players.map((p) => {
           const won = resolution.winners.includes(p.handle.toLowerCase());
           return (
-            <div key={p.handle} className={`grudge ${won ? "" : ""}`} style={won ? { borderLeftColor: "var(--green)" } : undefined}>
+            <div key={p.handle} className="grudge" style={won ? { borderLeftColor: "var(--green)" } : undefined}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                 <b>@{p.handle}</b>
                 {!open && won && <span className="tag ok">🏆 won {payoutEach.toFixed(2)} WAL</span>}
@@ -165,29 +248,11 @@ export function RoomClient({ room, resolution }: { room: Room; resolution: Resol
         })}
       </div>
 
-      {/* actions */}
-      <div className="cta-row" style={{ justifyContent: "flex-start", marginTop: 18 }}>
-        <button className="btn" onClick={stir} disabled={stirring || players.length < 2}>
-          {stirring ? "Dendam is pouring fuel…" : "🔥 Dendam, stir the room"}
-        </button>
-        {!open && iWon && (
-          <button className="btn ghost" onClick={() => setClaimed(true)} disabled={claimed}>
+      {!open && iWon && (
+        <div className="cta-row" style={{ justifyContent: "flex-start", marginTop: 16 }}>
+          <button className="btn" onClick={() => setClaimed(true)} disabled={claimed}>
             {claimed ? `✓ Claimed ${payoutEach.toFixed(2)} WAL (mock)` : `💰 Claim ${payoutEach.toFixed(2)} WAL`}
           </button>
-        )}
-      </div>
-
-      {provos.length > 0 && (
-        <div className="dossier-grid" style={{ marginTop: 14 }}>
-          {provos.map((l, i) => (
-            <div key={i} className="msg-row assistant" style={{ animationDelay: `${i * 0.06}s` }}>
-              <div className="avatar dendam" aria-hidden>🔥</div>
-              <div className="msg assistant" style={{ maxWidth: "100%" }}>
-                <div className="who">Dendam</div>
-                <span>{l}</span>
-              </div>
-            </div>
-          ))}
         </div>
       )}
     </>

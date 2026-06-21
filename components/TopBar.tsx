@@ -47,10 +47,7 @@ export function TopBar({
           >
             📂 Memory
           </Link>
-          <Link href="/grup" className={active === "grup" ? "active" : ""} title="Pit your group against each other (Hot Seat)">
-            🔥 Group
-          </Link>
-          <Link href="/room" title="Prediction rooms per match">🏟️ Rooms</Link>
+          <Link href="/room" className={active === "grup" ? "active" : ""} title="Match rooms — chat & predict per game">🏟️ Rooms</Link>
         </nav>
       </div>
     </div>

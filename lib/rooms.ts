@@ -1,5 +1,12 @@
 import { getAllResults } from "./sportsapi";
 import { winnerOf, type MatchResult } from "./results";
+import { namespaceFor } from "./memory";
+
+// A room's chat lives in its own Walrus namespace, so posts are real,
+// persistent, and shared across everyone who opens the room.
+export function roomNamespace(roomId: string): string {
+  return namespaceFor(`room-${roomId}`);
+}
 
 // Match Rooms — a prediction room per World Cup 2026 match. People drop a
 // prediction (stored on Walrus, like everything else), Dendam stirs the room,

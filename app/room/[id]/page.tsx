@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getRoom, resolveRoom } from "@/lib/rooms";
+import { getRoom, resolveRoom, roomNamespace } from "@/lib/rooms";
+import { getMemoryStore } from "@/lib/memory";
 import { RoomClient } from "@/components/RoomClient";
 
 export const runtime = "nodejs";
@@ -23,6 +24,17 @@ export default async function RoomPage({ params }: Params) {
   const { id } = await params;
   const room = getRoom(decodeURIComponent(id));
   if (!room) notFound();
+
+  // Room chat lives on Walrus (shared across users). A relayer hiccup just
+  // means it starts empty — posting still works.
+  const store = getMemoryStore();
+  let chat: { handle: string; text: string }[] = [];
+  try {
+    const msgs = await store.list(roomNamespace(room.id), 50);
+    chat = msgs.map((m) => ({ handle: m.team || "anon", text: m.text }));
+  } catch {
+    /* start empty */
+  }
 
   const r = await resolveRoom(room);
   const resolution = {
@@ -62,7 +74,7 @@ export default async function RoomPage({ params }: Params) {
         </span>
       </h2>
 
-      <RoomClient room={room} resolution={resolution} />
+      <RoomClient room={room} resolution={resolution} initialChat={chat} />
 
       <p className="hint" style={{ marginTop: 22 }}>
         Predictions in this room are stored on Walrus Memory (they show up in each

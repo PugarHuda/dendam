@@ -51,7 +51,8 @@ export default async function RoomsPage() {
         One room per match. Drop your call, Dendam stirs everyone using what they
         said, and when the result lands the winner takes the pool.{" "}
         <b>Prizes are a mock-up</b> (no real funds move) — the predictions,
-        though, are really stored on Walrus.
+        though, are really stored on Walrus.{" "}
+        <a href="/grup">🏆 Hall of Shame →</a> ranks who&rsquo;s been most wrong.
       </p>
 
       <div className="dossier-grid" style={{ marginTop: 16 }}>
