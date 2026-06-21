@@ -233,6 +233,7 @@ export function RoomClient({
             onKeyDown={(e) => e.key === "Enter" && post()}
             placeholder="Message the room…"
             aria-label="Message the room"
+            maxLength={280}
           />
           <button className="btn sm" onClick={post} disabled={posting || !me.trim() || !msg.trim()}>
             {posting ? "…" : "Send"}
