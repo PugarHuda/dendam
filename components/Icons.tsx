@@ -87,6 +87,30 @@ export function IconGavel({ size = 26 }: IconProps) {
   );
 }
 
+// Rooms — a stadium / arena oval.
+export function IconStadium({ size = 26 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <ellipse cx="12" cy="12" rx="9" ry="6" fill="#7C3AED" stroke="#241046" strokeWidth="2" />
+      <ellipse cx="12" cy="12" rx="4.2" ry="2.6" fill="#FFEFC2" stroke="#241046" strokeWidth="1.6" />
+      <path d="M12 9.4 V14.6 M7.8 12 H16.2" stroke="#241046" strokeWidth="1.3" opacity=".55" />
+    </svg>
+  );
+}
+
+// Hall of Shame — a crown, yellow.
+export function IconCrown({ size = 26 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path
+        d="M4 17 L5 8 L9 12 L12 6 L15 12 L19 8 L20 17 Z"
+        fill="#FFC83D" stroke="#241046" strokeWidth="2" strokeLinejoin="round"
+      />
+      <path d="M4.5 17 H19.5" stroke="#241046" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export const ICONS = {
   recall: IconRecall,
   respond: IconRespond,
@@ -94,4 +118,6 @@ export const ICONS = {
   flame: IconFlame,
   folder: IconFolder,
   gavel: IconGavel,
+  stadium: IconStadium,
+  crown: IconCrown,
 } as const;

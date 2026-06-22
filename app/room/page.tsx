@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ROOMS, resolveRoom } from "@/lib/rooms";
+import { AppIcon } from "@/components/Logo";
+import { IconRespond, IconFolder, IconStadium, IconCrown } from "@/components/Icons";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,24 +13,32 @@ export const metadata: Metadata = {
     "Prediction rooms per World Cup 2026 match. Drop your call, Dendam stirs the room, winner takes the (mock) pool.",
 };
 
+// Server-rendered nav (no handle state here) matching the shared TopBar look.
+const NAV = [
+  { href: "/chat", label: "Chat", Icon: IconRespond, active: false },
+  { href: "/dossier", label: "Memory", Icon: IconFolder, active: false },
+  { href: "/room", label: "Rooms", Icon: IconStadium, active: true },
+  { href: "/group", label: "Shame", Icon: IconCrown, active: false },
+];
+
 function RoomHeader() {
   return (
-    <header className="topbar">
-      <Link href="/" className="brand" style={{ textDecoration: "none" }}>
-        <span className="brand-emblem" aria-hidden>🔥</span>
-        <div className="brand-text">
-          <h1 style={{ color: "var(--ink)" }}>
-            Dendam<span className="dot">.</span>
-          </h1>
-          <small>the World Cup 2026 rival that never forgets</small>
-        </div>
+    <div className="dx-topbar">
+      <Link href="/" className="dx-brand" style={{ textDecoration: "none" }}>
+        <AppIcon size={38} />
+        <span className="dx-wordmark">
+          Dendam<span style={{ color: "var(--violet)" }}>.</span>
+        </span>
       </Link>
-      <nav className="nav">
-        <Link href="/chat">💬 Chat</Link>
-        <Link href="/dossier">📂 Memory</Link>
-        <Link href="/room" className="active">🏟️ Rooms</Link>
+      <nav className="dx-tabs">
+        {NAV.map((t) => (
+          <Link key={t.href} href={t.href} className={`dx-tab${t.active ? " active" : ""}`}>
+            <t.Icon size={18} />
+            <span>{t.label}</span>
+          </Link>
+        ))}
       </nav>
-    </header>
+    </div>
   );
 }
 

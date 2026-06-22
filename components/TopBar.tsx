@@ -1,6 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { AppIcon } from "@/components/Logo";
+import { IconRespond, IconFolder, IconStadium, IconCrown } from "@/components/Icons";
+
+type Tab = "chat" | "dossier" | "room" | "group";
+
+const TABS: { key: Tab; href: string; label: string; title: string; Icon: (p: { size?: number }) => React.ReactElement }[] = [
+  { key: "chat", href: "/chat", label: "Chat", title: "Chat with Dendam (face off)", Icon: IconRespond },
+  { key: "dossier", href: "/dossier", label: "Memory", title: "Everything Dendam remembers about you (The File)", Icon: IconFolder },
+  { key: "room", href: "/room", label: "Rooms", title: "Match rooms — chat & predict per game", Icon: IconStadium },
+  { key: "group", href: "/group", label: "Shame", title: "Hall of Shame — the group leaderboard", Icon: IconCrown },
+];
 
 export function TopBar({
   handle,
@@ -9,24 +20,22 @@ export function TopBar({
 }: {
   handle: string;
   setHandle: (h: string) => void;
-  active: "chat" | "dossier" | "group";
+  active: Tab;
 }) {
   return (
-    <div className="topbar">
-      <Link href="/" className="brand" style={{ textDecoration: "none" }}>
-        <span className="brand-emblem" aria-hidden>
-          🔥
+    <div className="dx-topbar">
+      <Link href="/" className="dx-brand" style={{ textDecoration: "none" }}>
+        <AppIcon size={38} />
+        <span className="dx-wordmark">
+          Dendam<span style={{ color: "var(--violet)" }}>.</span>
         </span>
-        <div className="brand-text">
-          <h1 style={{ color: "var(--ink)" }}>
-            Dendam<span className="dot">.</span>
-          </h1>
-          <small>the World Cup 2026 rival that never forgets</small>
-        </div>
       </Link>
-      <div className="topbar-right">
-        <div className="handle" title="Your nickname = your identity. Dendam saves your memory under it, so use the same one to be remembered.">
-          <span style={{ color: "var(--muted)" }}>@</span>
+      <div className="dx-topbar-right">
+        <div
+          className="dx-handle"
+          title="Your nickname = your identity. Dendam saves your memory under it, so use the same one to be remembered."
+        >
+          <span className="dx-handle-at">@</span>
           <input
             value={handle}
             onChange={(e) => setHandle(e.target.value)}
@@ -36,18 +45,18 @@ export function TopBar({
             aria-label="Your nickname — your memory is saved under it"
           />
         </div>
-        <nav className="nav">
-          <Link href="/chat" className={active === "chat" ? "active" : ""} title="Chat with Dendam (Face off)">
-            💬 Chat
-          </Link>
-          <Link
-            href="/dossier"
-            className={active === "dossier" ? "active" : ""}
-            title="Everything Dendam remembers about you (The File)"
-          >
-            📂 Memory
-          </Link>
-          <Link href="/room" className={active === "group" ? "active" : ""} title="Match rooms — chat & predict per game">🏟️ Rooms</Link>
+        <nav className="dx-tabs">
+          {TABS.map((t) => (
+            <Link
+              key={t.key}
+              href={t.href}
+              className={`dx-tab${active === t.key ? " active" : ""}`}
+              title={t.title}
+            >
+              <t.Icon size={18} />
+              <span>{t.label}</span>
+            </Link>
+          ))}
         </nav>
       </div>
     </div>
