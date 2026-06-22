@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { addResults, MatchResult } from "@/lib/results";
+import { addResults, storeResultsOnChain, MatchResult } from "@/lib/results";
 import { getAllResults } from "@/lib/sportsapi";
 
 export const runtime = "nodejs";
@@ -45,5 +45,8 @@ export async function POST(req: Request) {
   if (total === -1) {
     return Response.json({ error: "no_valid_results" }, { status: 400 });
   }
-  return Response.json({ ok: true, total });
+  // Also persist on-chain (Walrus) so the scoreboard is verifiable, not just
+  // in the ephemeral /tmp file. Best-effort — never fails the write.
+  const onChain = await storeResultsOnChain(incoming).catch(() => 0);
+  return Response.json({ ok: true, total, onChain });
 }

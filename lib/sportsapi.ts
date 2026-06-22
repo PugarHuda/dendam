@@ -1,4 +1,10 @@
-import { isValidResult, listResults, MatchResult } from "./results";
+import {
+  isValidResult,
+  listResults,
+  listResultsOnChain,
+  storeResultsOnChain,
+  MatchResult,
+} from "./results";
 
 // Bundled "seed" results compiled into the build (not the ephemeral /tmp
 // results file, which is empty on a fresh serverless instance). This
@@ -113,7 +119,24 @@ export async function fetchLiveResults(): Promise<MatchResult[]> {
 // scoreboard + auto-roast stay correct whether results are fed by hand or
 // pulled live.
 export async function getAllResults(): Promise<MatchResult[]> {
-  const [stored, live] = await Promise.all([listResults(), fetchLiveResults()]);
-  // Priority (low → high): bundled seed < manual/tmp file < live feed.
-  return mergeResults(mergeResults(seedResults(), stored), live);
+  const [stored, onChain, live] = await Promise.all([
+    listResults(),
+    listResultsOnChain(),
+    fetchLiveResults(),
+  ]);
+  // Priority (low → high): bundled seed < manual/tmp file < on-chain (Walrus)
+  // < live feed (the official source of truth once a match is played).
+  return mergeResults(
+    mergeResults(mergeResults(seedResults(), stored), onChain),
+    live,
+  );
+}
+
+// Pull the live football-data.org feed and persist any new FINISHED matches to
+// Walrus — real data, then on-chain. No-op (stores 0) when no token is set.
+// Run via `npm run sync:results` or the token-gated POST /api/results/sync.
+export async function syncResults(): Promise<{ fetched: number; stored: number }> {
+  const live = await fetchLiveResults();
+  const stored = await storeResultsOnChain(live);
+  return { fetched: live.length, stored };
 }

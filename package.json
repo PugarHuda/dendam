@@ -12,6 +12,7 @@
     "check:memory": "tsx scripts/setup-check.ts",
     "setup:memwal": "tsx scripts/setup-memwal.ts",
     "seed:results": "tsx scripts/seed-results.ts",
+    "sync:results": "tsx scripts/sync-results.ts",
     "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {

@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { dataDir } from "./datadir";
+import { getMemoryStore, namespaceFor } from "./memory";
 
 // Real-world World Cup 2026 match results. These are GLOBAL public facts
 // (not per-user memory), so they live in their own file store. When a
@@ -75,4 +76,48 @@ export async function addResults(results: MatchResult[]): Promise<number> {
   await fs.mkdir(path.dirname(f), { recursive: true });
   await fs.writeFile(f, JSON.stringify(merged, null, 2), "utf8");
   return merged.length;
+}
+
+// ── On-chain results (Walrus) ──────────────────────────────────
+// Global match results also live in their own Walrus namespace, so the
+// scoreboard the auto-roast judges against is itself on-chain + verifiable —
+// not just a per-instance /tmp file. Each result is stored as one compact-JSON
+// memory (kind "result", id mirrored into `team`), so it round-trips cleanly.
+const RESULTS_NS = namespaceFor("wc2026-global-results");
+
+export async function storeResultsOnChain(results: MatchResult[]): Promise<number> {
+  const valid = results.filter(isValidResult);
+  if (valid.length === 0) return 0;
+  const store = getMemoryStore();
+  const existing = new Set((await listResultsOnChain()).map((r) => r.id));
+  let n = 0;
+  for (const r of valid) {
+    if (existing.has(r.id)) continue; // don't double-write the same match
+    try {
+      await store.remember(RESULTS_NS, { text: JSON.stringify(r), kind: "result", team: r.id });
+      n++;
+    } catch {
+      /* best-effort */
+    }
+  }
+  return n;
+}
+
+export async function listResultsOnChain(): Promise<MatchResult[]> {
+  const store = getMemoryStore();
+  try {
+    const recs = await store.list(RESULTS_NS, 200);
+    const out: MatchResult[] = [];
+    for (const rec of recs) {
+      try {
+        const obj = JSON.parse(rec.text);
+        if (isValidResult(obj)) out.push(obj);
+      } catch {
+        /* skip anything that isn't a result JSON */
+      }
+    }
+    return out;
+  } catch {
+    return []; // relayer hiccup → fall back to the other sources
+  }
 }
