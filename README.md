@@ -45,53 +45,70 @@ Real results are fed via `POST /api/results` (token-gated), `npm run seed:result
 ### 📣 Shareable file (virality)
 Every file has a public, link-shareable page at **`/share/<handle>`** (server-rendered, read-only): stat tiles, an "on the record" quote, and CTAs that deep-link into the chat / dossier. Each page renders a **dynamic social card** (`/share/<handle>/opengraph-image`) showing that handle's real stats + most damning line, so pasting the link into X/WhatsApp unfurls a tailored "Dendam has a file on @you" image. The dossier has a **📣 Share** / **🔗 Copy link** button (Web Share API with clipboard fallback) and a **Post to X** intent. A **head-to-head** card at **`/share/vs/<a>/<b>`** (with its own OG image) pits two handles against each other — "who's the bigger World Cup 2026 fraud?" — linked straight from the Hot Seat leaderboard. Handles deep-link everywhere via `?handle=` (e.g. `/dossier?handle=hud`), which also makes demos with multiple handles smooth. `robots.txt` + `sitemap.xml` are generated for shareability.
 
+### 🏟️ Match Rooms
+A prediction room **per match** (`/room`, `/room/<id>`). Inside a room, anyone drops a prediction and **chats with everyone else** — the chat thread lives in its own Walrus namespace (`room-<id>`), so it's real, persistent, and cross-user (async: it polls every ~12s, no realtime backend). **Dendam joins the chat automatically** (`/api/room/dendam`), reacting in-character to each message. When the real result lands, the players who backed the winning team split the pool. The **crypto prize pool / stake / payout is an explicit MOCK-UP** (labelled "MOCK PRIZES" — no funds move); the predictions and chat are genuinely on Walrus. A demo-grade content guard (`lib/moderation.ts`) blocks obvious abuse on the way in and out, and the auto-reaction prompt treats the chat as untrusted "data, not instructions".
+
+### 🔍 The memory, made visible
+- **Recall transparency:** each reply shows a "📂 pulled N memories from your file" chip you can expand to see the exact memories that grounded it.
+- **Per-memory provenance:** every card on The File links to its real **Walrus blob** (`⛓ on Walrus ↗`) on Walruscan, and an **Ask the file** box runs live `recall()` on demand — Walrus vector search, not a keyword log. Export the whole file as JSON.
+- **One-click demo:** a pre-seeded `@demo` handle on Mainnet means anyone can land straight in the "day-N" experience without chatting for days — `/chat?handle=demo`.
+
 ---
 
 ## Architecture
 
 ```
 app/
-  api/chat/route.ts        recall → Claude (stream) → extract → remember
-  api/memories/route.ts    public read for the dossier
-  api/results/route.ts     scoreboard feed (GET list / POST upsert, token)
-  api/reconcile/route.ts   match predictions vs results → verdict + grudge
-  api/instigate/route.ts   instigator: pit group members against each other
-  api/leaderboard/route.ts Hall of Shame standings (pure compute)
-  page.tsx                 landing page ("Make your call. Live with it.")
-  chat/page.tsx            "Face off" screen (chat)
-  dossier/page.tsx         "The File" — memory, verdicts, scoreboard
-  grup/page.tsx            "Hot Seat" — group instigator + leaderboard
-  share/[handle]/page.tsx  public, link-shareable file card (per handle)
-  share/[handle]/opengraph-image.tsx  dynamic OG/Twitter card with that handle's stats
-  share/vs/[a]/[b]/        head-to-head rivalry card (page + dynamic OG image)
-  roast/page.tsx           shareable single-roast page
-  api/roast-card/route.tsx query-driven roast OG image (next/og)
-  opengraph-image.tsx      site-wide social share card
-  robots.ts / sitemap.ts   generated robots.txt + sitemap.xml
+  page.tsx                  playful landing page
+  chat/page.tsx             chat (recall chip, share-a-roast, persists across nav)
+  dossier/page.tsx          "The File" — memory, blob provenance, Ask-the-file, insights, export
+  group/page.tsx            "Hot Seat" — group instigator + Hall of Shame
+  room/page.tsx             Match Rooms list
+  room/[id]/page.tsx        a match room — chat + predictions + (mock) prize pool
+  share/[handle]/           public file card (page + dynamic OG image)
+  share/vs/[a]/[b]/         head-to-head rivalry card (page + dynamic OG image)
+  roast/page.tsx            shareable single-roast page
+  opengraph-image.tsx       site-wide social card
+  robots.ts / sitemap.ts    generated robots.txt + sitemap.xml
+  api/
+    chat/route.ts           recall → LLM (stream) → extract → remember
+    memories/route.ts       public read for the dossier
+    recall/route.ts         live semantic recall() — powers "Ask the file"
+    results/route.ts        scoreboard feed (GET list / POST upsert, token)
+    reconcile/route.ts      predictions vs results → verdict + grudge
+    instigate/route.ts      instigator: pit group members against each other
+    leaderboard/route.ts    Hall of Shame standings (pure compute)
+    room/post/route.ts      post a chat message into a match room (→ Walrus)
+    room/join/route.ts      drop a prediction into a room (→ Walrus)
+    room/dendam/route.ts    Dendam's auto-reaction to the room chat
+    roast-card/route.tsx    query-driven roast OG image (next/og)
 components/
-  TopBar.tsx               nav + handle input (?handle= deep-link aware)
-  ShareButton.tsx          copy-link / native-share button
+  TopBar.tsx                nav + handle input (?handle= deep-link aware)
+  ShareButton.tsx           copy-link / native-share button
+  WelcomeModal.tsx          one-time first-visit onboarding
+  RoomClient.tsx            match-room chat + predictions (client island)
 lib/
-  memory/
-    types.ts               MemoryStore interface + metadata (de)serialization
-    memwal.ts              Walrus Memory adapter (PRODUCTION / Mainnet)
-    local.ts               local file fallback (dev only)
-    index.ts               factory + per-user namespace
-  model.ts                 LLM provider config (Anthropic / OpenRouter)
-  persona.ts               "Dendam" character + memory-block renderer
-  grudge.ts                structured memory extraction (zod + generateObject)
-  structured.ts            generateObject with raw-JSON fallback for free models
-  verdict.ts               prediction-vs-result judgment (auto-roast)
-  instigator.ts            instigator logic (pits members' memories)
-  leaderboard.ts           Hall of Shame computation
-  stats.ts                 per-handle file summary (shared by /share + its OG image)
-  results.ts               match-results store (scoreboard)
-  sportsapi.ts             live results feed + bundled-seed merge (SEED const = demo result)
-  datadir.ts               writable data dir (serverless-safe: /tmp on Vercel)
+  memory/{types,memwal,local,index}.ts  MemoryStore interface + Walrus/local adapters
+  model.ts                  LLM provider config (Anthropic / OpenRouter)
+  persona.ts                "Dendam" character + memory-block renderer
+  coldstart.ts              deterministic day-1 anti-fabrication guard
+  grudge.ts                 structured memory extraction (zod + generateObject)
+  structured.ts             generateObject with raw-JSON fallback for free models
+  verdict.ts                prediction-vs-result judgment (auto-roast)
+  instigator.ts             instigator logic (pits members' memories)
+  leaderboard.ts            Hall of Shame computation
+  stats.ts                  per-handle file summary (shared by /share + OG)
+  rooms.ts                  Match Rooms data + scoring + per-room namespace
+  results.ts / sportsapi.ts match-results store + live feed + bundled seed
+  ratelimit.ts              in-memory per-IP rate limiter
+  moderation.ts             demo-grade content guard for the room chat
+  links.ts                  shared public links (Sui explorer, tweet intents)
+  datadir.ts                writable data dir (serverless-safe: /tmp on Vercel)
 scripts/
-  setup-check.ts           memory round-trip preflight (npm run check:memory)
-  seed-results.ts          seed sample results (npm run seed:results)
-DEMO.md                    3-minute demo video storyboard
+  setup-memwal.ts           on-chain account + delegate-key setup (npm run setup:memwal)
+  setup-check.ts            memory round-trip preflight (npm run check:memory)
+  seed-results.ts           seed sample results (npm run seed:results)
+  smoke.mjs / demo-verify.mjs  live smoke sweep + end-to-end demo verifier
 ```
 
 **The memory layer is swappable.** All code talks to the `MemoryStore` interface. Two implementations:
@@ -164,7 +181,7 @@ See **[`DEPLOY.md`](./DEPLOY.md)** for full options. Currently deployed on **Ver
 | Walrus Memory integration tracking WC 2026 interactions | `lib/memory/memwal.ts` + recall/remember loop in `api/chat` |
 | Genuine persistent memory (before/after) | Per-turn grudge extraction; Dendam references past predictions/insults |
 | All state & memory on Walrus, Mainnet | `memwal` backend → Walrus Mainnet |
-| Public interface showing the memory | `/dossier` (The File) + stats, plus Hot Seat |
+| Public interface showing the memory | `/dossier` (The File) + provenance/Ask-the-file, plus Hot Seat & Match Rooms |
 | MemWalAccount on the explorer | `MEMWAL_ACCOUNT_ID` (view on a Sui explorer) |
 | MEMWAL_AGENT_ID | delegate public key (`MEMWAL_AGENT_ID`) |
 | Demo video ≤3 min | show day-1 vs day-N + The File |
@@ -172,30 +189,33 @@ See **[`DEPLOY.md`](./DEPLOY.md)** for full options. Currently deployed on **Ver
 ## What sets Dendam apart
 - **Memory as a weapon, not a log.** Every wrong call becomes roasting ammo; The File visualizes your accuracy and "insults at Dendam".
 - **The memory loop is visible.** Each reply shows a "📂 pulled N memories from your file" chip (recall→respond in action), and every memory card on The File links to its actual **Walrus blob** (`⛓ on Walrus ↗`) — per-memory, verifiable provenance. Plus a one-click **Export** of your file as JSON.
-- **Cross-user memory:** the Hot Seat instigator + Hall of Shame leaderboard use multiple users' real memories to spark rivalries.
+- **Cross-user memory:** the Hot Seat instigator + Hall of Shame leaderboard, and **Match Rooms** (a chat + prediction room per game with an auto-participating Dendam), all run on multiple users' real memories.
 - **Multilingual + typo-tolerant:** English default, mirrors each user, shrugs off typos.
 - **Strong persona** (a vengeful rival) — not a generic assistant.
-- **Built-in virality:** public `/share/<handle>` pages with per-handle social cards, one-click copy/share, and `?handle=` deep-links.
-- **Clean, flat UI** (light Walrus-mint palette, no framework) with shareable OG metadata.
-- **Swappable memory layer + beta-safe adapter** → stable technical execution.
+- **Built-in virality:** public `/share/<handle>` pages, per-handle + head-to-head + single-roast social cards, one-click copy / Post-to-X, and `?handle=` deep-links. A pre-seeded `@demo` handle drops judges straight into the payoff.
+- **Designed UI** (vanilla CSS, no framework): a playful landing plus a clean app, with shareable OG metadata and a first-visit onboarding.
+- **Swappable memory layer + beta-safe adapter** → stable technical execution; rate-limited, content-guarded public endpoints.
 
 ---
 
 ## Testing & QA
 ```bash
-npm test            # 44 unit tests (serialize/parse, LocalMemoryStore, MemWal normalize, results, leaderboard, stats, sportsapi seed)
+npm test            # 60 unit tests (serialize/parse incl. injection defang, stores, normalize,
+                    # results + seed, leaderboard, stats, rooms scoring, ratelimit, moderation, async)
 npm run typecheck   # tsc --noEmit
 npm run build       # Next.js production build
 npm run check:memory  # round-trip remember → recall (active backend)
+node scripts/smoke.mjs       # live smoke sweep of every page + endpoint
+node scripts/demo-verify.mjs # end-to-end before/after + kill-shot on Mainnet
 ```
-Verified: typecheck OK · 44/44 tests pass · build green (6 API routes + dynamic share/OG routes) · endpoints tested live on Walrus Mainnet (chat/recall/extract/reconcile/instigate/leaderboard), including the day-1 vs day-N before/after, multilingual replies (EN/ID/ES), English-canonical memory extraction, and the auto-roast kill-shot.
+Verified: typecheck OK · **60/60 tests pass** · build green (22 routes) · **live smoke sweep 25/25** · endpoints tested live on Walrus Mainnet (chat/recall/extract/reconcile/instigate/leaderboard/rooms), including the day-1 vs day-N before/after, the auto-roast kill-shot, multilingual replies (EN/ID/ES), and English-canonical memory extraction.
 
 ## Supporting docs
 - [`REVIEW.md`](./REVIEW.md) — 60-second reviewer walkthrough (what to click, in order).
 - [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md) — done-vs-your-actions checklist.
 - [`DEMO.md`](./DEMO.md) — 3-minute demo video storyboard (shot list + dialogue script).
 - [`DEPLOY.md`](./DEPLOY.md) — deployment paths (Vercel / Node host / Walrus Site).
-- [`SUBMISSION.md`](./SUBMISSION.md) — paste-ready Airtable form text, promo copy, and 6 draft GitHub feedback tickets.
+- [`SUBMISSION.md`](./SUBMISSION.md) — paste-ready Airtable form text, promo copy, and the filed GitHub feedback tickets.
 - [`QA.md`](./QA.md) — audit notes: issues found & fixed, known limitations, recommendations.
 
 ## License
