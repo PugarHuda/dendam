@@ -60,11 +60,11 @@ a {
   transition: color 0.15s ease;
 }
 a:hover {
-  color: #0f766e;
+  color: var(--violet);
 }
 
 ::selection {
-  background: rgba(20, 184, 166, 0.22);
+  background: rgba(124, 58, 237, 0.20);
 }
 
 /* Scrollbar */
@@ -180,12 +180,12 @@ a:hover {
 
 .nav a:hover {
   color: var(--ink);
-  background: rgba(20, 184, 166, 0.08);
+  background: rgba(124, 58, 237, 0.08);
 }
 
 .nav a.active {
   color: var(--accent-soft);
-  background: rgba(20, 184, 166, 0.12);
+  background: rgba(124, 58, 237, 0.12);
 }
 
 .handle {
@@ -201,7 +201,7 @@ a:hover {
 
 .handle:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.14);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
 }
 
 .handle input {
@@ -252,8 +252,8 @@ a:hover {
 }
 .badge.local {
   color: var(--accent-2);
-  border-color: #f0d49a;
-  background: rgba(217, 119, 6, 0.08);
+  border-color: #ffc2ce;
+  background: rgba(255, 84, 112, 0.08);
 }
 
 @keyframes pulse-dot {
@@ -293,8 +293,8 @@ a:hover {
 }
 
 .avatar.dendam {
-  background: rgba(20, 184, 166, 0.12);
-  border-color: #b7e6df;
+  background: rgba(124, 58, 237, 0.12);
+  border-color: #d6c2ff;
 }
 
 .avatar.you {
@@ -343,8 +343,8 @@ a:hover {
   font-size: 11px;
   font-weight: 600;
   color: var(--accent-soft);
-  background: rgba(20, 184, 166, 0.1);
-  border: 1px solid #b7e6df;
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid #d6c2ff;
   border-radius: 999px;
   padding: 3px 10px;
   margin-bottom: 7px;
@@ -353,7 +353,7 @@ a:hover {
   transition: background 0.15s ease;
 }
 .recall-chip:hover {
-  background: rgba(20, 184, 166, 0.18);
+  background: rgba(124, 58, 237, 0.18);
 }
 
 .recall-list {
@@ -441,8 +441,8 @@ a:hover {
   margin-top: 14px;
   padding: 16px 18px;
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(217, 119, 6, 0.08), var(--panel));
-  border: 1px solid #f0d49a;
+  background: linear-gradient(180deg, rgba(255, 84, 112, 0.08), var(--panel));
+  border: 1px solid #ffc2ce;
 }
 .prize-amount {
   font-size: 22px;
@@ -479,7 +479,7 @@ a:hover {
   height: 460px;
   margin-top: 8px;
   background:
-    radial-gradient(900px 300px at 50% -10%, rgba(20, 184, 166, 0.05), transparent 60%),
+    radial-gradient(900px 300px at 50% -10%, rgba(124, 58, 237, 0.05), transparent 60%),
     var(--bg-2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -545,7 +545,7 @@ a:hover {
 }
 .chatroom-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
 }
 /* a third bubble style for other people in the room */
 .msg.peer {
@@ -568,7 +568,7 @@ a:hover {
 }
 .room-pred:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.13);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.13);
 }
 
 /* first-visit welcome modal */
@@ -604,8 +604,8 @@ a:hover {
   display: grid;
   place-items: center;
   font-size: 24px;
-  background: rgba(20, 184, 166, 0.12);
-  border: 1px solid #b7e6df;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid #d6c2ff;
   margin-bottom: 14px;
 }
 .modal-card h3 {
@@ -641,7 +641,7 @@ a:hover {
   width: 24px;
   height: 24px;
   border-radius: 999px;
-  background: rgba(20, 184, 166, 0.14);
+  background: rgba(124, 58, 237, 0.14);
   color: var(--accent-soft);
   font-size: 13px;
 }
@@ -660,8 +660,8 @@ a:hover {
 .demo-banner {
   margin-top: 12px;
   padding: 11px 14px;
-  background: rgba(20, 184, 166, 0.08);
-  border: 1px solid #b7e6df;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid #d6c2ff;
   border-radius: var(--radius-sm);
   font-size: 13.5px;
   line-height: 1.5;
@@ -704,7 +704,7 @@ a:hover {
 
 .composer textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.13);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
 }
 
 .composer textarea::placeholder {
@@ -714,29 +714,31 @@ a:hover {
 /* ── Buttons ─────────────────────────────────────────── */
 button.send,
 .btn {
-  background: var(--accent);
+  background: var(--violet);
   color: #ffffff;
   border: none;
-  border-radius: var(--radius);
-  padding: 0 20px;
+  border-radius: 30px;
+  padding: 0 22px;
   min-height: 52px;
   max-width: 100%;
   text-align: center;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.12s ease;
-  box-shadow: var(--shadow-soft);
+  transition: box-shadow 0.12s ease, transform 0.12s ease, background 0.15s ease;
+  box-shadow: 0 5px 0 var(--violet-deep);
 }
 
 button.send:hover:not(:disabled),
 .btn:hover:not(:disabled) {
-  background: var(--accent-soft);
-  transform: translateY(-1px);
+  transform: translateY(2px);
+  box-shadow: 0 3px 0 var(--violet-deep);
 }
 button.send:active:not(:disabled),
 .btn:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--violet-deep);
 }
 
 button.send:disabled,
@@ -748,13 +750,15 @@ button.send:disabled,
 
 .btn.ghost {
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: 2.5px solid var(--ink);
   color: var(--ink);
-  box-shadow: none;
+  box-shadow: 0 5px 0 var(--line);
 }
 .btn.ghost:hover:not(:disabled) {
-  border-color: var(--line-2);
-  background: var(--panel-2);
+  border-color: var(--violet);
+  color: var(--violet);
+  transform: translateY(2px);
+  box-shadow: 0 3px 0 var(--line);
 }
 
 .btn.sm {
@@ -784,8 +788,9 @@ button.send:disabled,
 }
 
 .chip:hover {
-  border-color: var(--accent);
-  background: rgba(20, 184, 166, 0.08);
+  border-color: var(--violet-border);
+  background: var(--violet-soft);
+  color: var(--accent-soft);
   transform: translateY(-1px);
 }
 
@@ -807,8 +812,8 @@ button.send:disabled,
 }
 .filter-chip.on {
   color: var(--accent-soft);
-  background: rgba(20, 184, 166, 0.12);
-  border-color: #b7e6df;
+  background: var(--violet-soft);
+  border-color: var(--violet-border);
 }
 
 .hint {
@@ -859,23 +864,23 @@ button.send:disabled,
 
 .grudge {
   background: var(--panel);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--accent);
+  border: 2px solid var(--line-2);
+  border-left: 5px solid var(--accent);
   border-radius: var(--radius);
-  padding: 14px 16px;
-  box-shadow: var(--shadow-soft);
-  transition: transform 0.14s ease, border-color 0.14s ease;
+  padding: 15px 17px;
+  box-shadow: 0 4px 0 var(--line);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
   animation: fadeInUp 0.3s ease both;
 }
 
 .grudge:hover {
-  transform: translateX(2px);
-  border-color: var(--line-2);
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--line);
 }
 
 .grudge.wrong {
   border-left-color: var(--accent-2);
-  background: rgba(217, 119, 6, 0.05);
+  background: var(--coral-bg);
 }
 
 .grudge .meta {
@@ -898,20 +903,20 @@ button.send:disabled,
 
 .tag.kind {
   color: var(--accent-soft);
-  border-color: #b7e6df;
-  background: rgba(20, 184, 166, 0.08);
+  border-color: var(--violet-border);
+  background: var(--violet-soft);
 }
 
 .tag.wrong {
-  color: var(--accent-2);
-  border-color: #f0d49a;
-  background: rgba(217, 119, 6, 0.08);
+  color: var(--coral-text);
+  border-color: var(--coral-border);
+  background: var(--coral-bg);
 }
 
 .tag.ok {
   color: var(--green);
-  border-color: #b9e3c6;
-  background: rgba(22, 163, 74, 0.08);
+  border-color: var(--green-border);
+  background: var(--green-bg);
 }
 
 /* ── Stats ───────────────────────────────────────────── */
@@ -1141,7 +1146,7 @@ button.send:disabled,
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: rgba(20, 184, 166, 0.14);
+  background: rgba(124, 58, 237, 0.14);
   color: var(--accent-soft);
   font-size: 12px;
 }
@@ -1174,7 +1179,7 @@ button.send:disabled,
   box-shadow: var(--shadow-soft);
 }
 .ba-card.hot {
-  border-color: #b7e6df;
+  border-color: #d6c2ff;
 }
 
 .ba-tag {
@@ -1215,8 +1220,8 @@ button.send:disabled,
   display: grid;
   place-items: center;
   font-weight: 800;
-  background: rgba(20, 184, 166, 0.12);
-  border: 1px solid #b7e6df;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid #d6c2ff;
   color: var(--accent-soft);
   margin-bottom: 12px;
 }
