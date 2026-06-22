@@ -1,6 +1,7 @@
 import { getMemoryStore } from "@/lib/memory";
 import { roomNamespace } from "@/lib/rooms";
 import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
+import { isAbusive } from "@/lib/moderation";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -22,6 +23,10 @@ export async function POST(req: Request) {
   const who = (handle ?? "").trim().replace(/^@/, "");
   if (!roomId?.trim() || !who || !text) {
     return Response.json({ error: "need_room_handle_message" }, { status: 400 });
+  }
+  // Basic guard: this is a public, persistent room chat (no delete API).
+  if (isAbusive(text)) {
+    return Response.json({ error: "keep_it_clean" }, { status: 400 });
   }
 
   const store = getMemoryStore();

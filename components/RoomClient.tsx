@@ -41,6 +41,7 @@ export function RoomClient({
   const [posting, setPosting] = useState(false);
   const [dendamTyping, setDendamTyping] = useState(false);
   const [claimed, setClaimed] = useState(false);
+  const [roomErr, setRoomErr] = useState("");
   const msgsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -88,34 +89,58 @@ export function RoomClient({
 
   async function post() {
     const handle = me.trim().replace(/^@/, "");
-    const text = msg.trim();
+    const text = msg.trim().slice(0, 280);
     if (!handle || !text || posting) return;
     setPosting(true);
-    const next = [...chat, { handle, text }];
+    setRoomErr("");
+    const optimistic = { handle, text };
+    const next = [...chat, optimistic];
     setChat(next);
     setMsg("");
-    // persist to Walrus (best-effort, in the background)
-    fetch("/api/room/post", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ roomId: room.id, handle, message: text }),
-    }).catch(() => {});
-    // Dendam automatically jumps in — no button.
-    setDendamTyping(true);
+
+    // persist to Walrus; if it's rejected (e.g. content guard), pull it back.
+    let accepted = true;
     try {
-      const res = await fetch("/api/room/dendam", {
+      const res = await fetch("/api/room/post", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ teamA: room.teamA, teamB: room.teamB, messages: next.slice(-8) }),
+        body: JSON.stringify({ roomId: room.id, handle, message: text }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (data?.line) setChat((c) => [...c, { handle: "Dendam", text: data.line }]);
+      if (!res.ok) {
+        accepted = false;
+        setChat((c) => c.filter((m) => m !== optimistic));
+        const data = await res.json().catch(() => ({}));
+        setRoomErr(
+          data?.error === "keep_it_clean"
+            ? "Keep it about football — that one didn't fly."
+            : res.status === 429
+              ? "Slow down a sec — too many messages."
+              : "Couldn't send that. Try again.",
+        );
+      }
     } catch {
-      /* Dendam stays quiet on error */
-    } finally {
-      setDendamTyping(false);
-      setPosting(false);
+      /* network blip — keep the optimistic message */
     }
+
+    // Dendam jumps in automatically — but only on accepted, non-trivial posts
+    // (skip "ok"/"lol" so we don't spend an LLM call on noise).
+    if (accepted && text.replace(/[^a-z0-9]/gi, "").length >= 3) {
+      setDendamTyping(true);
+      try {
+        const res = await fetch("/api/room/dendam", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ teamA: room.teamA, teamB: room.teamB, messages: next.slice(-8) }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (data?.line) setChat((c) => [...c, { handle: "Dendam", text: data.line }]);
+      } catch {
+        /* Dendam stays quiet on error */
+      } finally {
+        setDendamTyping(false);
+      }
+    }
+    setPosting(false);
   }
 
   async function join() {
@@ -240,6 +265,12 @@ export function RoomClient({
           </button>
         </div>
       </div>
+
+      {roomErr && (
+        <p className="hint" style={{ color: "var(--accent-2)", marginTop: 8 }} role="alert">
+          ⚠️ {roomErr}
+        </p>
+      )}
 
       {/* ── Calls (predictions) ─────────────────── */}
       <div className="section-head" style={{ marginTop: 24 }}>
