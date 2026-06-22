@@ -1,153 +1,134 @@
 import Link from "next/link";
+import { GrudgeBall, AppIcon } from "@/components/Logo";
+import { IconRecall, IconRespond, IconRemember, IconFlame, IconFolder, IconGavel } from "@/components/Icons";
 
 const ACCOUNT_ID =
   "0xe2f6e4a535e0c4179098e6701b9026798b0e17c4622aa0585a14a80a64ca168e";
 const EXPLORER = `https://suiscan.xyz/mainnet/object/${ACCOUNT_ID}`;
-const REPO = "https://github.com/PugarHuda/dendam";
 
-const FEATURES: { color: string; icon: string; title: string; body: string }[] = [
-  {
-    color: "violet",
-    icon: "🧠",
-    title: "Memory as a weapon",
-    body: "Every prediction, hot take, and insult is stored on Walrus — then weaponised the moment you're wrong.",
-  },
-  {
-    color: "mint",
-    icon: "⚖️",
-    title: "Auto-roast on results",
-    body: "When real World Cup scores land, Dendam matches them to your calls and roasts the ones you blew.",
-  },
-  {
-    color: "peach",
-    icon: "🏟️",
-    title: "Match Rooms",
-    body: "A room per match where everyone predicts and chats. Dendam stirs the pot; the winner takes the (mock) pool.",
-  },
+const STEPS = [
+  { n: "1", Icon: IconRecall, title: "Recall", body: "I dig up every dumb take you've ever made. Walrus remembers so I can ruin your afternoon with receipts." },
+  { n: "2", Icon: IconRespond, title: "Respond", body: "I clap back in character — and quote your past self word for word, in your language, typos and all." },
+  { n: "3", Icon: IconRemember, title: "Remember", body: "Tonight's roast is distilled into permanent grudges, written back to Walrus. The blockchain never forgets either." },
 ];
+
+const FEATURES = [
+  { tone: "violet-light", Icon: IconFlame, title: "The Hot Seat", sub: "group instigator", body: "Drop your group's handles. I pit each other and quote what they ACTUALLY said — cross-user beef, sourced from real memory." },
+  { tone: "violet", Icon: IconFolder, title: "The File", sub: "your record public", body: "Every prediction, hot take and insult on a public, link-shareable file — each one a real blob on Walrus you can verify." },
+  { tone: "yellow", Icon: IconGavel, title: "Auto-roast", sub: "the bill comes due", body: "The moment a real result lands, I match it to your call and stamp the wrong ones WRONG. Automatically. Forever." },
+];
+
+function Squiggle({ color = "var(--coral)" }: { color?: string }) {
+  return (
+    <svg className="dx-squiggle" viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden>
+      <path d="M2 9 Q26 2 50 8 T98 8 T146 8 T198 6" stroke={color} strokeWidth="4" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function LandingPage() {
   return (
-    <div className="shell landing playful">
-      <header className="topbar">
-        <Link href="/" className="brand" style={{ textDecoration: "none" }}>
-          <span className="brand-emblem" aria-hidden>🔥</span>
-          <div className="brand-text">
-            <h1 style={{ color: "var(--ink)" }}>
-              Dendam<span className="dot">.</span>
-            </h1>
-            <small>the World Cup 2026 rival that never forgets</small>
-          </div>
+    <div className="dx-page">
+      {/* ── Nav ───────────────────────────────────── */}
+      <header className="dx-nav">
+        <Link href="/" className="dx-brand" style={{ textDecoration: "none" }}>
+          <AppIcon size={40} />
+          <span className="dx-wordmark">Dendam<span style={{ color: "var(--violet)" }}>.</span></span>
         </Link>
-        <nav className="nav">
-          <Link href="/chat" title="Chat with Dendam">💬 Chat</Link>
-          <Link href="/dossier" title="What Dendam remembers about you">📂 Memory</Link>
-          <Link href="/room" title="Match rooms — chat & predict per game">🏟️ Rooms</Link>
+        <nav className="dx-nav-links">
+          <a href="#how">How it works</a>
+          <Link href="/dossier">The File</Link>
+          <a href="#features">Hot Seat</a>
+          <Link href="/group">Hall of Shame</Link>
         </nav>
+        <Link href="/chat" className="dx-btn dx-btn-ink">Start the beef →</Link>
       </header>
 
-      {/* ── Hero ─────────────────────────────────── */}
-      <section className="phero">
-        <span className="phero-blob b1" aria-hidden />
-        <span className="phero-blob b2" aria-hidden />
-        <span className="pstar s1" aria-hidden>⭐</span>
-        <span className="pstar s2" aria-hidden>⚽</span>
-        <span className="pstar s3" aria-hidden>🔥</span>
-
-        <div className="phero-text">
-          <span className="pill-badge">● Live on Walrus Mainnet</span>
-          <h2 className="phero-title">
-            The World Cup rival that <mark className="hl-mint">remembers</mark> everything
-            and <mark className="hl-peach">roasts</mark> you for it.
-          </h2>
-          <p className="phero-sub">
-            Drop your 2026 predictions and hot takes. Dendam stores every one on
-            <b> Walrus Memory</b>, then throws them right back the moment you&rsquo;re wrong.
+      {/* ── Hero ──────────────────────────────────── */}
+      <section className="dx-hero">
+        <div className="dx-hero-l">
+          <span className="dx-eyebrow"><span aria-hidden>🔥</span> Grudge-holding AI rival · World Cup 2026</span>
+          <h1 className="dx-h1">
+            Run your mouth.
+            <span className="dx-script-wrap">
+              <span className="dx-script">I&rsquo;ll make you eat it.</span>
+              <Squiggle />
+            </span>
+          </h1>
+          <p className="dx-lead">
+            Make your 2026 predictions and hot takes. Dendam stores every one on
+            <b> Walrus Memory</b> — then throws it back in your face the second you&rsquo;re wrong.
           </p>
-          <div className="phero-cta">
-            <Link href="/chat?handle=demo" className="pbtn">🔥 Try the demo</Link>
-            <Link href="/chat" className="pbtn ghost">Start fresh</Link>
+          <div className="dx-cta-row">
+            <Link href="/chat?handle=demo" className="dx-btn dx-btn-violet">Start the beef →</Link>
+            <Link href="/dossier" className="dx-btn dx-btn-ghost">📂 Open The File</Link>
           </div>
-          <div className="phero-steps">
-            <b>1</b> Make a call&nbsp;&nbsp;·&nbsp;&nbsp;<b>2</b> Saved on Walrus&nbsp;&nbsp;·&nbsp;&nbsp;<b>3</b> Roasted later
-          </div>
+          <p className="dx-micro">0 takes forgiven · ∞ remembered</p>
         </div>
 
-        <div className="phero-card">
-          <div className="pcard-inner">
-            <div className="pbub dendam">
-              <b>🔥 Dendam</b>
-              <span>First time I&rsquo;m hearing you — make a call and I&rsquo;ll remember every word.</span>
-            </div>
-            <div className="pbub you">
-              <span>Argentina win it all, Brazil&rsquo;s done 😎</span>
-            </div>
-            <div className="pbub dendam">
-              <span>Bold. I&rsquo;ll hold you to that when Brazil knock them out.</span>
-            </div>
-          </div>
-          <span className="pcard-tag">saved ✓ on Walrus</span>
+        <div className="dx-hero-r">
+          <span className="dx-blob dx-blob-violet" aria-hidden />
+          <span className="dx-blob dx-blob-yellow" aria-hidden />
+          <div className="dx-hero-ball"><GrudgeBall size={150} /></div>
+          <span className="dx-chip dx-chip-1">#cope</span>
+          <span className="dx-chip dx-chip-2">#fraud</span>
+          <span className="dx-chip dx-chip-3">#toldyouso</span>
+          <span className="dx-stamp">HOLDS A GRUDGE<small>since day one</small></span>
         </div>
       </section>
 
-      {/* ── Features ─────────────────────────────── */}
-      <section>
-        <h3 className="psection-title">What makes Dendam sting</h3>
-        <p className="psection-sub">Memory that works against you — and a whole crew to share the pain.</p>
-        <div className="pfeat-grid">
+      {/* ── Memory loop (dark band) ───────────────── */}
+      <section id="how" className="dx-loop">
+        <span className="dx-eyebrow dx-eyebrow-on-dark">The memory loop</span>
+        <h2 className="dx-h2 dx-h2-on-dark">
+          I don&rsquo;t keep score. <span className="dx-script dx-script-yellow">I keep a file.</span>
+        </h2>
+        <p className="dx-loop-sub">Every run is the same three-step loop — and it all lives on Walrus Mainnet, not in some cache I can conveniently forget.</p>
+        <div className="dx-steps">
+          {STEPS.map((s) => (
+            <div key={s.n} className="dx-step">
+              <span className="dx-step-n">{s.n}</span>
+              <span className="dx-icon-badge"><s.Icon size={28} /></span>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Features ──────────────────────────────── */}
+      <section id="features" className="dx-section">
+        <h2 className="dx-h2">
+          Three ways I make your takes <span className="dx-script">your problem.</span>
+        </h2>
+        <div className="dx-feat-grid">
           {FEATURES.map((f) => (
-            <div key={f.title} className={`pfeat ${f.color}`}>
-              <div className="pfeat-icon" aria-hidden>{f.icon}</div>
-              <h4>{f.title}</h4>
+            <div key={f.title} className={`dx-feat dx-feat-${f.tone}`}>
+              <span className="dx-icon-badge"><f.Icon size={28} /></span>
+              <div className="dx-feat-sub">{f.sub}</div>
+              <h3>{f.title}</h3>
               <p>{f.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Before / after ───────────────────────── */}
-      <section>
-        <h3 className="psection-title">Day 1 it knows nothing. Day N it has a file.</h3>
-        <p className="psection-sub">Same nickname, days apart — no reminder needed.</p>
-        <div className="ba-grid" style={{ marginTop: 20 }}>
-          <div className="ba-card">
-            <div className="ba-tag">DAY 1 · memory empty</div>
-            <div className="pbub dendam" style={{ maxWidth: "100%" }}>
-              <b>🔥 Dendam</b>
-              <span>First time I&rsquo;m hearing you, huh? No record of you yet — so go on, make a call.</span>
-            </div>
-          </div>
-          <div className="ba-card hot">
-            <div className="ba-tag hot">DAY N · it remembers everything</div>
-            <div className="pbub dendam" style={{ maxWidth: "100%" }}>
-              <b>🔥 Dendam</b>
-              <span>You crowned Argentina champions and wrote off Brazil. Brazil just knocked them out. Still feeling clever?</span>
-            </div>
+      {/* ── Footer CTA ────────────────────────────── */}
+      <section className="dx-section">
+        <div className="dx-footer-cta">
+          <h2 className="dx-h2 dx-h2-on-dark" style={{ margin: 0 }}>Dendam already has a file on you.</h2>
+          <p>It&rsquo;s on Walrus Mainnet, tied to a MemWalAccount on Sui — verifiable, not a chat log.</p>
+          <div className="dx-cta-row" style={{ justifyContent: "center" }}>
+            <Link href="/chat?handle=demo" className="dx-btn dx-btn-yellow">Start the beef →</Link>
+            <a className="dx-btn dx-btn-ghost-dark" href={EXPLORER} target="_blank" rel="noreferrer">Verify on Sui ↗</a>
           </div>
         </div>
       </section>
 
-      {/* ── Proof + CTA ──────────────────────────── */}
-      <section>
-        <div className="pcta-card">
-          <span className="pstar s4" aria-hidden>🦭</span>
-          <h3>Real memory, not a chat log.</h3>
-          <p>
-            Every memory is encrypted and stored on <b>Walrus Mainnet</b>, tied to a
-            MemWalAccount on Sui — so &ldquo;it remembers&rdquo; is genuinely verifiable.
-          </p>
-          <div className="phero-cta" style={{ justifyContent: "center" }}>
-            <Link href="/chat?handle=demo" className="pbtn light">🔥 See it remember you</Link>
-            <a className="pbtn ghost-light" href={EXPLORER} target="_blank" rel="noreferrer">Verify on Sui ↗</a>
-          </div>
-        </div>
-      </section>
-
-      <footer className="footer">
-        <span>Memory on Walrus · Sui Mainnet</span>
-        <span>
-          <a href={REPO} target="_blank" rel="noreferrer">Source</a> · #Walrus
-        </span>
+      <footer className="dx-foot">
+        <span className="dx-foot-brand"><GrudgeBall size={26} /> Dendam</span>
+        <span className="dx-badge-live">● Memory live on Walrus Mainnet</span>
+        <span className="dx-foot-meta">Built for Walrus Sessions · S4 · <a href="https://github.com/PugarHuda/dendam" target="_blank" rel="noreferrer">Source</a></span>
       </footer>
     </div>
   );
