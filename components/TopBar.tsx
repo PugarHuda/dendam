@@ -9,7 +9,7 @@ export function TopBar({
 }: {
   handle: string;
   setHandle: (h: string) => void;
-  active: "chat" | "dossier" | "grup";
+  active: "chat" | "dossier" | "group";
 }) {
   return (
     <div className="topbar">
@@ -47,7 +47,7 @@ export function TopBar({
           >
             📂 Memory
           </Link>
-          <Link href="/room" className={active === "grup" ? "active" : ""} title="Match rooms — chat & predict per game">🏟️ Rooms</Link>
+          <Link href="/room" className={active === "group" ? "active" : ""} title="Match rooms — chat & predict per game">🏟️ Rooms</Link>
         </nav>
       </div>
     </div>

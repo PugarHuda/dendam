@@ -82,7 +82,7 @@ export default function GrupPage() {
     setLines([]);
     setTopic("");
     try {
-      const res = await fetch("/api/kompor", {
+      const res = await fetch("/api/instigate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ handles }),
@@ -112,7 +112,7 @@ export default function GrupPage() {
 
   return (
     <div className="shell">
-      <TopBar handle={handle} setHandle={setHandle} active="grup" />
+      <TopBar handle={handle} setHandle={setHandle} active="group" />
 
       <h2 className="page-title">🔥 The Hot Seat <span style={{ color: "var(--muted)", fontWeight: 400, fontSize: 15 }}>— group mode</span></h2>
       <p className="hint" style={{ marginTop: 0 }}>

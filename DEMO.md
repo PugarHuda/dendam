@@ -18,7 +18,7 @@ You no longer have to "plant memory over days" on camera. The `@demo` handle is 
 4. **1:10 The File** — `/dossier?handle=demo`. Show stats, the **🔥 Grudge of the day**, **Insights**, and **Ask the file** (type `what did I say about Brazil?` → live semantic recall). Click **⛓ on Walrus ↗** on a memory card → the actual encrypted blob on Walruscan. VO: *"Every memory is a real Walrus blob — verifiable, one click."*
 5. **1:45 Kill shot** — back on The File, **⚖️ Hold me to it** → the Argentina prediction is flagged **‼️ WRONG** with a roast. Hit **🔥 Share this roast** on a chat reply (or the roast card) to show the shareable image.
 6. **2:15 Proof** — the **Sui explorer** tab on the `MemWalAccount` (Shared object). VO: *"Tied to a MemWalAccount on Sui. Anyone can verify it."*
-7. **2:40 Close** — Hot Seat (`/grup`) one quick stir + **🆚 head-to-head** card, or just the logo + link. VO: *"Dendam. Make your call… and live with it."*
+7. **2:40 Close** — Hot Seat (`/group`) one quick stir + **🆚 head-to-head** card, or just the logo + link. VO: *"Dendam. Make your call… and live with it."*
 
 This hits all three criteria in ~3 min with **zero waiting**. The manual before/after script below still works if you'd rather show planting live.
 
@@ -79,7 +79,7 @@ Continuous narration for the Fast path. Read it naturally; the timings are a gui
 **Total: ~3:00.** If you run long, compress the plant montage (0:30–1:00) to 15s.
 
 ### Optional flair — Hot Seat (only if under time)
-`/grup` → enter 2–3 handles → **🔥 Stir it up**: Dendam pits friends against each other using their real stored takes → **🏆 Hall of Shame** leaderboard. Strong "fun / shareable" angle for #Walrus.
+`/group` → enter 2–3 handles → **🔥 Stir it up**: Dendam pits friends against each other using their real stored takes → **🏆 Hall of Shame** leaderboard. Strong "fun / shareable" angle for #Walrus.
 
 ---
 

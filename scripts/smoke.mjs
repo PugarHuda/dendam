@@ -50,7 +50,7 @@ async function retry(fn, attempts = 4, delayMs = 5000) {
   console.log(`# Deploy with bundled seed live: ${deployed ? "yes" : "NOT YET (checking current anyway)"}\n`);
 
   // ── Pages ───────────────────────────────────────────────
-  for (const p of ["/", "/chat", "/dossier", "/grup", `/share/${H}`, `/share/vs/${H}/nobody-xyz`, "/roast?by=demo&text=Argentina%20is%20done", "/room", "/room/WC2026-BRA-ARG-QF"]) {
+  for (const p of ["/", "/chat", "/dossier", "/group", `/share/${H}`, `/share/vs/${H}/nobody-xyz`, "/roast?by=demo&text=Argentina%20is%20done", "/room", "/room/WC2026-BRA-ARG-QF"]) {
     const { res } = await get(p);
     check(`GET ${p}`, res.status === 200, `status=${res.status}`);
   }
@@ -98,8 +98,8 @@ async function retry(fn, attempts = 4, delayMs = 5000) {
     check("POST /api/chat {} → 400/429", [400, 429].includes(res.status), `status=${res.status} ${body?.error ?? ""}`);
   }
   {
-    const { res } = await post("/api/kompor", { handles: ["only-one"] });
-    check("POST /api/kompor (1 handle) → 400/429", [400, 429].includes(res.status), `status=${res.status}`);
+    const { res } = await post("/api/instigate", { handles: ["only-one"] });
+    check("POST /api/instigate (1 handle) → 400/429", [400, 429].includes(res.status), `status=${res.status}`);
   }
   {
     const { res, body } = await post("/api/results", { results: [] });

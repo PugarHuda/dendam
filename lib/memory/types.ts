@@ -40,7 +40,7 @@ export interface MemoryStore {
     query: string,
     limit?: number,
   ): Promise<MemoryRecord[]>;
-  // Best-effort full listing for the public "Buku Dendam" dossier.
+  // Best-effort full listing for the public "The File" dossier.
   list(namespace: string, limit?: number): Promise<MemoryRecord[]>;
 }
 

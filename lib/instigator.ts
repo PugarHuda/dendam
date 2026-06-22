@@ -4,17 +4,17 @@ import { getMemoryStore, namespaceFor } from "./memory";
 import { MemoryRecord } from "./memory/types";
 import { generateJSON } from "./structured";
 
-// "Tukang kompor" mode: Dendam reads several members' real stored memories
+// Instigator mode: Dendam reads several members' real stored memories
 // (predictions, insults, favorites, hot takes) and stirs beef between them —
 // quoting one person's take back at a rival. This is memory doing real work
 // across users, not just one-on-one.
 
-export interface KomporMember {
+export interface InstigatorMember {
   handle: string;
   memories: MemoryRecord[];
 }
 
-const komporSchema = z.object({
+const instigationSchema = z.object({
   topic: z
     .string()
     .describe("Short topic used as the fuel, e.g. 'Brazil's fate' or 'who wins it all'."),
@@ -42,7 +42,7 @@ const KINDS_OF_INTEREST = new Set([
   "result",
 ]);
 
-function renderMember(m: KomporMember): string {
+function renderMember(m: InstigatorMember): string {
   const rel = m.memories.filter((x) => KINDS_OF_INTEREST.has(x.kind));
   if (rel.length === 0) return `@${m.handle}: (no record yet)`;
   const lines = rel
@@ -53,9 +53,9 @@ function renderMember(m: KomporMember): string {
 }
 
 // Generate provocations for a set of members (already loaded with memories).
-export async function generateKompor(
-  members: KomporMember[],
-): Promise<z.infer<typeof komporSchema>> {
+export async function generateInstigation(
+  members: InstigatorMember[],
+): Promise<z.infer<typeof instigationSchema>> {
   const withData = members.filter((m) =>
     m.memories.some((x) => KINDS_OF_INTEREST.has(x.kind)),
   );
@@ -75,34 +75,34 @@ export async function generateKompor(
     `GROUP MEMBERS & THEIR MEMORIES:\n${roster}\n\n` +
     (withData.length >= 2
       ? "Pit them against each other based on the real contradictions/rivalries above."
-      : "Data is thin — write instigation that bait every member into dropping hot predictions.") +
+      : "Data is thin — write instigation that baits every member into dropping hot predictions.") +
     " Produce 2–5 instigating lines.";
 
   return generateJSON({
-    schema: komporSchema,
+    schema: instigationSchema,
     system,
     prompt,
     shapeHint: SHAPE_HINT,
   });
 }
 
-// Load members' memories from the store, run the kompor, and (optionally)
+// Load members' memories from the store, run the instigator, and (optionally)
 // remember that Dendam stirred this beef in each member's namespace.
-export async function komporForHandles(
+export async function instigateForHandles(
   handles: string[],
   remember = true,
-): Promise<z.infer<typeof komporSchema> & { members: string[] }> {
+): Promise<z.infer<typeof instigationSchema> & { members: string[] }> {
   const store = getMemoryStore();
   const clean = [...new Set(handles.map((h) => h.trim()).filter(Boolean))];
 
   // Load each member's memories concurrently (bounded) — sequential awaits
   // here scale with group size and risk the 60s serverless limit.
-  const members: KomporMember[] = await mapLimit(clean, 4, async (h) => ({
+  const members: InstigatorMember[] = await mapLimit(clean, 4, async (h) => ({
     handle: h,
     memories: await store.list(namespaceFor(h), 50),
   }));
 
-  const result = await generateKompor(members);
+  const result = await generateInstigation(members);
 
   if (remember && clean.length >= 2) {
     const note = `In the Hot Seat, Dendam stirred up the group (${clean

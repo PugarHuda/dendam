@@ -37,7 +37,7 @@ User ─▶ /api/chat
 Defaults to **English**, but automatically **mirrors each user's language** (Indonesian, Spanish, Portuguese, …) and tolerates typos, slang, code-switching, and emojis. Memories are stored **canonically in English** so cross-user features (Hot Seat, leaderboard) stay consistent.
 
 ### 🔥 The Hot Seat (group instigator)
-Page `/grup`: enter several member handles. `POST /api/kompor` reads each member's **real** memories (predictions, insults, favorite teams) and makes Dendam **pit them against each other** — quoting one person's take at a rival and tagging `@handle`. Cross-user memory drives the rivalry, not just 1-on-1. The instigation it creates is also saved to each member's memory. A **Hall of Shame** leaderboard (`POST /api/leaderboard`) ranks who's been most often wrong — computed purely from stored memories.
+Page `/group`: enter several member handles. `POST /api/instigate` reads each member's **real** memories (predictions, insults, favorite teams) and makes Dendam **pit them against each other** — quoting one person's take at a rival and tagging `@handle`. Cross-user memory drives the rivalry, not just 1-on-1. The instigation it creates is also saved to each member's memory. A **Hall of Shame** leaderboard (`POST /api/leaderboard`) ranks who's been most often wrong — computed purely from stored memories.
 
 ### Auto-roast when results land
 Real results are fed via `POST /api/results` (token-gated), `npm run seed:results`, or the optional live football-data.org feed (`FOOTBALL_DATA_TOKEN`). A small **bundled seed result** is also compiled into the build (`SEED` in `lib/sportsapi.ts`, merged in by `getAllResults`) so the auto-roast has something to judge **out of the box** for a demo — even before any real result is fed (set `DENDAM_SEED_RESULTS=off` to drop it). On The File, the **⚖️ Hold me to it** button calls `/api/reconcile`: Dendam matches stored predictions against real results, flags the **wrong** ones (`wasWrong`), and stores the **verdict** as a permanent grudge on Walrus. That's the demo "kill shot" — an "Argentina wins it all" prediction gets auto-roasted the moment Argentina loses.
@@ -55,7 +55,7 @@ app/
   api/memories/route.ts    public read for the dossier
   api/results/route.ts     scoreboard feed (GET list / POST upsert, token)
   api/reconcile/route.ts   match predictions vs results → verdict + grudge
-  api/kompor/route.ts      instigator: pit group members against each other
+  api/instigate/route.ts   instigator: pit group members against each other
   api/leaderboard/route.ts Hall of Shame standings (pure compute)
   page.tsx                 landing page ("Make your call. Live with it.")
   chat/page.tsx            "Face off" screen (chat)
@@ -82,7 +82,7 @@ lib/
   grudge.ts                structured memory extraction (zod + generateObject)
   structured.ts            generateObject with raw-JSON fallback for free models
   verdict.ts               prediction-vs-result judgment (auto-roast)
-  kompor.ts                instigator logic (pits members' memories)
+  instigator.ts            instigator logic (pits members' memories)
   leaderboard.ts           Hall of Shame computation
   stats.ts                 per-handle file summary (shared by /share + its OG image)
   results.ts               match-results store (scoreboard)
@@ -188,7 +188,7 @@ npm run typecheck   # tsc --noEmit
 npm run build       # Next.js production build
 npm run check:memory  # round-trip remember → recall (active backend)
 ```
-Verified: typecheck OK · 44/44 tests pass · build green (6 API routes + dynamic share/OG routes) · endpoints tested live on Walrus Mainnet (chat/recall/extract/reconcile/kompor/leaderboard), including the day-1 vs day-N before/after, multilingual replies (EN/ID/ES), English-canonical memory extraction, and the auto-roast kill-shot.
+Verified: typecheck OK · 44/44 tests pass · build green (6 API routes + dynamic share/OG routes) · endpoints tested live on Walrus Mainnet (chat/recall/extract/reconcile/instigate/leaderboard), including the day-1 vs day-N before/after, multilingual replies (EN/ID/ES), English-canonical memory extraction, and the auto-roast kill-shot.
 
 ## Supporting docs
 - [`REVIEW.md`](./REVIEW.md) — 60-second reviewer walkthrough (what to click, in order).

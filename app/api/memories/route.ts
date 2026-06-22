@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 // list() fans out several relayer recalls; allow headroom on a slow relayer.
 export const maxDuration = 60;
 
-// Public read of a user's grudge file — powers the "Buku Dendam" dossier
+// Public read of a user's grudge file — powers the "The File" dossier
 // where the memory is visible (a hackathon submission requirement).
 export async function GET(req: Request) {
   // Generous (read endpoint, cached) but bounds enumeration/scraping.

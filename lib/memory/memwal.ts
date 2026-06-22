@@ -129,7 +129,7 @@ export class MemWalMemoryStore implements MemoryStore {
     ];
     // Run the theme recalls concurrently — they're independent queries, and
     // doing them sequentially multiplies per-handle latency 5x (which compounds
-    // when callers like the leaderboard/kompor list several handles).
+    // when callers like the leaderboard/instigator list several handles).
     const perTheme = await mapLimit(themes, themes.length, (q) =>
       this.recall(namespace, q, limit),
     );
