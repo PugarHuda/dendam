@@ -31,19 +31,22 @@ export function TopBar({
         </span>
       </Link>
       <div className="dx-topbar-right">
-        <div
-          className="dx-handle"
-          title="Your nickname = your identity. Dendam saves your memory under it, so use the same one to be remembered."
-        >
-          <span className="dx-handle-at">@</span>
-          <input
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
-            placeholder="your nickname"
-            spellCheck={false}
-            maxLength={40}
-            aria-label="Your nickname — your memory is saved under it"
-          />
+        <div className="dx-handle-wrap">
+          <div
+            className="dx-handle"
+            title="Your nickname = your identity. Dendam saves your memory under it, so use the same one to be remembered."
+          >
+            <span className="dx-handle-at">@</span>
+            <input
+              value={handle}
+              onChange={(e) => setHandle(e.target.value)}
+              placeholder="your nickname"
+              spellCheck={false}
+              maxLength={40}
+              aria-label="Your nickname — your memory is saved under it"
+            />
+          </div>
+          <span className="dx-handle-hint">new nickname = new File</span>
         </div>
         <nav className="dx-tabs">
           {TABS.map((t) => (
