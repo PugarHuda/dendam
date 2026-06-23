@@ -83,22 +83,57 @@ export default function ChatPage() {
     },
   });
 
-  // Keep the conversation across navigation (to Memory/Group and back) by
-  // mirroring it into sessionStorage. Restore once on mount, save on change.
+  // Conversations are kept PER HANDLE in sessionStorage (key dendam:chat:<h>),
+  // so the thread belongs to whoever you're talking as. Switching the nickname
+  // swaps to that handle's own thread — your old conversation isn't lost, it's
+  // restored when you switch back (so no destructive "are you sure?" needed).
+  const activeHandle = useRef<string>("");
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
+
+  // Swap threads when the (debounced) handle changes — debounced so editing a
+  // nickname character-by-character doesn't thrash the visible thread.
   useEffect(() => {
-    try {
-      const saved = sessionStorage.getItem("dendam:chat");
-      if (saved) {
-        const arr = JSON.parse(saved);
+    const h = (handle || "anon").trim().toLowerCase() || "anon";
+    const key = (x: string) => `dendam:chat:${x}`;
+    // First resolve: adopt this handle's thread immediately.
+    if (activeHandle.current === "") {
+      activeHandle.current = h;
+      try {
+        const s = sessionStorage.getItem(key(h));
+        const arr = s ? JSON.parse(s) : [];
         if (Array.isArray(arr) && arr.length) setMessages(arr);
+      } catch {
+        /* ignore */
       }
-    } catch {
-      /* ignore */
+      return;
     }
-  }, [setMessages]);
+    if (activeHandle.current === h) return;
+    const t = setTimeout(() => {
+      const prev = activeHandle.current;
+      try {
+        sessionStorage.setItem(key(prev), JSON.stringify(messagesRef.current));
+      } catch {
+        /* ignore */
+      }
+      let next: typeof messages = [];
+      try {
+        const s = sessionStorage.getItem(key(h));
+        if (s) next = JSON.parse(s);
+      } catch {
+        /* ignore */
+      }
+      activeHandle.current = h;
+      setMessages(next);
+    }, 450);
+    return () => clearTimeout(t);
+  }, [handle, setMessages]);
+
+  // Persist the live thread under whichever handle it currently belongs to.
   useEffect(() => {
+    if (!activeHandle.current) return;
     try {
-      sessionStorage.setItem("dendam:chat", JSON.stringify(messages));
+      sessionStorage.setItem(`dendam:chat:${activeHandle.current}`, JSON.stringify(messages));
     } catch {
       /* ignore */
     }

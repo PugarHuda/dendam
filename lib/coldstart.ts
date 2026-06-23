@@ -9,7 +9,7 @@ import { DENDAM_SYSTEM } from "./persona";
 // the whole thing free and model-agnostic; the guarantee comes from the guard,
 // not from trusting the model to obey.
 
-const COLD_SYSTEM = `${DENDAM_SYSTEM}
+export const COLD_SYSTEM = `${DENDAM_SYSTEM}
 
 DENDAM'S MEMORY: (no memories available for this turn)
 

@@ -132,7 +132,6 @@ export default function LandingPage() {
           <a href="#shame">Hall of Shame</a>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Link href="/chat" className="lx-signin" style={{ fontWeight: 800, fontSize: 15, color: C.ink }}>Sign in</Link>
           <Link href="/chat" className="lx-press" style={{ background: C.ink, color: "#fff", fontWeight: 800, fontSize: 15, padding: "12px 22px", borderRadius: 40, whiteSpace: "nowrap", boxShadow: `0 6px 0 ${C.violet}` }}>Start the beef</Link>
         </div>
       </nav>

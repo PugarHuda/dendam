@@ -1,12 +1,6 @@
-import {
-  createDataStreamResponse,
-  formatDataStreamPart,
-  streamText,
-  type CoreMessage,
-} from "ai";
-import { after } from "next/server";
+import { streamText, type CoreMessage } from "ai";
 import { dendamModel } from "@/lib/model";
-import { coldStartReply } from "@/lib/coldstart";
+import { COLD_SYSTEM } from "@/lib/coldstart";
 import { extractGrudges } from "@/lib/grudge";
 import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 import { DENDAM_SYSTEM, renderMemoryBlock } from "@/lib/persona";
@@ -80,42 +74,22 @@ export async function POST(req: Request) {
     }
   };
 
-  // COLD START — no memory to ground on. A weak free model can fabricate a
-  // fake past here, so we use a deterministic guard (generate → check → retry
-  // → safe fallback) instead of streaming and hoping the model obeys.
-  if (recalled.length === 0) {
-    const text = await coldStartReply(messages);
-    // Persist grudges AFTER the response is flushed — extraction + the Walrus
-    // write must not delay the user's day-1 reply (and must not risk the 60s
-    // function limit on the critical cold-start path).
-    after(() => remember(text));
-    return createDataStreamResponse({
-      headers,
-      // Type the guarded reply out word-by-word so it doesn't pop in all at
-      // once — the cold-start reply is generated non-streamed (the fabrication
-      // guard needs the full text), but we can still deliver it as a stream so
-      // it feels as responsive as the memory-grounded path.
-      async execute(writer) {
-        const parts = text.split(/(\s+)/); // keep whitespace tokens
-        for (const part of parts) {
-          if (!part) continue;
-          writer.write(formatDataStreamPart("text", part));
-          if (part.trim()) await new Promise((r) => setTimeout(r, 16));
-        }
-      },
-    });
-  }
+  // COLD START — no memory to ground on. The fabrication risk (inventing a
+  // fake past) is contained by COLD_SYSTEM's hard constraint, so we stream
+  // here too: time-to-first-token matters most on a user's very first reply,
+  // and a blocking generate felt like "not streaming". (mentionsFabricatedPast
+  // in lib/coldstart stays available as a guard for weak/non-Claude models.)
+  const system =
+    recalled.length === 0
+      ? COLD_SYSTEM
+      : `${DENDAM_SYSTEM}\n\n${renderMemoryBlock(recalled)}`;
 
-  const system = `${DENDAM_SYSTEM}\n\n${renderMemoryBlock(recalled)}`;
-
-  // 2) RESPOND — armed with real memories, streaming is safe (referencing the
-  // recalled past is the goal, not fabrication).
+  // RESPOND — stream the reply. 3) REMEMBER: distil it into durable grudges.
   const result = streamText({
     model: dendamModel,
     system,
     messages,
-    temperature: 0.85,
-    // 3) REMEMBER — distil this exchange into durable grudges for next time.
+    temperature: recalled.length === 0 ? 0.7 : 0.85,
     onFinish: ({ text }) => remember(text),
   });
 
