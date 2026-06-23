@@ -3,7 +3,45 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 import { ShareButton } from "@/components/ShareButton";
+import { IconFolder, IconRecall, IconFlame, IconGavel, IconStadium } from "@/components/Icons";
 import { EXPLORER_URL, walrusBlobUrl } from "@/lib/links";
+
+const C = {
+  cream: "#FBF6EE",
+  ink: "#241046",
+  violet: "#7C3AED",
+  yellow: "#FFC83D",
+  coral: "#FF5470",
+  body: "#4A3570",
+  muted: "#8A77AD",
+  green: "#1F8A5B",
+};
+
+// Memory-card badge colors by kind (handoff palette).
+const BADGE: Record<string, { bg: string; color: string }> = {
+  prediction: { bg: "#241046", color: "#fff" },
+  result: { bg: "#7C3AED", color: "#fff" },
+  insult: { bg: "#FF5470", color: "#fff" },
+  hot_take: { bg: "#FFC83D", color: "#241046" },
+  fact: { bg: "#E7E0F3", color: "#5B21B6" },
+  favorite: { bg: "#EDE3FF", color: "#5B21B6" },
+};
+
+// Small chain-link "on Walrus" inline link.
+function OnWalrus({ href }: { href: string }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 800, fontSize: 12, color: C.violet, whiteSpace: "nowrap" }} title="View the Walrus blob this memory is stored in">
+      <svg viewBox="0 0 48 48" style={{ width: 14, height: 14, flex: "none" }} aria-hidden>
+        <g fill="none" stroke="currentColor" strokeWidth="4.2" strokeLinecap="round">
+          <path d="M20 28 l8 -8" />
+          <path d="M16 23 l-4 4 a6 6 0 0 0 8.5 8.5 l4 -4" />
+          <path d="M32 25 l4 -4 a6 6 0 0 0 -8.5 -8.5 l-4 4" />
+        </g>
+      </svg>
+      on Walrus ↗
+    </a>
+  );
+}
 
 type Memory = {
   id: string;
@@ -48,21 +86,6 @@ const FILTERS: { key: string; label: string }[] = [
   { key: "hot_take", label: "Hot takes" },
   { key: "favorite", label: "Teams" },
 ];
-
-function NetworkBadge({ network }: { network: string }) {
-  if (!network) return null;
-  const label =
-    network === "mainnet"
-      ? "Walrus Mainnet"
-      : network === "testnet"
-        ? "Walrus Testnet"
-        : "Local (dev)";
-  return (
-    <span className={`badge ${network === "local" ? "local" : "live"}`}>
-      {label}
-    </span>
-  );
-}
 
 export default function DossierPage() {
   const [handle, setHandle] = useState("anon");
@@ -237,289 +260,251 @@ export default function DossierPage() {
   const countFor = (key: string) =>
     key === "all" ? memories.length : memories.filter((m) => m.kind === key).length;
 
+  const latestResult = results[0];
+
   return (
-    <div className="shell">
+    <div style={{ minHeight: "100vh", background: C.cream }}>
       <TopBar handle={handle} setHandle={setHandle} active="dossier" />
 
-      <h2 className="page-title" style={{ marginBottom: 2 }}>
-        📂 The File{" "}
-        <span style={{ color: "var(--muted)", fontWeight: 400, fontSize: 15 }}>
-          — what Dendam remembers about you
-        </span>
-      </h2>
-      <p className="hint" style={{ margin: "0 0 14px" }}>
-        This is the memory Dendam reads before every reply. Type a different
-        nickname (top-right) to view anyone&rsquo;s file.
-      </p>
-
-      <div className="badge-row">
-        <NetworkBadge network={network} />
-        <span className="badge">file on @{handle || "anon"}</span>
-        <a
-          className="badge"
-          href={`/share/${encodeURIComponent(handle || "anon")}`}
-          style={{ cursor: "pointer" }}
-          title="Open the public, shareable card of this file"
-        >
-          📣 Share
-        </a>
-        <ShareButton
-          url={`/share/${encodeURIComponent(handle || "anon")}`}
-          title={`@${handle || "anon"}'s Dendam file`}
-          text={`Dendam has a file on @${handle || "anon"}. 🔥⚽`}
-          className="badge"
-          label="🔗 Copy link"
-        />
-      </div>
+      {/* HEADER */}
+      <header style={{ maxWidth: 1080, margin: "0 auto", padding: "14px 28px 8px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+          <div style={{ maxWidth: 560 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <IconFolder size={30} />
+              <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 34, letterSpacing: -1, color: C.ink, margin: 0, whiteSpace: "nowrap" }}>The File</h1>
+              <span style={{ background: "#EDE3FF", color: C.violet, fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, padding: "5px 15px", borderRadius: 30 }}>on @{handle || "anon"}</span>
+            </div>
+            <p style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.55, color: C.body, margin: "10px 0 0" }}>
+              The exact memory Dendam reads before every reply. Encrypted on Walrus, keyed to a MemWalAccount on Sui — change the handle (top-right) to read anyone&rsquo;s file.
+            </p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
+            {network && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: network === "local" ? "#FFE0E6" : "#E4F7EE", border: `2px solid ${network === "local" ? "#FFC2CE" : "#BCE9D3"}`, color: network === "local" ? "#C63752" : C.green, fontWeight: 800, fontSize: 12.5, padding: "8px 14px", borderRadius: 30 }}>
+                <span style={{ width: 9, height: 9, background: network === "local" ? "#C63752" : C.green, borderRadius: "50%" }} /> {network === "mainnet" ? "Walrus Mainnet" : network === "testnet" ? "Walrus Testnet" : "Local (dev)"}
+              </div>
+            )}
+            <ShareButton
+              url={`/share/${encodeURIComponent(handle || "anon")}`}
+              title={`@${handle || "anon"}'s Dendam file`}
+              text={`Dendam has a file on @${handle || "anon"}. 🔥⚽`}
+              className="dx-sharebtn"
+              label="Share file"
+            />
+          </div>
+        </div>
+      </header>
 
       {err && (
-        <p className="hint" style={{ color: "var(--accent-2)" }} role="alert">
+        <p className="hint" style={{ maxWidth: 1080, margin: "0 auto", padding: "0 28px", color: C.coral }} role="alert">
           ⚠️ {err}
         </p>
       )}
 
-      <div className="stat-row">
-        <div className="stat">
-          <div className="n">{memories.length}</div>
-          <div className="l">total memories</div>
-        </div>
-        <div className="stat">
-          <div className="n">{predictions.length}</div>
-          <div className="l">predictions logged</div>
-        </div>
-        <div className="stat">
-          <div className="n" style={{ color: "var(--accent-2)" }}>
-            {accuracy === null ? "—" : `${accuracy}%`}
-          </div>
-          <div className="l">accuracy</div>
-        </div>
-        <div className="stat">
-          <div className="n" style={{ color: "var(--accent)" }}>
-            {insults}
-          </div>
-          <div className="l">insults at Dendam</div>
-        </div>
-      </div>
-
-      <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-        <button
-          className="btn"
-          onClick={reconcile}
-          disabled={reconciling || results.length === 0}
-          title={
-            results.length === 0
-              ? "No match results recorded yet"
-              : "Match your predictions against the real results"
-          }
-        >
-          {reconciling ? "Dendam is judging…" : "⚖️ Hold me to it"}
-        </button>
-        <span className="hint" style={{ margin: 0 }}>
-          {results.length} match result{results.length === 1 ? "" : "s"} recorded ·{" "}
-          {wrong} wrong call{wrong === 1 ? "" : "s"} so far
-        </span>
-      </div>
-
-      {(insights.topTeam || insights.bustRate !== null) && (
-        <p className="hint" style={{ marginTop: 12 }}>
-          {insights.topTeam && (
-            <>Pet subject: <b style={{ color: "var(--ink)" }}>{insights.topTeam}</b>. </>
-          )}
-          {insights.bustRate !== null && (
-            <>
-              <b style={{ color: "var(--accent-2)" }}>{insights.bustRate}%</b> of your
-              logged predictions have been busted.
-            </>
-          )}
-        </p>
-      )}
-
-      {grudgeOfDay && (
-        <div className="grudge wrong" style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--accent-2)", marginBottom: 6 }}>
-            🔥 Grudge of the day
-          </div>
-          <div>&ldquo;{grudgeOfDay.text}&rdquo;</div>
-          <div className="meta">
-            <span className="tag kind">{KIND_LABEL[grudgeOfDay.kind] ?? grudgeOfDay.kind}</span>
-            {grudgeOfDay.wasWrong && <span className="tag wrong">‼️ still wrong</span>}
-            <span style={{ color: "var(--muted)" }}>Dendam hasn&rsquo;t forgotten this one.</span>
-          </div>
-        </div>
-      )}
-
-      {verdicts.length > 0 && (
-        <div className="dossier-grid" style={{ marginTop: 14 }}>
-          {verdicts.map((v, i) => (
-            <div key={i} className={`grudge ${v.status === "wrong" ? "wrong" : ""}`}>
-              <div style={{ color: "var(--muted)", fontSize: 13 }}>
-                &ldquo;{v.prediction}&rdquo;
+      {/* BODY GRID */}
+      <main className="mx-grid" style={{ maxWidth: 1080, margin: "0 auto", padding: "18px 28px 48px", display: "grid", gridTemplateColumns: "1fr 318px", gap: 26, alignItems: "start" }}>
+        {/* LEFT */}
+        <div>
+          {/* stats */}
+          <div className="mx-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 16 }}>
+            {[
+              { n: memories.length, l: "total memories", color: C.ink, bg: "#fff", border: "#ECE2D3", lc: C.muted },
+              { n: predictions.length, l: "predictions logged", color: C.violet, bg: "#fff", border: "#ECE2D3", lc: C.muted },
+              { n: accuracy === null ? "—" : `${accuracy}%`, l: "accuracy", color: C.coral, bg: "#FFE0E6", border: "#FFC2CE", lc: "#C63752" },
+              { n: insults, l: "insults at Dendam", color: C.ink, bg: "#fff", border: "#ECE2D3", lc: C.muted },
+            ].map((s, i) => (
+              <div key={i} style={{ background: s.bg, border: `2px solid ${s.border}`, borderRadius: 18, padding: 16 }}>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 30, color: s.color, lineHeight: 1 }}>{s.n}</div>
+                <div style={{ fontWeight: 700, fontSize: 12.5, color: s.lc, marginTop: 5 }}>{s.l}</div>
               </div>
-              <div style={{ marginTop: 6 }}>{v.roast}</div>
-              <div className="meta">
-                <span className={`tag ${v.status === "wrong" ? "wrong" : "ok"}`}>
-                  {v.status === "wrong" ? "‼️ WRONG" : "✓ nailed it"}
-                </span>
+            ))}
+          </div>
+
+          {/* insight strip */}
+          {(insights.topTeam || insights.bustRate !== null) && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#EDE3FF", border: "2px solid #D6C2FF", borderRadius: 16, padding: "11px 16px", marginBottom: 20, fontWeight: 700, fontSize: 13.5, color: "#5B21B6" }}>
+              <IconRecall size={18} />
+              <span>
+                {insights.topTeam && <>Pet subject: <strong style={{ color: C.ink }}>{insights.topTeam}</strong>. </>}
+                {insights.bustRate !== null && <>{insights.bustRate}% of your logged predictions have already been busted.</>}
+              </span>
+            </div>
+          )}
+
+          {/* grudge of the day */}
+          {grudgeOfDay && (
+            <div style={{ background: C.ink, borderRadius: 24, padding: "26px 28px", marginBottom: 20, position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: -30, right: -20, width: 120, height: 120, background: C.violet, borderRadius: "42% 58% 53% 47% / 47% 42% 58% 53%", opacity: 0.45 }} aria-hidden />
+              <div style={{ position: "relative", zIndex: 2 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: C.yellow, marginBottom: 12 }}>
+                  <IconFlame size={18} /> Grudge of the day
+                </div>
+                <p style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 23, lineHeight: 1.32, color: "#fff", margin: "0 0 10px" }}>&ldquo;{grudgeOfDay.text}&rdquo;</p>
+                <p style={{ fontFamily: "var(--font-script)", fontWeight: 700, fontSize: 22, color: "#C4A8FF", margin: 0 }}>Dendam hasn&rsquo;t forgotten this one. 👀 won&rsquo;t either.</p>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {loading && (
-        <div className="dossier-grid" style={{ marginTop: 24 }}>
-          <div className="skeleton" />
-          <div className="skeleton" />
-          <div className="skeleton" />
-        </div>
-      )}
-
-      {!loading && memories.length === 0 && (
-        <div className="empty">
-          <div className="big">🗂️</div>
-          @{handle || "anon"}&rsquo;s file is empty. Dendam has nothing on you
-          yet.
-          <br />
-          Head to <a href="/chat">💬 Chat</a> and start making predictions.
-        </div>
-      )}
-
-      {!loading && memories.length > 0 && (
-        <>
-          <div className="section-head">
-            <h3>Ask the file</h3>
-            <span className="count">live semantic recall on Walrus</span>
-          </div>
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
-            <div className="handle" style={{ flex: 1, minWidth: 220 }}>
-              <span style={{ color: "var(--muted)" }}>🔎</span>
-              <input
-                style={{ width: "100%" }}
-                value={askQuery}
-                onChange={(e) => setAskQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && ask()}
-                placeholder="e.g. what did I say about Brazil?"
-                aria-label="Ask Dendam's memory"
-              />
-            </div>
-            <button className="btn sm" onClick={ask} disabled={asking || !askQuery.trim()}>
-              {asking ? "Recalling…" : "Recall"}
-            </button>
-          </div>
-          {askResults && (
-            <div className="dossier-grid" style={{ marginTop: 12 }}>
-              {askResults.length === 0 ? (
-                <p className="hint" style={{ margin: 0 }}>
-                  Nothing relevant surfaced for that. Try other words.
-                </p>
-              ) : (
-                askResults.map((m) => (
-                  <div key={m.id} className={`grudge ${m.wasWrong ? "wrong" : ""}`}>
-                    <div>{m.text}</div>
-                    <div className="meta">
-                      <span className="tag kind">{KIND_LABEL[m.kind] ?? m.kind}</span>
-                      {m.team && <span className="tag">{m.team}</span>}
-                      {m.wasWrong && <span className="tag wrong">‼️ wrong</span>}
-                    </div>
+          {/* ask the file */}
+          {memories.length > 0 && (
+            <div style={{ background: "#fff", border: `2.5px solid ${C.ink}`, borderRadius: 22, padding: "20px 22px", marginBottom: 26, boxShadow: "0 6px 0 #EDE3FF" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 13 }}>
+                <IconRecall size={22} />
+                <div>
+                  <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, color: C.ink, lineHeight: 1 }}>Ask the file</div>
+                  <div style={{ fontWeight: 700, fontSize: 12, color: C.muted, marginTop: 3 }}>live semantic recall on Walrus — not a keyword log</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 9 }}>
+                <input
+                  value={askQuery}
+                  onChange={(e) => setAskQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && ask()}
+                  placeholder="e.g. what did I say about Brazil?"
+                  aria-label="Ask Dendam's memory"
+                  className="mx-ask-input"
+                  style={{ flex: 1, border: "2px solid #E4D8C8", borderRadius: 30, padding: "11px 16px", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 14, color: C.ink, outline: "none", minWidth: 0 }}
+                />
+                <button onClick={ask} disabled={asking || !askQuery.trim()} className="lx-press" style={{ background: C.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, border: "none", padding: "11px 22px", borderRadius: 30, cursor: "pointer", flex: "none", opacity: asking || !askQuery.trim() ? 0.5 : 1 }}>
+                  {asking ? "Recalling…" : "Recall"}
+                </button>
+              </div>
+              {askResults && (
+                <div style={{ marginTop: 14, background: "#F5EFFF", border: "1.5px dashed #C9AFFF", borderRadius: 14, padding: "13px 16px" }}>
+                  <div style={{ fontWeight: 800, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: C.violet, marginBottom: 6 }}>
+                    {askResults.length === 0 ? "Nothing surfaced" : "Top match in your file"}
                   </div>
-                ))
+                  {askResults.length === 0 ? (
+                    <p style={{ fontWeight: 600, fontSize: 14, color: C.body, margin: 0 }}>Nothing relevant surfaced for that. Try other words.</p>
+                  ) : (
+                    askResults.slice(0, 3).map((m) => (
+                      <p key={m.id} style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.5, color: C.ink, margin: "0 0 6px" }}>{m.text}</p>
+                    ))
+                  )}
+                </div>
               )}
             </div>
           )}
 
-          <div className="section-head">
-            <h3>Memory file</h3>
-            <span className="count">{shown.length} shown · newest first</span>
-            <button
-              className="badge"
-              onClick={exportFile}
-              style={{ cursor: "pointer", marginLeft: "auto" }}
-              title="Download this file as JSON (your data, your memory)"
-            >
-              ⬇ Export
+          {/* memory file header */}
+          {memories.length > 0 && (
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 14, marginBottom: 14 }}>
+              <div>
+                <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 24, letterSpacing: -0.5, color: C.ink, margin: 0 }}>Memory file</h2>
+                <p style={{ fontWeight: 700, fontSize: 12.5, color: C.muted, margin: "3px 0 0" }}>{shown.length} shown · newest first</p>
+              </div>
+              <button onClick={exportFile} className="mx-ghost" style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#fff", border: "2px solid #E4D8C8", color: C.ink, fontWeight: 800, fontSize: 13, padding: "8px 14px", borderRadius: 30, cursor: "pointer" }} title="Download this file as JSON">
+                <svg viewBox="0 0 48 48" style={{ width: 15, height: 15, flex: "none" }} aria-hidden><g stroke={C.ink} strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" fill="none"><line x1="24" y1="8" x2="24" y2="30" /><path d="M15 22 L24 31 L33 22" /><path d="M10 38 H38" /></g></svg>
+                Export
+              </button>
+            </div>
+          )}
+
+          {/* filter tabs */}
+          {memories.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+              {FILTERS.map((f) => {
+                const c = countFor(f.key);
+                if (f.key !== "all" && c === 0) return null;
+                const active = filter === f.key;
+                return (
+                  <button key={f.key} onClick={() => setFilter(f.key)} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: active ? C.violet : "#fff", border: `2px solid ${active ? C.violet : "#E4D8C8"}`, color: active ? "#fff" : C.ink, fontWeight: 800, fontSize: 13, padding: "8px 14px", borderRadius: 30, cursor: "pointer" }}>
+                    {f.label} <span style={{ background: active ? "rgba(255,255,255,.22)" : "#EDE3FF", color: active ? "#fff" : "#5B21B6", fontSize: 11, padding: "1px 8px", borderRadius: 20 }}>{c}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* loading / empty / cards */}
+          {loading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="skeleton" /><div className="skeleton" /><div className="skeleton" />
+            </div>
+          )}
+
+          {!loading && memories.length === 0 && (
+            <div style={{ background: "#fff", border: "2px dashed #E4D8C8", borderRadius: 18, padding: "40px 24px", textAlign: "center", color: C.muted, lineHeight: 1.6 }}>
+              <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}><IconFolder size={34} /></div>
+              @{handle || "anon"}&rsquo;s file is empty. Dendam has nothing on you yet.
+              <br />
+              Head to <a href="/chat" style={{ color: C.violet, fontWeight: 800 }}>Chat</a> and start making predictions.
+            </div>
+          )}
+
+          {!loading && memories.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {shown.map((m) => {
+                const b = BADGE[m.kind] ?? BADGE.fact;
+                return (
+                  <div key={m.id} style={{ background: "#fff", border: "2px solid #ECE2D3", borderRadius: 18, padding: "16px 18px", position: "relative", overflow: "hidden" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9, flexWrap: "wrap" }}>
+                      <span style={{ background: b.bg, color: b.color, fontWeight: 800, fontSize: 10.5, letterSpacing: 0.8, textTransform: "uppercase", padding: "4px 10px", borderRadius: 20 }}>{KIND_LABEL[m.kind] ?? m.kind}</span>
+                      {m.team && <span style={{ border: "1.5px solid #E4D8C8", color: "#5B4A78", fontWeight: 800, fontSize: 11, padding: "3px 9px", borderRadius: 20 }}>{m.team}</span>}
+                      {m.wasWrong && <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: C.coral, color: "#fff", fontWeight: 800, fontSize: 10.5, letterSpacing: 0.8, padding: "4px 9px", borderRadius: 20 }}>WRONG CALL</span>}
+                      {m.createdAt && <span style={{ fontSize: 11.5, fontWeight: 700, color: C.muted, marginLeft: "auto" }}>{m.createdAt.slice(0, 10)}</span>}
+                    </div>
+                    <p style={{ fontWeight: 600, fontSize: 14.5, lineHeight: 1.5, color: C.ink, margin: "0 0 11px" }}>{m.text}</p>
+                    {m.blobId && <OnWalrus href={walrusBlobUrl(m.blobId)} />}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT SIDEBAR */}
+        <aside className="mx-side" style={{ display: "flex", flexDirection: "column", gap: 18, position: "sticky", top: 18 }}>
+          {/* hold me to it */}
+          <div style={{ background: C.yellow, borderRadius: 22, padding: "20px 22px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
+              <IconGavel size={24} />
+              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 19, color: C.ink, margin: 0, whiteSpace: "nowrap" }}>Hold me to it</h3>
+            </div>
+            <p style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.5, color: "#5A3F08", margin: "0 0 14px" }}>Match my stored predictions against real results and stamp the wrong ones — permanently.</p>
+            <button onClick={reconcile} disabled={reconciling || results.length === 0} className="mx-darkbtn" style={{ width: "100%", background: C.ink, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, border: "none", padding: 13, borderRadius: 30, cursor: "pointer", opacity: reconciling || results.length === 0 ? 0.55 : 1 }}>
+              {reconciling ? "Dendam is judging…" : verdicts.length > 0 ? "Verdict filed ✓" : "Run reconcile"}
             </button>
+            <p style={{ fontWeight: 700, fontSize: 11.5, color: "#7A5A12", margin: "11px 0 0", textAlign: "center" }}>{results.length} result{results.length === 1 ? "" : "s"} recorded · {wrong} wrong call{wrong === 1 ? "" : "s"} so far</p>
           </div>
 
-          <div className="chips" style={{ justifyContent: "flex-start" }}>
-            {FILTERS.map((f) => {
-              const c = countFor(f.key);
-              if (f.key !== "all" && c === 0) return null;
-              return (
-                <button
-                  key={f.key}
-                  className={`filter-chip ${filter === f.key ? "on" : ""}`}
-                  onClick={() => setFilter(f.key)}
-                >
-                  {f.label} {c > 0 && <span style={{ opacity: 0.6 }}>· {c}</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="dossier-grid">
-            {shown.map((m) => (
-              <div key={m.id} className={`grudge ${m.wasWrong ? "wrong" : ""}`}>
-                <div>{m.text}</div>
-                <div className="meta">
-                  <span className="tag kind">{KIND_LABEL[m.kind] ?? m.kind}</span>
-                  {m.team && <span className="tag">{m.team}</span>}
-                  {m.wasWrong && <span className="tag wrong">‼️ wrong</span>}
-                  {m.createdAt && <span>{m.createdAt.slice(0, 10)}</span>}
-                  {m.blobId && (
-                    <a
-                      href={walrusBlobUrl(m.blobId)}
-                      target="_blank"
-                      rel="noreferrer"
-                      title="View the Walrus blob this memory is stored in"
-                    >
-                      ⛓ on Walrus ↗
-                    </a>
-                  )}
+          {/* scoreboard */}
+          {latestResult && (
+            <div style={{ background: "#fff", border: "2px solid #ECE2D3", borderRadius: 22, padding: "20px 22px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <IconStadium size={20} />
+                <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, color: C.ink, margin: 0 }}>Scoreboard</h3>
+                <span style={{ fontWeight: 700, fontSize: 11, color: C.muted, marginLeft: "auto" }}>real results</span>
+              </div>
+              <div style={{ background: C.cream, border: "2px solid #F0E6D6", borderRadius: 14, padding: 14 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, color: C.ink }}>
+                  <span>{latestResult.teamA}</span>
+                  <span style={{ background: C.ink, color: "#fff", fontSize: 15, padding: "2px 12px", borderRadius: 8 }}>{latestResult.scoreA} – {latestResult.scoreB}</span>
+                  <span>{latestResult.teamB}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, fontWeight: 700, fontSize: 11.5, color: C.muted }}>
+                  <span>{latestResult.stage ?? "Match"}</span><span>{latestResult.date}</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </>
-      )}
+              {wrong > 0 && <p style={{ fontWeight: 700, fontSize: 12, lineHeight: 1.5, color: "#C63752", margin: "12px 0 0" }}>↳ Busted {wrong} prediction{wrong === 1 ? "" : "s"} the moment results landed.</p>}
+            </div>
+          )}
 
-      {results.length > 0 && (
-        <>
-          <div className="section-head">
-            <h3>Scoreboard</h3>
-            <span className="count">real results</span>
+          {/* provenance */}
+          <div style={{ background: "#EDE3FF", border: "2px solid #D6C2FF", borderRadius: 22, padding: "18px 20px" }}>
+            <p style={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.55, color: "#5B21B6", margin: "0 0 12px" }}>Everything here is stored encrypted on Walrus Memory and tied to a MemWalAccount object on Sui. This is exactly what Dendam reads before clapping back.</p>
+            <a href={EXPLORER_URL} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 800, fontSize: 12.5, color: C.ink }}>Verify on Sui explorer ↗</a>
           </div>
-          <div className="dossier-grid">
-            {results.map((r) => (
-              <div key={r.id} className="grudge" style={{ borderLeftColor: "var(--green)" }}>
-                <div>
-                  <b>{r.teamA}</b> {r.scoreA} – {r.scoreB} <b>{r.teamB}</b>
-                </div>
-                <div className="meta">
-                  {r.stage && <span className="tag">{r.stage}</span>}
-                  <span>{r.date}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+        </aside>
+      </main>
 
-      <p className="hint">
-        Everything above is stored encrypted on Walrus Memory and tied to a{" "}
-        <a href={EXPLORER_URL} target="_blank" rel="noreferrer">
-          <code>MemWalAccount</code> object on Sui ↗
-        </a>
-        . This is exactly what Dendam reads before clapping back at you.
-      </p>
-
-      <footer className="footer">
-        <span>Memory on Walrus · Sui Mainnet</span>
-        <span>
-          <a href="https://github.com/PugarHuda/dendam" target="_blank" rel="noreferrer">
-            Source
-          </a>{" "}
-          · #Walrus
-        </span>
+      {/* FOOTER */}
+      <footer style={{ borderTop: "2px solid #EFE6D7" }}>
+        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "22px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <p style={{ fontWeight: 800, fontSize: 13, color: C.muted, margin: 0 }}>Memory on Walrus · Sui Mainnet</p>
+          <a href="https://github.com/PugarHuda/dendam" target="_blank" rel="noreferrer" style={{ fontWeight: 800, fontSize: 13, color: C.violet, margin: 0 }}>Source · #Walrus</a>
+        </div>
       </footer>
     </div>
   );

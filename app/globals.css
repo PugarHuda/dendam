@@ -1784,3 +1784,23 @@ button.send:disabled,
 
 .cx-prompt:hover:not(:disabled) { border-color: #7C3AED !important; background: #F5EFFF !important; }
 .cx-prompt:disabled { opacity: .55; cursor: not-allowed; }
+
+/* ── The File (Memory) screen ─────────────────────────── */
+.dx-sharebtn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--ink); color: #fff; font-family: var(--font-body);
+  font-weight: 800; font-size: 13px; border: none; padding: 9px 16px;
+  border-radius: 30px; cursor: pointer; transition: background .15s ease;
+}
+.dx-sharebtn:hover { background: #36195e; color: #fff; }
+.mx-ghost:hover { border-color: var(--violet) !important; color: var(--violet) !important; }
+.mx-ask-input:focus { border-color: var(--violet) !important; }
+.mx-darkbtn:hover:not(:disabled) { background: #36195e !important; }
+
+@media (max-width: 860px) {
+  .mx-grid { grid-template-columns: 1fr !important; }
+  .mx-side { position: static !important; }
+}
+@media (max-width: 560px) {
+  .mx-stats { grid-template-columns: repeat(2, 1fr) !important; }
+}
