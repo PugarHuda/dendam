@@ -1807,3 +1807,8 @@ button.send:disabled,
 
 .hos-row { transition: border-color .14s ease, transform .14s ease; }
 .hos-row:hover { border-color: #7C3AED !important; transform: translateY(-1px); }
+
+.rm-card { transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease; }
+.rm-card:hover { transform: translateY(-3px); border-color: #7C3AED !important; box-shadow: 0 8px 0 #D6C2FF !important; }
+@media (max-width: 860px) { .rm-grid { grid-template-columns: 1fr 1fr !important; } }
+@media (max-width: 560px) { .rm-grid { grid-template-columns: 1fr !important; } }
