@@ -2,6 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 import { initialHandle } from "@/components/TopBar";
+import { GrudgeBall } from "@/components/Logo";
+
+const RC = {
+  cream: "#FBF6EE",
+  ink: "#241046",
+  violet: "#7C3AED",
+  yellow: "#FFC83D",
+  coral: "#FF5470",
+  muted: "#9A86C0",
+};
+const TEAM_COLOR: Record<string, { bg: string; color: string }> = {
+  Brazil: { bg: "#FFC83D", color: "#241046" },
+  Argentina: { bg: "#7C3AED", color: "#fff" },
+  France: { bg: "#241046", color: "#fff" },
+  Spain: { bg: "#FF5470", color: "#fff" },
+};
+const teamCol = (n: string) => TEAM_COLOR[n] ?? { bg: "#7C3AED", color: "#fff" };
+const AV = ["#7C3AED", "#FFC83D", "#FF5470", "#241046", "#B9821A", "#9A86C0"];
+const avColor = (h: string) => AV[[...h].reduce((a, c) => a + c.charCodeAt(0), 0) % AV.length];
+const initials = (h: string) => h.replace(/^@/, "").slice(0, 2).toUpperCase();
 
 type Player = { handle: string; prediction: string };
 type ChatMsg = { handle: string; text: string };
@@ -165,161 +185,124 @@ export function RoomClient({
 
   function Bubble({ m }: { m: ChatMsg }) {
     const isDendam = m.handle.toLowerCase() === "dendam";
-    const isMe = !!me && m.handle.toLowerCase() === me.trim().toLowerCase();
-    const side = isMe ? "user" : "";
-    const bubble = isDendam ? "assistant" : isMe ? "user" : "peer";
     return (
-      <div className={`msg-row ${side}`}>
-        <div className={`avatar ${isDendam ? "dendam" : "you"}`} aria-hidden>
-          {isDendam ? "🔥" : "🧑"}
-        </div>
-        <div className={`msg ${bubble}`}>
-          <div className="who">{isDendam ? "Dendam" : "@" + m.handle}</div>
-          <span>{m.text}</span>
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+        {isDendam ? (
+          <span style={{ flex: "none", marginTop: 2 }}><GrudgeBall size={32} /></span>
+        ) : (
+          <div style={{ width: 32, height: 32, flex: "none", borderRadius: "42% 58% 53% 47% / 47% 42% 58% 53%", background: avColor(m.handle), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 12, marginTop: 2 }}>{initials(m.handle)}</div>
+        )}
+        <div style={{ maxWidth: "84%" }}>
+          <div style={{ fontFamily: isDendam ? "var(--font-display)" : "var(--font-body)", fontWeight: isDendam ? 600 : 800, fontSize: 12, color: isDendam ? RC.violet : RC.ink, margin: "0 0 4px 2px" }}>
+            {isDendam ? <>Dendam <span style={{ fontWeight: 700, color: RC.muted }}>· stirring</span></> : "@" + m.handle}
+          </div>
+          <div style={{ background: isDendam ? "#F5EFFF" : RC.cream, border: `2px solid ${isDendam ? "#E2D3FA" : "#ECE2D3"}`, borderRadius: "4px 16px 16px 16px", padding: "11px 15px", fontWeight: 600, fontSize: 13.5, lineHeight: 1.5, color: RC.ink, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.text}</div>
         </div>
       </div>
     );
   }
 
+  const tA = teamCol(room.teamA);
+  const tB = teamCol(room.teamB);
+
   return (
-    <>
-      {/* mock prize banner */}
-      <div className="prize-banner">
-        <div>
-          <div className="prize-amount">🏆 {room.poolWal} WAL pool</div>
-          <div className="prize-sub">winner takes all · {room.stakeWal} WAL to enter</div>
+    <div style={{ background: "#fff", border: `2.5px solid ${RC.ink}`, borderRadius: 28, overflow: "hidden", boxShadow: "0 12px 0 #EDE3FF" }}>
+      {/* panel header (dark) */}
+      <div style={{ background: RC.ink, padding: "20px 26px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+          <div style={{ width: 42, height: 42, borderRadius: "42% 58% 53% 47% / 47% 42% 58% 53%", background: tA.bg, color: tA.color, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, border: "2px solid #fff" }}>{room.teamA.slice(0, 3).toUpperCase()}</div>
+          <div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 20, color: "#fff", lineHeight: 1 }}>{room.teamA} vs {room.teamB}</div>
+            <div style={{ fontWeight: 700, fontSize: 12, color: "#C4A8FF", marginTop: 3 }}>{room.stage} · {room.date} · {players.length} in the room</div>
+          </div>
+          <div style={{ width: 42, height: 42, borderRadius: "53% 47% 42% 58% / 58% 53% 47% 42%", background: tB.bg, color: tB.color, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, border: "2px solid #fff" }}>{room.teamB.slice(0, 3).toUpperCase()}</div>
         </div>
-        <span className="prize-mock" title="No real funds move — this is a demo of the concept">
-          MOCK PRIZES (demo)
-        </span>
-      </div>
-
-      <p className="hint" style={{ marginTop: 14 }}>
-        {open ? (
-          <>🟢 <b>Open</b> — {players.length} predicting. Jump in the chat.</>
+        {!open ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 9, background: RC.yellow, borderRadius: 30, padding: "7px 16px", whiteSpace: "nowrap" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, color: RC.ink }}>{resolution.score}</span>
+            <span style={{ fontWeight: 800, fontSize: 10.5, letterSpacing: 0.8, color: "#5A3F08" }}>FULL TIME</span>
+          </div>
         ) : (
-          <>
-            🏁 <b>Full time:</b> {resolution.score} ·{" "}
-            {resolution.winners.length > 0 ? (
-              <>
-                winner(s): {resolution.winners.map((w) => "@" + w).join(", ")} — split{" "}
-                <b>{payoutEach.toFixed(2)} WAL</b> each (mock).
-              </>
-            ) : (
-              "nobody called it — pool rolls over (mock)."
-            )}
-          </>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#E4F7EE", borderRadius: 30, padding: "7px 16px", whiteSpace: "nowrap" }}>
+            <span style={{ width: 8, height: 8, background: "#1F8A5B", borderRadius: "50%" }} />
+            <span style={{ fontWeight: 800, fontSize: 11, letterSpacing: 0.6, color: "#1F8A5B" }}>OPEN · LIVE</span>
+          </div>
         )}
-      </p>
-
-      {/* ── Room chat (real chat-room look) ─────── */}
-      <div className="section-head" style={{ marginTop: 20 }}>
-        <h3>💬 Room chat</h3>
-        <span className="count">🟢 live · {room.teamA} vs {room.teamB} · on Walrus</span>
       </div>
 
-      <div className="chatroom">
-        <div className="chatroom-msgs" ref={msgsRef}>
-          {chat.length === 0 && (
-            <div className="chatroom-empty">
-              No messages yet — say something about {room.teamA} vs {room.teamB}. Dendam&rsquo;s listening.
+      {/* panel body (2-col) */}
+      <div className="rmx-body" style={{ display: "grid", gridTemplateColumns: "1fr 300px" }}>
+        {/* chat */}
+        <div className="rmx-chat" style={{ padding: "22px 26px", borderRight: "2px solid #F0E6D6" }}>
+          <p style={{ fontWeight: 800, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: RC.muted, margin: "0 0 16px" }}>Room chat · Dendam is in here</p>
+          <div ref={msgsRef} style={{ display: "flex", flexDirection: "column", gap: 14, maxHeight: 380, overflowY: "auto" }}>
+            {chat.length === 0 && (
+              <div style={{ color: RC.muted, fontWeight: 600, fontSize: 13.5, lineHeight: 1.5 }}>
+                No messages yet — say something about {room.teamA} vs {room.teamB}. Dendam&rsquo;s listening.
+              </div>
+            )}
+            {chat.map((m, i) => <Bubble key={i} m={m} />)}
+            {dendamTyping && (
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <span style={{ flex: "none", marginTop: 2 }}><GrudgeBall size={32} /></span>
+                <div style={{ background: "#F5EFFF", border: "2px solid #E2D3FA", borderRadius: "4px 16px 16px 16px", padding: "11px 15px" }}>
+                  <span className="typing" aria-label="Dendam is typing"><i /><i /><i /></span>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* composer */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 16, background: RC.cream, border: "2px solid #E4D8C8", borderRadius: 30, padding: "5px 5px 5px 14px" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", color: RC.violet, fontWeight: 800, fontSize: 13.5 }} title="Your nickname in this room">
+              @
+              <input value={me} onChange={(e) => setMe(e.target.value)} placeholder="you" maxLength={40} aria-label="Your nickname" style={{ width: 56, border: "none", outline: "none", background: "transparent", fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 13.5, color: RC.ink }} />
+            </span>
+            <input value={msg} onChange={(e) => setMsg(e.target.value)} onKeyDown={(e) => e.key === "Enter" && post()} placeholder="Message the room…" aria-label="Message the room" maxLength={280} style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 14, color: RC.ink, minWidth: 0 }} />
+            <button onClick={post} disabled={posting || !me.trim() || !msg.trim()} className="lx-press" style={{ background: RC.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: "9px 18px", borderRadius: 30, cursor: "pointer", flex: "none", opacity: posting || !me.trim() || !msg.trim() ? 0.5 : 1 }}>{posting ? "…" : "Send"}</button>
+          </div>
+          {roomErr && <p style={{ color: RC.coral, fontWeight: 700, fontSize: 12.5, margin: "8px 0 0" }} role="alert">⚠️ {roomErr}</p>}
+        </div>
+
+        {/* on the record + pool */}
+        <div style={{ padding: "22px 22px", background: RC.cream }}>
+          <p style={{ fontWeight: 800, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: RC.muted, margin: "0 0 12px" }}>On the record</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+            {players.map((p) => {
+              const won = resolution.winners.includes(p.handle.toLowerCase());
+              return (
+                <div key={p.handle} style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: `2px solid ${won ? "#BCE9D3" : "#ECE2D3"}`, borderRadius: 14, padding: "9px 12px" }}>
+                  <div style={{ width: 26, height: 26, flex: "none", borderRadius: "42% 58% 53% 47% / 47% 42% 58% 53%", background: avColor(p.handle), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 10 }}>{initials(p.handle)}</div>
+                  <span style={{ fontWeight: 800, fontSize: 12.5, color: RC.ink }}>@{p.handle}</span>
+                  {!open && won && <span style={{ marginLeft: "auto", fontWeight: 800, fontSize: 11, color: "#1F8A5B" }}>won {payoutEach.toFixed(2)}</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          {open && !joined && (
+            <div style={{ marginBottom: 16 }}>
+              <input value={pred} onChange={(e) => setPred(e.target.value)} onKeyDown={(e) => e.key === "Enter" && join()} placeholder={`Your call for this match…`} aria-label="Your prediction" style={{ width: "100%", border: "2px solid #E4D8C8", borderRadius: 14, padding: "10px 13px", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13, color: RC.ink, outline: "none", marginBottom: 8 }} />
+              <button onClick={join} disabled={busy || !me.trim() || !pred.trim()} className="lx-press" style={{ width: "100%", background: RC.ink, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: 11, borderRadius: 14, cursor: "pointer", opacity: busy || !me.trim() || !pred.trim() ? 0.5 : 1 }}>{busy ? "Locking…" : `Stake ${room.stakeWal} WAL & lock it`}</button>
             </div>
           )}
-          {chat.map((m, i) => (
-            <Bubble key={i} m={m} />
-          ))}
-          {dendamTyping && (
-            <div className="msg-row">
-              <div className="avatar dendam" aria-hidden>🔥</div>
-              <div className="msg assistant">
-                <div className="who">Dendam</div>
-                <span className="typing" aria-label="Dendam is typing">
-                  <i /><i /><i />
-                </span>
-              </div>
+          {joined && <p style={{ fontWeight: 700, fontSize: 12, color: "#1F8A5B", margin: "0 0 16px", lineHeight: 1.4 }}>✓ Call locked — staked {room.stakeWal} WAL (mock). Saved on Walrus and in your File.</p>}
+
+          {/* prize pool */}
+          <div style={{ background: RC.ink, borderRadius: 18, padding: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <span style={{ fontWeight: 800, fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase", color: "#C4A8FF" }}>Prize pool</span>
+              <span style={{ fontWeight: 800, fontSize: 9.5, color: "#FFB3C0", background: "rgba(255,84,112,.2)", padding: "2px 7px", borderRadius: 12 }}>MOCK</span>
             </div>
-          )}
-        </div>
-        <div className="chatroom-composer">
-          <span className="chatroom-as" title="Your nickname in this room">
-            @
-            <input
-              value={me}
-              onChange={(e) => setMe(e.target.value)}
-              placeholder="you"
-              maxLength={40}
-              aria-label="Your nickname"
-            />
-          </span>
-          <input
-            className="chatroom-input"
-            value={msg}
-            onChange={(e) => setMsg(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && post()}
-            placeholder="Message the room…"
-            aria-label="Message the room"
-            maxLength={280}
-          />
-          <button className="btn sm" onClick={post} disabled={posting || !me.trim() || !msg.trim()}>
-            {posting ? "…" : "Send"}
-          </button>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: RC.yellow, lineHeight: 1 }}>{room.poolWal} WAL</div>
+            <p style={{ fontWeight: 700, fontSize: 11.5, lineHeight: 1.45, color: "#C9B8EC", margin: "10px 0 0" }}>
+              {open ? <>Pool locks at kickoff. Winning side splits {room.poolWal} WAL ({room.stakeWal} to enter).</> : resolution.winners.length > 0 ? <>{resolution.winners.map((w) => "@" + w).join(", ")} split {payoutEach.toFixed(2)} WAL each.</> : "Nobody called it — pool rolls over."}
+            </p>
+            {!open && iWon && (
+              <button onClick={() => setClaimed(true)} disabled={claimed} className="lx-press" style={{ width: "100%", marginTop: 12, background: RC.yellow, color: RC.ink, fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: 11, borderRadius: 14, cursor: "pointer", opacity: claimed ? 0.6 : 1 }}>{claimed ? `✓ Claimed ${payoutEach.toFixed(2)} WAL` : `Claim ${payoutEach.toFixed(2)} WAL`}</button>
+            )}
+          </div>
         </div>
       </div>
-
-      {roomErr && (
-        <p className="hint" style={{ color: "var(--accent-2)", marginTop: 8 }} role="alert">
-          ⚠️ {roomErr}
-        </p>
-      )}
-
-      {/* ── Calls (predictions) ─────────────────── */}
-      <div className="section-head" style={{ marginTop: 24 }}>
-        <h3>📣 The calls</h3>
-        <span className="count">who&rsquo;s backing whom · winner takes the pool</span>
-      </div>
-      {open && !joined && (
-        <div className="room-join">
-          <input
-            className="room-pred"
-            value={pred}
-            onChange={(e) => setPred(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && join()}
-            placeholder={`Your official call for ${room.teamA} vs ${room.teamB}…`}
-            aria-label="Your prediction"
-          />
-          <button className="btn sm" onClick={join} disabled={busy || !me.trim() || !pred.trim()}>
-            {busy ? "Locking…" : `Stake ${room.stakeWal} WAL & lock it`}
-          </button>
-        </div>
-      )}
-      {joined && (
-        <p className="hint" style={{ color: "var(--accent-soft)" }}>
-          ✓ Call locked — staked {room.stakeWal} WAL (mock). It&rsquo;s saved on Walrus and now lives in your File too.
-        </p>
-      )}
-
-      <div className="dossier-grid" style={{ marginTop: 12 }}>
-        {players.map((p) => {
-          const won = resolution.winners.includes(p.handle.toLowerCase());
-          return (
-            <div key={p.handle} className="grudge" style={won ? { borderLeftColor: "var(--green)" } : undefined}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                <b>@{p.handle}</b>
-                {!open && won && <span className="tag ok">🏆 won {payoutEach.toFixed(2)} WAL</span>}
-              </div>
-              <div style={{ marginTop: 4 }}>&ldquo;{p.prediction}&rdquo;</div>
-            </div>
-          );
-        })}
-      </div>
-
-      {!open && iWon && (
-        <div className="cta-row" style={{ justifyContent: "flex-start", marginTop: 16 }}>
-          <button className="btn" onClick={() => setClaimed(true)} disabled={claimed}>
-            {claimed ? `✓ Claimed ${payoutEach.toFixed(2)} WAL (mock)` : `💰 Claim ${payoutEach.toFixed(2)} WAL`}
-          </button>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

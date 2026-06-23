@@ -4,6 +4,15 @@ import { notFound } from "next/navigation";
 import { getRoom, resolveRoom, roomNamespace } from "@/lib/rooms";
 import { getMemoryStore } from "@/lib/memory";
 import { RoomClient } from "@/components/RoomClient";
+import { AppIcon } from "@/components/Logo";
+import { IconRespond, IconFolder, IconStadium, IconCrown } from "@/components/Icons";
+
+const NAV = [
+  { href: "/chat", label: "Chat", Icon: IconRespond, active: false },
+  { href: "/dossier", label: "Memory", Icon: IconFolder, active: false },
+  { href: "/room", label: "Rooms", Icon: IconStadium, active: true },
+  { href: "/group", label: "Shame", Icon: IconCrown, active: false },
+];
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,47 +56,39 @@ export default async function RoomPage({ params }: Params) {
   };
 
   return (
-    <div className="shell">
-      <header className="topbar">
-        <Link href="/" className="brand" style={{ textDecoration: "none" }}>
-          <span className="brand-emblem" aria-hidden>🔥</span>
-          <div className="brand-text">
-            <h1 style={{ color: "var(--ink)" }}>
-              Dendam<span className="dot">.</span>
-            </h1>
-            <small>the World Cup 2026 rival that never forgets</small>
-          </div>
+    <div style={{ minHeight: "100vh", background: "#FBF6EE" }}>
+      <div className="dx-topbar">
+        <Link href="/" className="dx-brand" style={{ textDecoration: "none" }}>
+          <AppIcon size={38} />
+          <span className="dx-wordmark">Dendam<span style={{ color: "var(--violet)" }}>.</span></span>
         </Link>
-        <nav className="nav">
-          <Link href="/chat">💬 Chat</Link>
-          <Link href="/dossier">📂 Memory</Link>
-          <Link href="/room" className="active">🏟️ Rooms</Link>
+        <nav className="dx-tabs">
+          {NAV.map((t) => (
+            <Link key={t.href} href={t.href} className={`dx-tab${t.active ? " active" : ""}`}>
+              <t.Icon size={18} />
+              <span>{t.label}</span>
+            </Link>
+          ))}
         </nav>
-      </header>
+      </div>
 
-      <p className="hint" style={{ marginBottom: 4 }}>
-        <Link href="/room">← all rooms</Link>
-      </p>
-      <h2 className="page-title" style={{ marginTop: 0 }}>
-        {room.teamA} <span style={{ color: "var(--muted)" }}>vs</span> {room.teamB}
-        <span style={{ color: "var(--muted)", fontWeight: 400, fontSize: 15 }}>
-          {" "}— {room.stage} · {room.date}
-        </span>
-      </h2>
+      <main style={{ maxWidth: 1080, margin: "0 auto", padding: "8px 28px 56px" }}>
+        <p style={{ margin: "0 0 14px" }}>
+          <Link href="/room" style={{ fontWeight: 800, fontSize: 13, color: "var(--violet)" }}>← all rooms</Link>
+        </p>
 
-      <RoomClient room={room} resolution={resolution} initialChat={chat} />
+        <RoomClient room={room} resolution={resolution} initialChat={chat} />
 
-      <p className="hint" style={{ marginTop: 22 }}>
-        Predictions in this room are stored on Walrus Memory (they show up in each
-        player&rsquo;s <Link href="/dossier">File</Link> too). The pool, stake, and
-        payouts are a mock-up of the concept — no real funds move.
-      </p>
+        <p style={{ fontWeight: 700, fontSize: 12.5, color: "#8A77AD", margin: "22px 0 0", textAlign: "center", lineHeight: 1.5 }}>
+          Predictions in this room are stored on Walrus Memory (they show up in each player&rsquo;s <Link href="/dossier" style={{ color: "var(--violet)", fontWeight: 800 }}>File</Link> too). The pool, stake, and payouts are a mock-up — no real funds move.
+        </p>
+      </main>
 
-      <footer className="footer">
-        <span>Memory on Walrus · Sui Mainnet</span>
-        <span>
-          <a href="https://github.com/PugarHuda/dendam" target="_blank" rel="noreferrer">Source</a> · #Walrus
-        </span>
+      <footer style={{ borderTop: "2px solid #EFE6D7" }}>
+        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "22px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <p style={{ fontWeight: 800, fontSize: 13, color: "#8A77AD", margin: 0 }}>Memory on Walrus · Sui Mainnet</p>
+          <a href="https://github.com/PugarHuda/dendam" target="_blank" rel="noreferrer" style={{ fontWeight: 800, fontSize: 13, color: "#7C3AED", margin: 0 }}>Source · #Walrus</a>
+        </div>
       </footer>
     </div>
   );

@@ -1812,3 +1812,8 @@ button.send:disabled,
 .rm-card:hover { transform: translateY(-3px); border-color: #7C3AED !important; box-shadow: 0 8px 0 #D6C2FF !important; }
 @media (max-width: 860px) { .rm-grid { grid-template-columns: 1fr 1fr !important; } }
 @media (max-width: 560px) { .rm-grid { grid-template-columns: 1fr !important; } }
+
+@media (max-width: 760px) {
+  .rmx-body { grid-template-columns: 1fr !important; }
+  .rmx-chat { border-right: none !important; border-bottom: 2px solid #F0E6D6; }
+}
