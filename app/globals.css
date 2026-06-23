@@ -1781,3 +1781,6 @@ button.send:disabled,
   .anim-floaty, .anim-floaty2, .anim-wobble, .anim-cope, .anim-fraud, .anim-told { animation: none !important; }
   .lx-rise-target { opacity: 1; transform: none; transition: none; }
 }
+
+.cx-prompt:hover:not(:disabled) { border-color: #7C3AED !important; background: #F5EFFF !important; }
+.cx-prompt:disabled { opacity: .55; cursor: not-allowed; }

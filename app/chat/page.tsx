@@ -4,6 +4,8 @@ import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { GrudgeBall } from "@/components/Logo";
+import { IconFolder } from "@/components/Icons";
 
 const SUGGESTIONS = [
   "Argentina wins it all, Brazil won't escape the group 😎",
@@ -12,17 +14,24 @@ const SUGGESTIONS = [
   "Honestly? You're just a bot who knows nothing about football.",
 ];
 
-function NetworkBadge({ network }: { network: string }) {
-  if (!network) return null;
-  const label =
-    network === "mainnet"
-      ? "Walrus Mainnet"
-      : network === "testnet"
-        ? "Walrus Testnet"
-        : "Local (dev)";
+const C = {
+  cream: "#FBF6EE",
+  ink: "#241046",
+  violet: "#7C3AED",
+  yellow: "#FFC83D",
+  muted: "#9A86C0",
+  green: "#1F8A5B",
+};
+
+// Small green "saved on Walrus" check used on bot messages.
+function SavedOnWalrus() {
   return (
-    <span className={`badge ${network === "local" ? "local" : "live"}`}>
-      {label}
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 800, fontSize: 11.5, color: C.green, margin: "7px 0 0 2px", whiteSpace: "nowrap" }}>
+      <svg viewBox="0 0 48 48" style={{ width: 14, height: 14, flex: "none" }} aria-hidden>
+        <circle cx="24" cy="24" r="18" fill="none" stroke={C.green} strokeWidth="3.4" />
+        <path d="M16 24.5 L22 30 L33 18" fill="none" stroke={C.green} strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      saved on Walrus
     </span>
   );
 }
@@ -96,7 +105,8 @@ export default function ChatPage() {
   }, [messages]);
 
   useEffect(() => {
-    scroller.current?.scrollTo({ top: 1e9, behavior: "smooth" });
+    // Page-level scroll (sticky composer sits below the thread).
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
 
   // Auto-grow the composer textarea.
@@ -104,7 +114,7 @@ export default function ChatPage() {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 180) + "px";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
   }, [input]);
 
   const busy = status === "submitted" || status === "streaming";
@@ -120,170 +130,172 @@ export default function ChatPage() {
     );
   }
 
+  const showIntro = messages.length === 0;
+
   return (
-    <div className="shell">
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.cream }}>
       <WelcomeModal />
       <TopBar handle={handle} setHandle={setHandle} active="chat" />
 
-      <div className="badge-row">
-        <NetworkBadge network={network} />
-        <span className="badge">memory for @{handle || "anon"}</span>
-      </div>
-
-      {handle === "demo" && (
-        <div className="demo-banner" role="note">
-          👀 <b>You&rsquo;re in the demo.</b> Dendam already has a file on{" "}
-          <code>@demo</code> from earlier sessions — ask it{" "}
-          <i>&ldquo;what do you remember about me?&rdquo;</i> to see real cross-session
-          recall, or change the handle (top right) to start fresh.
-        </div>
-      )}
-
-      <div className="chat" ref={scroller}>
-        {messages.length === 0 && (
-          <div className="empty">
-            <div className="big">🔥</div>
-            Drop your World Cup 2026 predictions. Dendam remembers every one —
-            and throws it back the moment you&rsquo;re wrong.
-            <div className="chips">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  className="chip"
-                  onClick={() => append({ role: "user", content: s })}
-                  disabled={busy}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            <p className="hint" style={{ marginTop: 22 }}>
-              <b>How it works:</b> 1. drop a prediction or hot take below &nbsp;·&nbsp;
-              2. Dendam saves it to Walrus under <b>@{handle || "anon"}</b> (your
-              nickname, top-right) &nbsp;·&nbsp; 3. come back any time — it remembers
-              and roasts your misses.
+      <main className="cx-main" ref={scroller} style={{ flex: 1, width: "100%", maxWidth: 720, margin: "0 auto", padding: "8px 24px 0", display: "flex", flexDirection: "column" }}>
+        {handle === "demo" && (
+          <div style={{ display: "flex", gap: 12, background: "#FFF1CF", border: "2px solid #F6DE9A", borderRadius: 18, padding: "14px 18px", marginBottom: 20 }} role="note">
+            <svg viewBox="0 0 48 48" style={{ width: 24, height: 24, flex: "none", marginTop: 1 }} aria-hidden>
+              <circle cx="24" cy="24" r="9" fill="none" stroke={C.ink} strokeWidth="3.2" />
+              <circle cx="24" cy="24" r="3.4" fill={C.ink} />
+              <path d="M6 24 C12 14 36 14 42 24 C36 34 12 34 6 24 Z" fill="none" stroke={C.ink} strokeWidth="3.2" strokeLinejoin="round" />
+            </svg>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 14, lineHeight: 1.5, color: "#6B4E0E" }}>
+              You&rsquo;re in the demo. Dendam already has a file on <strong style={{ color: C.ink }}>@demo</strong> from earlier sessions — ask it <em style={{ color: C.violet, fontStyle: "normal", fontWeight: 800 }}>&ldquo;what do you remember about me?&rdquo;</em> to see real cross-session recall, or change the handle to start fresh.
             </p>
-            {handle !== "demo" && (
-              <p className="hint" style={{ marginTop: 8 }}>
-                Don&rsquo;t want to wait? <a href="/chat?handle=demo">Try the demo →</a>{" "}
-                — Dendam already has a file on that handle.
-              </p>
-            )}
           </div>
         )}
 
-        {messages.map((m) => {
-          const isUser = m.role === "user";
-          const streamingHere =
-            !isUser && status === "streaming" && m.id === lastId;
-          return (
-            <div key={m.id} className={`msg-row ${m.role}`}>
-              <div
-                className={`avatar ${isUser ? "you" : "dendam"}`}
-                aria-hidden
-              >
-                {isUser ? "🧑" : "🔥"}
-              </div>
-              <div className={`msg ${m.role}`}>
-                {!isUser && recalledMap[m.id] > 0 && (
-                  <>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18, paddingBottom: 10 }}>
+          {showIntro && (
+            <BotBubble>
+              Drop your World Cup 2026 predictions. I remember every one — and throw it back the moment you&rsquo;re wrong.
+            </BotBubble>
+          )}
+
+          {messages.map((m) => {
+            const isUser = m.role === "user";
+            const streamingHere = !isUser && status === "streaming" && m.id === lastId;
+            const text = msgText(m);
+            if (isUser) {
+              return (
+                <div key={m.id} style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <div style={{ maxWidth: "78%", background: C.violet, color: "#fff", borderRadius: "18px 4px 18px 18px", padding: "13px 17px", fontWeight: 600, fontSize: 15, lineHeight: 1.5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{text}</div>
+                </div>
+              );
+            }
+            return (
+              <BotBubble key={m.id}>
+                {recalledMap[m.id] > 0 && (
+                  <div style={{ marginBottom: 7 }}>
                     <button
-                      className="recall-chip"
                       onClick={() => setOpenRecall((o) => ({ ...o, [m.id]: !o[m.id] }))}
                       title="Show the memories Dendam used for this reply"
+                      style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#EDE3FF", border: "1.5px solid #D6C2FF", color: "#5B21B6", fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 11.5, padding: "5px 11px", borderRadius: 20, whiteSpace: "nowrap", cursor: recalledItems[m.id]?.length ? "pointer" : "default" }}
                     >
-                      📂 pulled {recalledMap[m.id]}{" "}
-                      {recalledMap[m.id] === 1 ? "memory" : "memories"} from your file
+                      <IconFolder size={14} /> pulled {recalledMap[m.id]} {recalledMap[m.id] === 1 ? "memory" : "memories"} from your file
                       {recalledItems[m.id]?.length ? (openRecall[m.id] ? " ▲" : " ▼") : ""}
                     </button>
                     {openRecall[m.id] && recalledItems[m.id]?.length > 0 && (
                       <div className="recall-list">
                         {recalledItems[m.id].map((it, j) => (
                           <div key={j} className="recall-item">
-                            <span className={`tag kind`}>{it.k}</span>
+                            <span className="tag kind">{it.k}</span>
                             <span>{it.t}</span>
                             {it.w && <span className="tag wrong">‼️</span>}
                           </div>
                         ))}
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
-                <div className="who">{isUser ? "You" : "Dendam"}</div>
-                <span>{msgText(m)}</span>
+                <span>{text}</span>
                 {streamingHere && <span className="caret" />}
-                {!isUser && !streamingHere && msgText(m).trim() && (
-                  <a
-                    className="roast-share"
-                    href={`/roast?by=${encodeURIComponent(handle || "anon")}&text=${encodeURIComponent(
-                      msgText(m).slice(0, 280),
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    🔥 Share this roast
-                  </a>
+                {!streamingHere && text.trim() && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                    <SavedOnWalrus />
+                    <a
+                      className="roast-share"
+                      style={{ margin: "7px 0 0" }}
+                      href={`/roast?by=${encodeURIComponent(handle || "anon")}&text=${encodeURIComponent(text.slice(0, 280))}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      🔥 Share this roast
+                    </a>
+                  </div>
                 )}
-              </div>
-            </div>
-          );
-        })}
+              </BotBubble>
+            );
+          })}
 
-        {status === "submitted" && (
-          <div className="msg-row assistant">
-            <div className="avatar dendam" aria-hidden>
-              🔥
-            </div>
-            <div className="msg assistant">
-              <div className="who">Dendam</div>
+          {status === "submitted" && (
+            <BotBubble>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <span className="typing" aria-hidden>
                   <i />
                   <i />
                   <i />
                 </span>
-                <span style={{ color: "var(--muted)", fontSize: 13 }}>
-                  digging up your file…
-                </span>
+                <span style={{ color: "var(--muted)", fontSize: 13 }}>digging up your file…</span>
               </span>
-            </div>
-          </div>
-        )}
+            </BotBubble>
+          )}
+        </div>
+
+        {/* quick prompts */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 9, margin: "22px 0 16px" }}>
+          <p style={{ width: "100%", fontWeight: 800, fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: C.muted, margin: "0 0 2px" }}>Try a take →</p>
+          {SUGGESTIONS.map((s) => (
+            <button
+              key={s}
+              onClick={() => append({ role: "user", content: s })}
+              disabled={busy}
+              className="cx-prompt"
+              style={{ background: "#fff", border: "2px solid #E4D8C8", borderRadius: 30, padding: "9px 15px", fontFamily: "var(--font-body)", fontWeight: 700, fontSize: 13.5, color: "#3B2168", cursor: "pointer" }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </main>
+
+      {/* sticky input */}
+      <div style={{ position: "sticky", bottom: 0, background: "linear-gradient(#FBF6EE00,#FBF6EE 22%)", padding: "16px 24px 14px" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", gap: 10, alignItems: "center", background: "#fff", border: `2.5px solid ${C.ink}`, borderRadius: 40, padding: "7px 7px 7px 20px", boxShadow: "0 6px 0 #EDE3FF" }}>
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={handleInputChange}
+              rows={1}
+              placeholder="Type your prediction / opinion / trash talk… (any language)"
+              aria-label="Message Dendam"
+              className="cx-input"
+              style={{ flex: 1, border: "none", outline: "none", background: "transparent", resize: "none", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 15, color: C.ink, minWidth: 0, maxHeight: 120, lineHeight: 1.5, paddingTop: 6 }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  (e.currentTarget.form as HTMLFormElement).requestSubmit();
+                }
+              }}
+            />
+            <button
+              className="lx-press"
+              type="submit"
+              disabled={busy || !input.trim()}
+              style={{ display: "inline-flex", alignItems: "center", gap: 7, background: C.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, border: "none", padding: "12px 22px", borderRadius: 34, cursor: "pointer", flex: "none", opacity: busy || !input.trim() ? 0.5 : 1 }}
+            >
+              Send <span>→</span>
+            </button>
+          </form>
+          <p style={{ textAlign: "center", fontWeight: 700, fontSize: 12.5, color: C.muted, margin: "11px 0 6px" }}>
+            Tip: come back over several days — see what sticks in <a href="/dossier" style={{ color: C.violet, fontWeight: 800 }}>The File</a>. Real memory on Walrus{network === "local" ? " (dev)" : ""}, not a chat log.
+          </p>
+        </div>
       </div>
+    </div>
+  );
+}
 
-      <form className="composer" onSubmit={handleSubmit}>
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={handleInputChange}
-          placeholder="Type your prediction / opinion / trash talk… (any language)"
-          aria-label="Message Dendam"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              (e.currentTarget.form as HTMLFormElement).requestSubmit();
-            }
-          }}
-        />
-        <button className="send" type="submit" disabled={busy || !input.trim()}>
-          Send
-        </button>
-      </form>
-      <p className="hint">
-        Tip: come back over several days. See what sticks in{" "}
-        <a href="/dossier">The File</a> — real memory stored on Walrus, not a
-        chat log.
-      </p>
-
-      <footer className="footer">
-        <span>Memory on Walrus · Sui Mainnet</span>
-        <span>
-          <a href="https://github.com/PugarHuda/dendam" target="_blank" rel="noreferrer">
-            Source
-          </a>{" "}
-          · #Walrus
-        </span>
-      </footer>
+// Bot message row: grudge-ball avatar + "Dendam" label + white tail bubble.
+function BotBubble({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
+      <span style={{ flex: "none", marginTop: 2 }}>
+        <GrudgeBall size={36} />
+      </span>
+      <div style={{ maxWidth: "80%" }}>
+        <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13, color: "#7C3AED", margin: "0 0 5px 2px" }}>Dendam</div>
+        <div style={{ background: "#fff", border: "2px solid #ECE2D3", borderRadius: "4px 18px 18px 18px", padding: "13px 17px", fontWeight: 600, fontSize: 15, lineHeight: 1.5, color: "#241046", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
