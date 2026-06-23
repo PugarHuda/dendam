@@ -1804,3 +1804,6 @@ button.send:disabled,
 @media (max-width: 560px) {
   .mx-stats { grid-template-columns: repeat(2, 1fr) !important; }
 }
+
+.hos-row { transition: border-color .14s ease, transform .14s ease; }
+.hos-row:hover { border-color: #7C3AED !important; transform: translateY(-1px); }
