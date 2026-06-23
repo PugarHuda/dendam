@@ -5,6 +5,7 @@ import { extractGrudges } from "@/lib/grudge";
 import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 import { DENDAM_SYSTEM, renderMemoryBlock } from "@/lib/persona";
 import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
+import { sessionAddress } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -23,7 +24,11 @@ export async function POST(req: Request) {
   }
 
   const store = getMemoryStore();
-  const namespace = namespaceFor(handle || "anon");
+  // A verified wallet session wins over the client-supplied handle, so a
+  // signed-in user's File can't be read or written by someone forging the
+  // handle. Guests fall back to the handle as before.
+  const identity = sessionAddress(req) ?? handle ?? "anon";
+  const namespace = namespaceFor(identity);
 
   // The latest user turn is the recall query.
   const lastUser = [...messages]

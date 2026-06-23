@@ -19,6 +19,8 @@
     "@ai-sdk/anthropic": "^1.0.0",
     "@ai-sdk/openai-compatible": "^0.2.16",
     "@ai-sdk/react": "^1.0.0",
+    "@mysten/dapp-kit": "^1.1.2",
+    "@tanstack/react-query": "^5.101.0",
     "ai": "^4.0.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

@@ -1,8 +1,11 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AppIcon } from "@/components/Logo";
 import { IconRespond, IconFolder, IconStadium, IconCrown } from "@/components/Icons";
+import { WalletControl } from "@/components/WalletControl";
+import { shortAddress } from "@/lib/authShared";
 
 type Tab = "chat" | "dossier" | "room" | "group";
 
@@ -22,6 +25,24 @@ export function TopBar({
   setHandle: (h: string) => void;
   active: Tab;
 }) {
+  // When a wallet is signed in, identity = the wallet address (the File points
+  // at the wallet's namespace and the nickname input is locked). On sign-out we
+  // restore the last guest nickname.
+  const [walletAddr, setWalletAddr] = useState<string | null>(null);
+  const guestHandle = useRef(handle);
+  useEffect(() => {
+    if (!walletAddr) guestHandle.current = handle;
+  }, [handle, walletAddr]);
+
+  const onAddress = useCallback(
+    (a: string | null) => {
+      setWalletAddr(a);
+      if (a) setHandle(a);
+      else setHandle(guestHandle.current || "anon");
+    },
+    [setHandle],
+  );
+
   return (
     <div className="dx-topbar">
       <Link href="/" className="dx-brand" style={{ textDecoration: "none" }}>
@@ -31,23 +52,36 @@ export function TopBar({
         </span>
       </Link>
       <div className="dx-topbar-right">
-        <div className="dx-handle-wrap">
-          <div
-            className="dx-handle"
-            title="Your nickname = your identity. Dendam saves your memory under it, so use the same one to be remembered."
-          >
-            <span className="dx-handle-at">@</span>
-            <input
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              placeholder="your nickname"
-              spellCheck={false}
-              maxLength={40}
-              aria-label="Your nickname — your memory is saved under it"
-            />
+        {walletAddr ? (
+          <div className="dx-handle-wrap">
+            <div className="dx-handle dx-handle-locked" title={walletAddr}>
+              <span className="dx-handle-at">🔗</span>
+              <span style={{ fontWeight: 800, fontSize: 14, color: "var(--ink)" }}>
+                {shortAddress(walletAddr)}
+              </span>
+            </div>
+            <span className="dx-handle-hint">your File is owned by this wallet</span>
           </div>
-          <span className="dx-handle-hint">new nickname = new File</span>
-        </div>
+        ) : (
+          <div className="dx-handle-wrap">
+            <div
+              className="dx-handle"
+              title="Your nickname = your identity. Dendam saves your memory under it, so use the same one to be remembered. Connect a wallet to lock it to you."
+            >
+              <span className="dx-handle-at">@</span>
+              <input
+                value={handle}
+                onChange={(e) => setHandle(e.target.value)}
+                placeholder="your nickname"
+                spellCheck={false}
+                maxLength={40}
+                aria-label="Your nickname — your memory is saved under it"
+              />
+            </div>
+            <span className="dx-handle-hint">new nickname = new File</span>
+          </div>
+        )}
+        <WalletControl onAddress={onAddress} />
         <nav className="dx-tabs">
           {TABS.map((t) => (
             <Link

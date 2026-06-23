@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Caveat, Nunito } from "next/font/google";
+import "@mysten/dapp-kit/dist/index.css";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
 
 const fredoka = Fredoka({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-fredoka", display: "swap" });
 const caveat = Caveat({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-caveat", display: "swap" });
@@ -55,7 +57,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${fredoka.variable} ${caveat.variable} ${nunito.variable}`}>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
