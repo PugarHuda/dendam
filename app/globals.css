@@ -1728,3 +1728,56 @@ button.send:disabled,
   .dx-tab span { display: none; }
   .dx-tab { padding: 9px 12px; }
 }
+
+/* ════════════════════════════════════════════════════════════
+   Landing motion — faithful to the design handoff
+   ════════════════════════════════════════════════════════════ */
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes floaty2 { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(6deg); } }
+@keyframes spinslow { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes wobble { 0%, 100% { transform: rotate(-12deg) translateY(0); } 50% { transform: rotate(-7deg) translateY(-3px); } }
+/* chip floats that preserve their tilt */
+@keyframes floaty-r8 { 0%, 100% { transform: translateY(0) rotate(8deg); } 50% { transform: translateY(-12px) rotate(8deg); } }
+@keyframes floaty-rn6 { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-10px) rotate(-6deg); } }
+@keyframes floaty-rn8 { 0%, 100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-11px) rotate(-8deg); } }
+/* reveal-on-enter */
+@keyframes lxRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+.lx-rise { animation: lxRise 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+.anim-floaty { animation: floaty 7s ease-in-out infinite; }
+.anim-floaty2 { animation: floaty2 6s ease-in-out infinite; }
+.anim-wobble { animation: wobble 5s ease-in-out infinite; }
+.anim-cope { animation: floaty-r8 5s ease-in-out infinite; }
+.anim-fraud { animation: floaty-rn6 6.5s ease-in-out infinite; }
+.anim-told { animation: floaty-rn8 6s ease-in-out infinite; }
+
+/* press-down hover for landing pills / buttons driven by inline styles */
+.lx-press { transition: transform .12s ease, box-shadow .12s ease, background .15s ease; }
+.lx-press:hover { transform: translateY(2px); }
+
+/* ── Landing reveal-on-scroll ─────────────────────────── */
+.lx-rise-target { opacity: 0; transform: translateY(26px); transition: opacity .6s cubic-bezier(.2,.7,.3,1), transform .6s cubic-bezier(.2,.7,.3,1); }
+.lx-rise-target.is-in { opacity: 1; transform: translateY(0); }
+
+/* landing hover accents */
+.lx-navlinks a:hover, .lx-signin:hover { color: #7C3AED; }
+.lx-ghost-ink { transition: background .15s ease, color .15s ease; }
+.lx-ghost-ink:hover { background: #241046; color: #fff; }
+
+/* ── Landing responsive ───────────────────────────────── */
+@media (max-width: 900px) {
+  .lx-navlinks { display: none !important; }
+}
+@media (max-width: 820px) {
+  .lx-hero-grid { grid-template-columns: 1fr !important; }
+  .lx-hero-visual { margin-top: 30px; }
+  .lx-3col { grid-template-columns: 1fr !important; }
+  .lx-2col { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 600px) {
+  .lx-signin { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-floaty, .anim-floaty2, .anim-wobble, .anim-cope, .anim-fraud, .anim-told { animation: none !important; }
+  .lx-rise-target { opacity: 1; transform: none; transition: none; }
+}
