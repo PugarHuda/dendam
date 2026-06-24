@@ -1,4 +1,5 @@
 import { getMemoryStore, memoryNetwork, namespaceFor } from "./memory";
+import { listCached } from "./listcache";
 
 // One handle's public "file" summary — computed purely from stored memories.
 // Shared by the /share/[handle] page and its per-handle OG image so the card
@@ -50,7 +51,7 @@ export async function statsForHandle(
   limit = 200,
 ): Promise<HandleStats> {
   const store = getMemoryStore();
-  const memories = await store.list(namespaceFor(handle), limit);
+  const memories = await listCached(store, namespaceFor(handle), limit);
 
   const predictions = memories.filter((m) => m.kind === "prediction");
   const insults = memories.filter((m) => m.kind === "insult");

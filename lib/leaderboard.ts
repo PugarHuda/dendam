@@ -1,5 +1,6 @@
 import { mapLimit } from "./async";
 import { getMemoryStore, namespaceFor } from "./memory";
+import { listCached } from "./listcache";
 
 // A "Hall of Shame" leaderboard computed purely from each member's stored
 // memories — no LLM needed. Ranks who's been most often wrong.
@@ -20,8 +21,11 @@ export async function leaderboardForHandles(
 
   // Load each member's memories concurrently (bounded) — sequential awaits
   // here scale with group size and risk the 60s serverless limit.
-  const rows: LeaderboardRow[] = await mapLimit(clean, 4, async (h) => {
-    const memories = await store.list(namespaceFor(h), 200);
+  // Sequential (concurrency 1): the shared MemWal delegate key is capped at
+  // ~30 weighted requests/min, so a burst of concurrent list()s can come back
+  // rate-limited (empty). Slower but reliable; results are then cached.
+  const rows: LeaderboardRow[] = await mapLimit(clean, 1, async (h) => {
+    const memories = await listCached(store, namespaceFor(h), 200);
     const predictions = memories.filter((m) => m.kind === "prediction").length;
     const insults = memories.filter((m) => m.kind === "insult").length;
     // Verdicts (kind "result") carry the resolved truth.

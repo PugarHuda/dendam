@@ -1,5 +1,6 @@
 import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
+import { listCached } from "@/lib/listcache";
 
 export const runtime = "nodejs";
 // list() fans out several relayer recalls; allow headroom on a slow relayer.
@@ -18,7 +19,7 @@ export async function GET(req: Request) {
   const namespace = namespaceFor(handle);
 
   try {
-    const memories = await store.list(namespace, 100);
+    const memories = await listCached(store, namespace, 100);
     return Response.json({
       handle,
       backend: store.backend,
