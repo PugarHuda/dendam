@@ -14,6 +14,7 @@
     "seed:results": "tsx scripts/seed-results.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "media:slideshow": "node scripts/build-slideshow.mjs",
+    "media:record": "node scripts/record-demo.mjs",
     "sync:results": "tsx scripts/sync-results.ts",
     "test": "node --import tsx --test tests/*.test.ts"
   },
@@ -40,6 +41,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "playwright": "^1.61.1",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }
