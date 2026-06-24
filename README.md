@@ -7,8 +7,9 @@ Built for **Walrus Sessions — Session 4: Walrus Memory World Cup**.
 The core idea matches the brief: an agent with **genuine persistent memory** that shows a clear **before/after** — on day one Dendam knows nothing; after a few days it has a thick file on you and weaponizes it.
 
 ## 🔗 Live
-- **App:** https://dendam.vercel.app
+- **App:** https://dendam.vercel.app — **play instantly as a guest** (nickname), or connect a Sui wallet to truly own your File.
 - **Repo:** https://github.com/PugarHuda/dendam
+- **See it without typing:** [`/share/demo`](https://dendam.vercel.app/share/demo) · [`/share/budi`](https://dendam.vercel.app/share/budi) (the reigning fraud) — real, pre-seeded memory on Mainnet.
 
 > ⚠️ For memory to be truly **persistent on Walrus Mainnet** (and the before/after demo to count), set the `MEMWAL_*` env vars on Vercel and redeploy. Without them the app uses a temporary file store in serverless `/tmp` that is **not persistent** across requests (ephemeral, per-instance). For a demo with a well-behaved model (no fabricated memory on day one), use a stronger model (`DENDAM_MODEL=claude-sonnet-4-6` via Anthropic, or a high-quality OpenRouter model).
 
@@ -46,12 +47,19 @@ Real results are fed via `POST /api/results` (token-gated) or the live football-
 Every file has a public, link-shareable page at **`/share/<handle>`** (server-rendered, read-only): stat tiles, an "on the record" quote, and CTAs that deep-link into the chat / dossier. Each page renders a **dynamic social card** (`/share/<handle>/opengraph-image`) showing that handle's real stats + most damning line, so pasting the link into X/WhatsApp unfurls a tailored "Dendam has a file on @you" image. The dossier has a **📣 Share** / **🔗 Copy link** button (Web Share API with clipboard fallback) and a **Post to X** intent. A **head-to-head** card at **`/share/vs/<a>/<b>`** (with its own OG image) pits two handles against each other — "who's the bigger World Cup 2026 fraud?" — linked straight from the Hot Seat leaderboard. Handles deep-link everywhere via `?handle=` (e.g. `/dossier?handle=hud`), which also makes demos with multiple handles smooth. `robots.txt` + `sitemap.xml` are generated for shareability.
 
 ### 🏟️ Match Rooms
-A prediction room **per match** (`/room`, `/room/<id>`). Inside a room, anyone drops a prediction and **chats with everyone else** — the chat thread lives in its own Walrus namespace (`room-<id>`), so it's real, persistent, and cross-user (async: it polls every ~12s, no realtime backend). **Dendam joins the chat automatically** (`/api/room/dendam`), reacting in-character to each message. When the real result lands, the players who backed the winning team split the pool. The **crypto prize pool / stake / payout is an explicit MOCK-UP** (labelled "MOCK PRIZES" — no funds move); the predictions and chat are genuinely on Walrus. A demo-grade content guard (`lib/moderation.ts`) blocks obvious abuse on the way in and out, and the auto-reaction prompt treats the chat as untrusted "data, not instructions".
+A prediction room **per match** (`/room`, `/room/<id>`). Inside a room, anyone drops a prediction and **chats with everyone else** — the chat thread lives in its own Walrus namespace (`room-<id>`), so it's real, persistent, and genuinely cross-user (it polls every ~6s, no realtime backend). **Dendam joins the chat automatically** (`/api/room/dendam`), reacting in-character to each message — and its reaction is **persisted to the shared thread**, so everyone in the room sees Dendam jump in, not just the poster. When the real result lands, the players who backed the winning team split the pool. The **crypto prize pool / stake / payout is an explicit MOCK-UP** (labelled "MOCK" — no funds move); the predictions and chat are genuinely on Walrus. Hardened for the shared relayer: a **per-room rate limit** + a **soft 20-user cap** (`N/20 in`), writes **time-boxed + retried**, and a **"⏳ syncing to Walrus"** indicator on freshly-sent messages (Walrus write→read propagation is ~15–40s on Mainnet). A content guard (`lib/moderation.ts`) blocks slurs in/out, and the auto-reaction prompt treats the chat as untrusted "data, not instructions".
 
 ### 🔍 The memory, made visible
 - **Recall transparency:** each reply shows a "📂 pulled N memories from your file" chip you can expand to see the exact memories that grounded it.
 - **Per-memory provenance:** every card on The File links to its real **Walrus blob** (`⛓ on Walrus ↗`) on Walruscan, and an **Ask the file** box runs live `recall()` on demand — Walrus vector search, not a keyword log. Export the whole file as JSON.
-- **One-click demo:** a pre-seeded `@demo` handle on Mainnet means anyone can land straight in the "day-N" experience without chatting for days — `/chat?handle=demo`.
+- **One-click demo:** pre-seeded handles on Mainnet (`@demo`, plus the Hall-of-Shame group `@budi/@hud/@sarah/@reyhan/@ta`) mean anyone lands straight in the "day-N" experience without chatting for days — `/chat?handle=demo`, `/share/budi`. Re-seed with `npm run seed:demo`.
+
+### 🪪 Identity: guest or Sui wallet (wallet-optional)
+Clicking **Start the beef** opens a choice modal that explains the trade-off:
+- **Play as guest (default):** chat instantly with just a nickname — frictionless for judges and first-timers. The File is namespaced to the nickname.
+- **Connect a Sui wallet:** sign a **gasless** personal message; the server verifies it (`@mysten/sui/verify`) and issues an httpOnly session cookie. Your File's namespace becomes the **verified wallet address**, so it can't be read or impersonated by guessing a nickname — true on-chain ownership. Pick an editable display **username** (confirm-to-lock). Built with `@mysten/dapp-kit`.
+
+A verified wallet session always wins over a client-supplied handle server-side, so a signed-in user's writes can't be spoofed. Set `DENDAM_REQUIRE_WALLET=1` to make a wallet **mandatory** (no guests).
 
 ---
 
@@ -166,6 +174,15 @@ This generates a delegate key, creates your MemWalAccount on-chain (or reuses `M
    ```
    The UI badge will show **● Walrus Mainnet**.
 
+### Seed real on-chain demo data + media
+```bash
+npm run seed:demo        # WC2026 results + populated Files for the Hall-of-Shame handles
+                         # (rate-aware, paced + resumable — writes real blobs to Walrus)
+npm run media:record     # record a ~85s captioned demo video via Playwright (needs npm start running)
+npm run media:slideshow  # build a silent captioned slideshow MP4 from the screenshots
+```
+> `seed:demo` paces itself under the MemWal delegate-key limit (~30 weighted req/min) and backs off on a 429 — see the rate-limit note below.
+
 ---
 
 ## Deploy
@@ -181,10 +198,11 @@ See **[`DEPLOY.md`](./DEPLOY.md)** for full options. Currently deployed on **Ver
 | Walrus Memory integration tracking WC 2026 interactions | `lib/memory/memwal.ts` + recall/remember loop in `api/chat` |
 | Genuine persistent memory (before/after) | Per-turn grudge extraction; Dendam references past predictions/insults |
 | All state & memory on Walrus, Mainnet | `memwal` backend → Walrus Mainnet |
-| Public interface showing the memory | `/dossier` (The File) + provenance/Ask-the-file, plus Hot Seat & Match Rooms |
-| MemWalAccount on the explorer | `MEMWAL_ACCOUNT_ID` (view on a Sui explorer) |
-| MEMWAL_AGENT_ID | delegate public key (`MEMWAL_AGENT_ID`) |
-| Demo video ≤3 min | show day-1 vs day-N + The File |
+| Public interface showing the memory | `/dossier` + `/share/<handle>` (read-only, no wallet needed) + provenance/Ask-the-file, plus Hall of Shame & Match Rooms |
+| MemWalAccount on the explorer | `0xe2f6…a168e` (Suiscan Mainnet) |
+| MEMWAL_AGENT_ID | `37891bc6…ddf57d` (delegate public key) |
+| Demo video ≤3 min | day-1 vs day-N + The File + auto-roast — auto-recorded via `npm run media:record`, or follow `DEMO.md` |
+| Frictionless to try | guest mode (no wallet) on by default; wallet optional for ownership |
 
 ## What sets Dendam apart
 - **Memory as a weapon, not a log.** Every wrong call becomes roasting ammo; The File visualizes your accuracy and "insults at Dendam".
@@ -193,8 +211,10 @@ See **[`DEPLOY.md`](./DEPLOY.md)** for full options. Currently deployed on **Ver
 - **Multilingual + typo-tolerant:** English default, mirrors each user, shrugs off typos.
 - **Strong persona** (a vengeful rival) — not a generic assistant.
 - **Built-in virality:** public `/share/<handle>` pages, per-handle + head-to-head + single-roast social cards, one-click copy / Post-to-X, and `?handle=` deep-links. A pre-seeded `@demo` handle drops judges straight into the payoff.
-- **Designed UI** (vanilla CSS, no framework): a playful landing plus a clean app, with shareable OG metadata and a first-visit onboarding.
-- **Swappable memory layer + beta-safe adapter** → stable technical execution; rate-limited, content-guarded public endpoints.
+- **Designed UI** (vanilla CSS, no framework): a playful, animated landing plus a clean app, with shareable OG metadata and a first-visit onboarding.
+- **Wallet-optional identity, done right:** play as a guest in one click, or connect a Sui wallet (gasless signature) for a File namespaced to your verified address — impossible to spoof. A "Start the beef" modal explains the trade-off.
+- **Real, pre-seeded on-chain data** so judges hit the day-N experience and a populated Hall of Shame instantly (`npm run seed:demo`).
+- **Swappable memory layer + beta-safe adapter** → stable technical execution; rate-limited, content-guarded endpoints, plus **shared-relayer hardening**: short-TTL read caching, sequential leaderboard reads, paced + backing-off writes, request time-boxing, and "syncing to Walrus" indicators (the MemWal delegate key is capped at ~30 weighted req/min for the whole app).
 
 ---
 
@@ -206,16 +226,18 @@ npm run typecheck   # tsc --noEmit
 npm run build       # Next.js production build
 npm run check:memory  # round-trip remember → recall (active backend)
 node scripts/smoke.mjs       # live smoke sweep of every page + endpoint
-node scripts/demo-verify.mjs # end-to-end before/after + kill-shot on Mainnet
+node scripts/demo-verify.mjs # end-to-end before/after + kill-shot on Mainnet (works in guest mode)
 ```
-Verified: typecheck OK · **60/60 tests pass** · build green (22 routes) · **live smoke sweep 25/25** · endpoints tested live on Walrus Mainnet (chat/recall/extract/reconcile/instigate/leaderboard/rooms), including the day-1 vs day-N before/after, the auto-roast kill-shot, multilingual replies (EN/ID/ES), and English-canonical memory extraction.
+Verified: typecheck OK · **60/60 tests pass** · build green (25 routes) · live smoke sweep green · endpoints tested live on Walrus Mainnet (chat/recall/extract/reconcile/instigate/leaderboard/rooms/auth), including the day-1 vs day-N before/after, the auto-roast kill-shot, multilingual replies (EN/ID/ES), per-wallet memory isolation, cross-user room threads (incl. Dendam persisting its reaction), wallet sign-in verification, and the guest/wallet-required gates.
 
 ## Supporting docs
-- [`REVIEW.md`](./REVIEW.md) — 60-second reviewer walkthrough (what to click, in order).
+- [`FORM-ANSWERS.md`](./FORM-ANSWERS.md) — **every Airtable field filled verbatim** (only the DeepSurge link, X tweet link, X handle & referral are yours to add).
+- [`DEMO.md`](./DEMO.md) — 3-minute demo video script (shot list + voiceover); auto-record it with `npm run media:record`.
+- [`captions.srt`](./captions.srt) — burn-in subtitles for the demo.
+- [`SUBMISSION.md`](./SUBMISSION.md) — long-form submission text, promo copy, and the filed GitHub feedback tickets.
 - [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md) — done-vs-your-actions checklist.
-- [`DEMO.md`](./DEMO.md) — 3-minute demo video storyboard (shot list + dialogue script).
+- [`REVIEW.md`](./REVIEW.md) — 60-second reviewer walkthrough (what to click, in order).
 - [`DEPLOY.md`](./DEPLOY.md) — deployment paths (Vercel / Node host / Walrus Site).
-- [`SUBMISSION.md`](./SUBMISSION.md) — paste-ready Airtable form text, promo copy, and the filed GitHub feedback tickets.
 - [`QA.md`](./QA.md) — audit notes: issues found & fixed, known limitations, recommendations.
 
 ## License

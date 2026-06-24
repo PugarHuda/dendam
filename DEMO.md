@@ -1,5 +1,11 @@
 # 🎬 Demo Script — Dendam (≤ 3 minutes)
 
+> 🤖 **Shortcut:** `npm start` then `npm run media:record` auto-records a ~85s
+> captioned MP4 of this exact before/after flow with Playwright
+> (`.design/dendam-demo.mp4`). Use it as-is, or as a base to add your own
+> voiceover. The shot list below is for a polished hand-recorded version.
+
+
 Win the judges on **3 criteria**: Memory Depth & Authenticity (the before/after
 moment), Creativity & Flair (a vengeful World Cup rival), Technical Execution
 (live on Walrus **Mainnet**).

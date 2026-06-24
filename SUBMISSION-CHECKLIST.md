@@ -12,17 +12,22 @@ Paste-ready field text lives in [`SUBMISSION.md`](./SUBMISSION.md). Demo script 
 - [x] **SUI address** — `0xed1e706c3fc3b11337a966a598785fa2da4190368b9a9789d4d99fca9c46d65e`
 - [x] **Public repo** — https://github.com/PugarHuda/dendam
 - [x] **Before/after proven live** — cold-start admits no memory; new session recalls planted prediction/hot-take/insult
-- [x] **Auto-roast kill-shot works out of the box** — bundled seed result → "Hold me to it" returns a WRONG verdict
-- [x] **Memory visible** — The File (`/dossier`) + public `/share/<handle>` pages
-- [x] **Shareable** — per-handle OG/Twitter cards, Copy link + Post to X, `?handle=` deep-links
-- [x] **Quality** — 44/44 unit tests, green build, live smoke sweep 13/13 (`node scripts/smoke.mjs`)
-- [x] **Feedback filed** — issue [#300](https://github.com/MystenLabs/MemWal/issues/300) + comments on [#271](https://github.com/MystenLabs/MemWal/issues/271#issuecomment-4738923047) / [#272](https://github.com/MystenLabs/MemWal/issues/272#issuecomment-4738923217)
+- [x] **Auto-roast kill-shot works out of the box** — bundled seed result → "Run reconcile" returns a WRONG verdict
+- [x] **Memory visible** — The File (`/dossier`) + public `/share/<handle>` pages (no wallet needed to view)
+- [x] **Identity wallet-optional** — guest mode by default (frictionless); Sui wallet sign-in for true ownership
+- [x] **Real on-chain seed data** — `npm run seed:demo`: @demo + Hall-of-Shame handles (@budi the fraud) populated on Mainnet
+- [x] **Shareable** — per-handle + head-to-head OG/Twitter cards, Copy link + Post to X, `?handle=` deep-links
+- [x] **Quality** — **60/60 unit tests**, green build (25 routes), live smoke sweep + E2E (auth, cross-user rooms, isolation)
+- [x] **Demo video** — auto-recorded via `npm run media:record` (`.design/dendam-demo.mp4`, ~85s, captioned)
+- [x] **Feedback filed** — issue [#300](https://github.com/MystenLabs/MemWal/issues/300) + comments on [#271](https://github.com/MystenLabs/MemWal/issues/271#issuecomment-4738923047) / [#272](https://github.com/MystenLabs/MemWal/issues/272#issuecomment-4738923217); two more drafted (rate limit, propagation) in `SUBMISSION.md`
 
 ## Your actions (cannot be automated)
-- [ ] **Record demo video ≤3 min** — follow [`DEMO.md`](./DEMO.md) (per-second script + real captured lines)
-- [ ] **Post the #Walrus tweet** — pick a variant in [`SUBMISSION.md`](./SUBMISSION.md); the OG card auto-attaches
-- [ ] **Get the DeepSurge project link** (mainnet) → paste into the form + `SUBMISSION.md`
-- [ ] **Submit the Airtable form** — copy fields from `SUBMISSION.md` (+ tweet link + demo video + DeepSurge link)
+- [ ] **Upload the demo video** — `.design/dendam-demo.mp4` (or record a voiced one from [`DEMO.md`](./DEMO.md))
+- [ ] **Post the #Walrus tweet** — text in [`FORM-ANSWERS.md`](./FORM-ANSWERS.md); the OG card auto-attaches → paste the link in the form
+- [ ] **Get the DeepSurge project link** (mainnet) → paste into the form
+- [ ] **Submit the Airtable form** — every field is filled verbatim in [`FORM-ANSWERS.md`](./FORM-ANSWERS.md)
+- [ ] **Join the Walrus Discord** (required) — handle `hajislamet`
+- [ ] (optional) Set `DENDAM_REQUIRE_WALLET=1` on Vercel if you want wallet mandatory instead of guest-default
 - [ ] 🔒 **Rotate the leaked OpenRouter key** (openrouter.ai) and update the Vercel env
 - [ ] 🔒 **Move SUI funds** out of the wallet whose key was exposed in chat (the MemWalAccount stays valid — the app only uses the delegate key)
 
