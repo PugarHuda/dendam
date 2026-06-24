@@ -4,6 +4,7 @@ import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
 import { isAbusive } from "@/lib/moderation";
 import { sessionAddress } from "@/lib/auth";
 import { shortAddress } from "@/lib/authShared";
+import { withTimeout } from "@/lib/timeout";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -39,12 +40,17 @@ export async function POST(req: Request) {
   const store = getMemoryStore();
   try {
     // Store the message text with the author in `team` so we can render the
-    // thread without a brittle in-text delimiter.
-    await store.remember(roomNamespace(roomId), {
-      text: text.slice(0, 280),
-      kind: "fact",
-      team: who.slice(0, 40),
-    });
+    // thread without a brittle in-text delimiter. Time-boxed so a slow Walrus
+    // write fails fast instead of hanging the request.
+    await withTimeout(
+      store.remember(roomNamespace(roomId), {
+        text: text.slice(0, 280),
+        kind: "fact",
+        team: who.slice(0, 40),
+      }),
+      9000,
+      "room_post",
+    );
     return Response.json({ ok: true });
   } catch (err) {
     console.error("[dendam] room post failed:", err);

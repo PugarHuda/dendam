@@ -131,11 +131,13 @@ export function RoomClient({
         setChat((c) => c.filter((m) => m !== optimistic));
         const data = await res.json().catch(() => ({}));
         setRoomErr(
-          data?.error === "keep_it_clean"
-            ? "Keep it about football — that one didn't fly."
-            : res.status === 429
-              ? "Slow down a sec — too many messages."
-              : "Couldn't send that. Try again.",
+          res.status === 401
+            ? "Your wallet session expired — reconnect (top of the page) and try again."
+            : data?.error === "keep_it_clean"
+              ? "Keep it about football — that one didn't fly."
+              : res.status === 429
+                ? "Slow down a sec — too many messages."
+                : "Couldn't reach Walrus just now. Try again in a moment.",
         );
       }
     } catch {

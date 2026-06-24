@@ -51,6 +51,9 @@ export default function ChatPage() {
   const scroller = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const { address: walletAddr, loading: authLoading, refresh: refreshAuth } = useIdentity();
+  const signedIn = !!walletAddr;
+
   useEffect(() => {
     setHandle(initialHandle());
   }, []);
@@ -63,6 +66,12 @@ export default function ChatPage() {
     api: "/api/chat",
     body: { handle },
     onResponse(res) {
+      // Session expired / not signed in → re-check identity so the connect
+      // gate reappears instead of leaving the user stuck.
+      if (res.status === 401) {
+        refreshAuth();
+        return;
+      }
       const n = res.headers.get("x-dendam-network");
       if (n) setNetwork(n);
       // Capture how many memories grounded this reply; attach it to the
@@ -154,9 +163,6 @@ export default function ChatPage() {
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
   }, [input]);
-
-  const { address: walletAddr, loading: authLoading } = useIdentity();
-  const signedIn = !!walletAddr;
 
   const busy = status === "submitted" || status === "streaming";
   const lastId = messages.length ? messages[messages.length - 1].id : null;

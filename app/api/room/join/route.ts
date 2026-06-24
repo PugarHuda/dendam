@@ -1,6 +1,7 @@
 import { getMemoryStore, namespaceFor } from "@/lib/memory";
 import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
 import { sessionAddress } from "@/lib/auth";
+import { withTimeout } from "@/lib/timeout";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -26,10 +27,14 @@ export async function POST(req: Request) {
 
   const store = getMemoryStore();
   try {
-    await store.remember(namespaceFor(addr), {
-      text: `Match-room call${match ? ` (${match})` : ""}: ${pred.slice(0, 200)}`,
-      kind: "prediction",
-    });
+    await withTimeout(
+      store.remember(namespaceFor(addr), {
+        text: `Match-room call${match ? ` (${match})` : ""}: ${pred.slice(0, 200)}`,
+        kind: "prediction",
+      }),
+      9000,
+      "room_join",
+    );
     return Response.json({ ok: true });
   } catch (err) {
     console.error("[dendam] room join failed:", err);

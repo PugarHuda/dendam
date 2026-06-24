@@ -1862,3 +1862,6 @@ button.send:disabled,
   box-shadow: 0 4px 0 var(--violet) !important; cursor: pointer;
 }
 .dx-connect button:hover { transform: translateY(2px); box-shadow: 0 2px 0 var(--violet) !important; }
+
+.dx-handle-edit { border-color: var(--violet-border); }
+.dx-handle-edit:focus-within { border-color: var(--violet); box-shadow: 0 3px 0 var(--violet-soft); }

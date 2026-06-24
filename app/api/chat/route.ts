@@ -6,6 +6,7 @@ import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 import { DENDAM_SYSTEM, renderMemoryBlock } from "@/lib/persona";
 import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
 import { sessionAddress } from "@/lib/auth";
+import { withTimeout } from "@/lib/timeout";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -44,12 +45,14 @@ export async function POST(req: Request) {
 
   // 1) RECALL — pull what Dendam remembers about this user from Walrus.
   // Skip on an empty query (e.g. a non-text first turn) to avoid a useless call.
+  // Time-boxed: if Walrus is slow, don't hang the whole reply on "digging up
+  // your file…" — fall back to a cold-start (still streams) after the cap.
   let recalled: Awaited<ReturnType<typeof store.recall>> = [];
   if (query.trim()) {
     try {
-      recalled = await store.recall(namespace, query, 8);
+      recalled = await withTimeout(store.recall(namespace, query, 8), 7000, "recall");
     } catch (err) {
-      console.error("[dendam] recall failed:", err);
+      console.error("[dendam] recall failed/timeout:", err);
     }
   }
 
