@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { StartBeefModal } from "@/components/StartBeefModal";
 import { GrudgeBall } from "@/components/Logo";
 import {
   IconFlame,
@@ -99,8 +100,14 @@ function useReveal() {
 export default function LandingPage() {
   const [busted, setBusted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [beefOpen, setBeefOpen] = useState(false);
   const copyT = useRef<ReturnType<typeof setTimeout> | null>(null);
   useReveal();
+
+  // Deep-link: /?start opens the choice modal (handy for "try it" links).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).has("start")) setBeefOpen(true);
+  }, []);
 
   function copyLink() {
     try {
@@ -132,7 +139,7 @@ export default function LandingPage() {
           <a href="#shame">Hall of Shame</a>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Link href="/chat" className="lx-press" style={{ background: C.ink, color: "#fff", fontWeight: 800, fontSize: 15, padding: "12px 22px", borderRadius: 40, whiteSpace: "nowrap", boxShadow: `0 6px 0 ${C.violet}` }}>Start the beef</Link>
+          <button onClick={() => setBeefOpen(true)} className="lx-press" style={{ background: C.ink, color: "#fff", fontWeight: 800, fontSize: 15, padding: "12px 22px", borderRadius: 40, whiteSpace: "nowrap", boxShadow: `0 6px 0 ${C.violet}`, border: "none", cursor: "pointer", fontFamily: "var(--font-display)" }}>Start the beef</button>
         </div>
       </nav>
 
@@ -160,9 +167,9 @@ export default function LandingPage() {
               Dendam stores every prediction, hot take, and insult you throw about the World Cup 2026 on <strong style={{ color: C.ink }}>Walrus Memory</strong> — then throws it back in your face the second you&rsquo;re wrong.
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <Link href="/chat?handle=demo" className="lx-press" style={{ display: "inline-flex", alignItems: "center", gap: 10, background: C.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, padding: "17px 30px", borderRadius: 48, boxShadow: `0 7px 0 ${C.deep}` }}>
+              <button onClick={() => setBeefOpen(true)} className="lx-press" style={{ display: "inline-flex", alignItems: "center", gap: 10, background: C.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, padding: "17px 30px", borderRadius: 48, boxShadow: `0 7px 0 ${C.deep}`, border: "none", cursor: "pointer" }}>
                 Start the beef <span>→</span>
-              </Link>
+              </button>
               <Link href="/dossier" className="lx-ghost-ink" style={{ display: "inline-flex", alignItems: "center", gap: 9, color: C.ink, fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, padding: "17px 26px", borderRadius: 48, border: `2.5px solid ${C.ink}` }}>
                 <IconFolder size={21} /> Open The File
               </Link>
@@ -388,7 +395,7 @@ export default function LandingPage() {
             </h2>
             <p style={{ fontWeight: 700, fontSize: 18, color: "#E7DAFF", margin: "0 0 34px" }}>Make your call about the World Cup 2026. Then live with it.</p>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <Link href="/chat?handle=demo" className="lx-press" style={{ background: C.yellow, color: C.ink, fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, padding: "17px 32px", borderRadius: 48, boxShadow: `0 7px 0 ${C.deep}` }}>Start the beef →</Link>
+              <button onClick={() => setBeefOpen(true)} className="lx-press" style={{ background: C.yellow, color: C.ink, fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, padding: "17px 32px", borderRadius: 48, boxShadow: `0 7px 0 ${C.deep}`, border: "none", cursor: "pointer" }}>Start the beef →</button>
               <a href={EXPLORER} target="_blank" rel="noreferrer" className="lx-press" style={{ background: C.ink, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, padding: "17px 26px", borderRadius: 48 }}>Verify on Sui ↗</a>
               <button onClick={copyLink} className="lx-press" style={{ position: "relative", background: "transparent", color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18, padding: "17px 26px", borderRadius: 48, border: "2.5px solid #fff", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 9 }}>
                 <svg viewBox="0 0 48 48" style={{ width: 19, height: 19, flex: "none" }} aria-hidden>
@@ -414,6 +421,8 @@ export default function LandingPage() {
           <p style={{ fontWeight: 700, fontSize: 13.5, color: C.muted, margin: 0 }}>Built for Walrus Sessions · S4 · World Cup 2026</p>
         </div>
       </section>
+
+      <StartBeefModal open={beefOpen} onClose={() => setBeefOpen(false)} />
     </div>
   );
 }

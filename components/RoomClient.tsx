@@ -173,8 +173,10 @@ export function RoomClient({
       });
     try {
       let res = await sendOnce();
-      if (!res.ok && res.status >= 500) {
-        await new Promise((r) => setTimeout(r, 800));
+      // The shared Walrus relayer is flaky under load — retry a couple times on
+      // a 5xx/blip with growing backoff before giving up.
+      for (let attempt = 0; attempt < 2 && !res.ok && res.status >= 500; attempt++) {
+        await new Promise((r) => setTimeout(r, 900 * (attempt + 1)));
         res = await sendOnce();
       }
       if (!res.ok) {
