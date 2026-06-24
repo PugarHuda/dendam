@@ -1,0 +1,31 @@
+1
+00:00:00,000 --> 00:00:14,000
+Most football bots forget you the second you close the tab. Dendam keeps a file.
+
+2
+00:00:15,000 --> 00:00:39,000
+DAY 1 — a brand-new handle. It owns up: no fake history, nothing on you yet.
+
+3
+00:00:40,000 --> 00:01:14,000
+DAY N — a handle it's seen before. No reminder, and it recalls your Argentina pick, your VAR rant, even the insult.
+
+4
+00:01:15,000 --> 00:01:44,000
+The File: every memory is a real encrypted blob on Walrus — verify it on-chain in one click.
+
+5
+00:01:45,000 --> 00:02:09,000
+The results land — and Dendam stamps your wrong prediction WRONG, automatically.
+
+6
+00:02:10,000 --> 00:02:34,000
+It's multiplayer: a Hall of Shame ranked purely from stored memory. Meet @budi, the reigning fraud.
+
+7
+00:02:35,000 --> 00:02:49,000
+All of it lives on Walrus Mainnet, tied to a MemWalAccount on Sui. Anyone can verify it.
+
+8
+00:02:50,000 --> 00:03:00,000
+Dendam. Make your call… and live with it.
