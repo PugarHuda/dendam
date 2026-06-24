@@ -51,8 +51,9 @@ export default function ChatPage() {
   const scroller = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { address: walletAddr, loading: authLoading, refresh: refreshAuth } = useIdentity();
+  const { address: walletAddr, loading: authLoading, allowGuest, refresh: refreshAuth } = useIdentity();
   const signedIn = !!walletAddr;
+  const canChat = signedIn || allowGuest; // guests chat by nickname when allowed
 
   useEffect(() => {
     setHandle(initialHandle());
@@ -185,7 +186,7 @@ export default function ChatPage() {
       <TopBar handle={handle} setHandle={setHandle} active="chat" />
 
       <main className="cx-main" ref={scroller} style={{ flex: 1, width: "100%", maxWidth: 720, margin: "0 auto", padding: "8px 24px 0", display: "flex", flexDirection: "column" }}>
-        {!signedIn && !authLoading && (
+        {!canChat && !authLoading && (
           <div style={{ display: "grid", placeItems: "center", textAlign: "center", padding: "36px 18px 28px" }}>
             <div style={{ maxWidth: 440, background: "#fff", border: `2.5px solid ${C.ink}`, borderRadius: 26, padding: "34px 30px", boxShadow: "0 8px 0 #EDE3FF" }}>
               <div style={{ marginBottom: 14 }}><GrudgeBall size={56} /></div>
@@ -202,7 +203,7 @@ export default function ChatPage() {
           </div>
         )}
 
-        {signedIn && (
+        {canChat && (
         <>
         <div style={{ display: "flex", flexDirection: "column", gap: 18, paddingBottom: 10 }}>
           {showIntro && (
@@ -303,17 +304,17 @@ export default function ChatPage() {
       {/* sticky input */}
       <div style={{ position: "sticky", bottom: 0, background: "linear-gradient(#FBF6EE00,#FBF6EE 22%)", padding: "16px 24px 14px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <form onSubmit={handleSubmit} style={{ display: "flex", gap: 10, alignItems: "center", background: "#fff", border: `2.5px solid ${signedIn ? C.ink : "#E4D8C8"}`, borderRadius: 40, padding: "7px 7px 7px 20px", boxShadow: "0 6px 0 #EDE3FF", opacity: signedIn ? 1 : 0.7 }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", gap: 10, alignItems: "center", background: "#fff", border: `2.5px solid ${canChat ? C.ink : "#E4D8C8"}`, borderRadius: 40, padding: "7px 7px 7px 20px", boxShadow: "0 6px 0 #EDE3FF", opacity: canChat ? 1 : 0.7 }}>
             <textarea
               ref={textareaRef}
               value={input}
               onChange={handleInputChange}
               rows={1}
-              disabled={!signedIn}
-              placeholder={signedIn ? "Type your prediction / opinion / trash talk… (any language)" : "Connect your wallet to chat…"}
+              disabled={!canChat}
+              placeholder={canChat ? "Type your prediction / opinion / trash talk… (any language)" : "Connect your wallet to chat…"}
               aria-label="Message Dendam"
               className="cx-input"
-              style={{ flex: 1, border: "none", outline: "none", background: "transparent", resize: "none", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 15, color: C.ink, minWidth: 0, maxHeight: 120, lineHeight: 1.5, paddingTop: 6, cursor: signedIn ? "text" : "not-allowed" }}
+              style={{ flex: 1, border: "none", outline: "none", background: "transparent", resize: "none", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 15, color: C.ink, minWidth: 0, maxHeight: 120, lineHeight: 1.5, paddingTop: 6, cursor: canChat ? "text" : "not-allowed" }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -324,15 +325,15 @@ export default function ChatPage() {
             <button
               className="lx-press"
               type="submit"
-              disabled={!signedIn || busy || !input.trim()}
-              style={{ display: "inline-flex", alignItems: "center", gap: 7, background: C.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, border: "none", padding: "12px 22px", borderRadius: 34, cursor: "pointer", flex: "none", opacity: !signedIn || busy || !input.trim() ? 0.5 : 1 }}
+              disabled={!canChat || busy || !input.trim()}
+              style={{ display: "inline-flex", alignItems: "center", gap: 7, background: C.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, border: "none", padding: "12px 22px", borderRadius: 34, cursor: "pointer", flex: "none", opacity: !canChat || busy || !input.trim() ? 0.5 : 1 }}
             >
               Send <span>→</span>
             </button>
           </form>
           <p style={{ textAlign: "center", fontWeight: 700, fontSize: 12.5, color: C.muted, margin: "11px 0 6px" }}>
-            {signedIn ? (
-              <>Tip: come back over several days — see what sticks in <a href="/dossier" style={{ color: C.violet, fontWeight: 800 }}>The File</a>. Real memory on Walrus{network === "local" ? " (dev)" : ""}, not a chat log.</>
+            {canChat ? (
+              <>Tip: come back over several days — see what sticks in <a href="/dossier" style={{ color: C.violet, fontWeight: 800 }}>The File</a>. Real memory on Walrus{network === "local" ? " (dev)" : ""}, not a chat log.{!signedIn && allowGuest ? " Connect a wallet to truly own it." : ""}</>
             ) : (
               <>🔒 Your File is wallet-owned — connect above to chat. Browsing <a href="/dossier" style={{ color: C.violet, fontWeight: 800 }}>The File</a> stays open to everyone.</>
             )}

@@ -15,6 +15,7 @@ type Identity = {
   address: string | null;
   loading: boolean;
   username: string;
+  allowGuest: boolean;
   setAddress: (a: string | null) => void;
   setUsername: (name: string) => void;
   refresh: () => void;
@@ -26,6 +27,7 @@ const IdentityCtx = createContext<Identity>({
   address: null,
   loading: true,
   username: "",
+  allowGuest: false,
   setAddress: () => {},
   setUsername: () => {},
   refresh: () => {},
@@ -35,11 +37,15 @@ export function IdentityProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [username, setUsernameState] = useState("");
+  const [allowGuest, setAllowGuest] = useState(false);
 
   const refresh = useCallback(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
-      .then((d) => setAddress(d?.address ?? null))
+      .then((d) => {
+        setAddress(d?.address ?? null);
+        setAllowGuest(!!d?.allowGuest);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -79,7 +85,7 @@ export function IdentityProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <IdentityCtx.Provider
-      value={{ address, loading, username, setAddress, setUsername, refresh }}
+      value={{ address, loading, username, allowGuest, setAddress, setUsername, refresh }}
     >
       {children}
     </IdentityCtx.Provider>

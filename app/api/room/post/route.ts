@@ -2,7 +2,7 @@ import { getMemoryStore } from "@/lib/memory";
 import { roomNamespace } from "@/lib/rooms";
 import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
 import { isAbusive } from "@/lib/moderation";
-import { sessionAddress } from "@/lib/auth";
+import { sessionAddress, guestAllowed } from "@/lib/auth";
 import { shortAddress } from "@/lib/authShared";
 import { withTimeout } from "@/lib/timeout";
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   if (!rl.ok) return tooMany(rl);
 
   const addr = sessionAddress(req);
-  if (!addr) return Response.json({ error: "auth_required" }, { status: 401 });
+  if (!addr && !guestAllowed()) return Response.json({ error: "auth_required" }, { status: 401 });
 
   const { roomId, message, displayName } = (await req.json().catch(() => ({}))) as {
     roomId?: string;
@@ -26,9 +26,11 @@ export async function POST(req: Request) {
     displayName?: string;
   };
   const text = (message ?? "").trim();
-  // Author label = the user's chosen display name (cosmetic; auth is the
-  // verified session above). Fall back to the short address.
-  const who = (displayName ?? "").trim().replace(/^@/, "").slice(0, 40) || shortAddress(addr);
+  // Author label = the user's display name (cosmetic). A verified wallet falls
+  // back to its short address; a guest to their nickname, then "guest".
+  const who =
+    (displayName ?? "").trim().replace(/^@/, "").slice(0, 40) ||
+    (addr ? shortAddress(addr) : "guest");
   if (!roomId?.trim() || !text) {
     return Response.json({ error: "need_room_and_message" }, { status: 400 });
   }

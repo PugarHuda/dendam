@@ -5,7 +5,7 @@ import { extractGrudges } from "@/lib/grudge";
 import { getMemoryStore, memoryNetwork, namespaceFor } from "@/lib/memory";
 import { DENDAM_SYSTEM, renderMemoryBlock } from "@/lib/persona";
 import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
-import { sessionAddress } from "@/lib/auth";
+import { sessionAddress, guestAllowed } from "@/lib/auth";
 import { withTimeout } from "@/lib/timeout";
 
 export const runtime = "nodejs";
@@ -16,17 +16,21 @@ export async function POST(req: Request) {
   const rl = rateLimit("chat", clientIp(req), 20, 60_000);
   if (!rl.ok) return tooMany(rl);
 
-  const { messages } = (await req.json().catch(() => ({}))) as {
+  const { messages, handle } = (await req.json().catch(() => ({}))) as {
     messages?: CoreMessage[];
+    handle?: string;
   };
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ error: "no_messages" }, { status: 400 });
   }
 
-  // Chatting REQUIRES a connected + signed-in wallet. The identity is the
-  // verified address only — never a client-supplied handle — so a File can be
-  // read/written only by the wallet that owns it.
-  const identity = sessionAddress(req);
+  // Identity: a verified wallet session always wins (its File can't be spoofed).
+  // Otherwise, if guests are allowed, fall back to the client nickname; if a
+  // wallet is required, reject.
+  const session = sessionAddress(req);
+  const identity =
+    session ??
+    (guestAllowed() ? (handle?.trim().replace(/^@/, "") || "anon") : null);
   if (!identity) {
     return Response.json({ error: "auth_required" }, { status: 401 });
   }

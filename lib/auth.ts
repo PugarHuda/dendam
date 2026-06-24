@@ -38,6 +38,14 @@ export function readSession(token?: string | null): string | null {
   return address;
 }
 
+// Guests may chat / play with just a nickname (frictionless for judges &
+// first-timers) UNLESS a wallet is explicitly required. Wallet sign-in still
+// works and gives true ownership; it's just no longer mandatory by default.
+//   DENDAM_REQUIRE_WALLET=1  → wallet required (no guests)
+export function guestAllowed(): boolean {
+  return process.env.DENDAM_REQUIRE_WALLET !== "1";
+}
+
 // Read the verified wallet address from a request's cookies (or null).
 export function sessionAddress(req: Request): string | null {
   const cookie = req.headers.get("cookie") || "";

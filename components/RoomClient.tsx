@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { GrudgeBall } from "@/components/Logo";
 import { useIdentity } from "@/components/Identity";
 import { WalletControl } from "@/components/WalletControl";
+import { initialHandle } from "@/components/TopBar";
 import { shortAddress } from "@/lib/authShared";
 
 const RC = {
@@ -53,10 +54,26 @@ export function RoomClient({
   resolution: Resolution;
   initialChat: ChatMsg[];
 }) {
-  const { address, username } = useIdentity();
+  const { address, username, allowGuest } = useIdentity();
   const signedIn = !!address;
-  // Display author = your chosen username (falls back to the short address).
-  const meId = signedIn ? (username.trim() || shortAddress(address || "")) : "";
+  // Guests post under their nickname (from the chat/dossier handle) when guest
+  // mode is on; a wallet posts under its username/short address.
+  const [guestName, setGuestName] = useState("");
+  useEffect(() => {
+    if (!signedIn) {
+      try {
+        setGuestName(initialHandle());
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [signedIn]);
+  const meId = signedIn
+    ? username.trim() || shortAddress(address || "")
+    : guestName && guestName !== "anon"
+      ? guestName
+      : "guest";
+  const canPost = signedIn || allowGuest;
 
   const [players, setPlayers] = useState<Player[]>(room.players);
   const [chat, setChat] = useState<ChatMsg[]>(initialChat);
@@ -136,7 +153,7 @@ export function RoomClient({
 
   async function post() {
     const text = msg.trim().slice(0, 280);
-    if (!signedIn || !text || posting) return;
+    if (!canPost || !text || posting) return;
     setPosting(true);
     setRoomErr("");
     const optimistic: ChatMsg = { handle: meId, text, pending: true };
@@ -205,7 +222,7 @@ export function RoomClient({
 
   async function join() {
     const prediction = pred.trim();
-    if (!signedIn || !prediction) return;
+    if (!canPost || !prediction) return;
     setBusy(true);
     setPlayers((p) => [...p.filter((x) => x.handle !== meId), { handle: meId, prediction }]);
     setJoined(true);
@@ -213,7 +230,7 @@ export function RoomClient({
       await fetch("/api/room/join", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ match: room.id, prediction }),
+        body: JSON.stringify({ match: room.id, prediction, handle: meId }),
       });
     } catch {
       /* best-effort */
@@ -301,14 +318,14 @@ export function RoomClient({
             )}
           </div>
           {/* composer */}
-          {signedIn && roomFull ? (
+          {canPost && roomFull ? (
             <div style={{ marginTop: 16, background: RC.cream, border: "2px solid #FFC2CE", borderRadius: 16, padding: "12px 16px", fontWeight: 700, fontSize: 13, color: RC.coral }}>
               🔒 This room&rsquo;s packed ({MAX_ROOM_USERS} in) — jump into another match instead.
             </div>
-          ) : signedIn ? (
+          ) : canPost ? (
             <>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 16, background: RC.cream, border: "2px solid #E4D8C8", borderRadius: 30, padding: "5px 5px 5px 14px" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: RC.violet, fontWeight: 800, fontSize: 12.5 }} title={address}>🔗 {meId}</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: RC.violet, fontWeight: 800, fontSize: 12.5 }} title={signedIn ? (address ?? "") : "Posting as a guest — connect a wallet to own your calls"}>{signedIn ? "🔗" : "@"} {meId}</span>
                 <input value={msg} onChange={(e) => setMsg(e.target.value)} onKeyDown={(e) => e.key === "Enter" && post()} placeholder="Message the room…" aria-label="Message the room" maxLength={280} style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 14, color: RC.ink, minWidth: 0 }} />
                 <button onClick={post} disabled={posting || !msg.trim()} className="lx-press" style={{ background: RC.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: "9px 18px", borderRadius: 30, cursor: "pointer", flex: "none", opacity: posting || !msg.trim() ? 0.5 : 1 }}>{posting ? "…" : "Send"}</button>
               </div>
@@ -338,13 +355,13 @@ export function RoomClient({
             })}
           </div>
 
-          {open && !joined && signedIn && (
+          {open && !joined && canPost && (
             <div style={{ marginBottom: 16 }}>
               <input value={pred} onChange={(e) => setPred(e.target.value)} onKeyDown={(e) => e.key === "Enter" && join()} placeholder={`Your call for this match…`} aria-label="Your prediction" style={{ width: "100%", border: "2px solid #E4D8C8", borderRadius: 14, padding: "10px 13px", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13, color: RC.ink, outline: "none", marginBottom: 8 }} />
               <button onClick={join} disabled={busy || !pred.trim()} className="lx-press" style={{ width: "100%", background: RC.ink, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: 11, borderRadius: 14, cursor: "pointer", opacity: busy || !pred.trim() ? 0.5 : 1 }}>{busy ? "Locking…" : `Stake ${room.stakeWal} WAL & lock it`}</button>
             </div>
           )}
-          {open && !joined && !signedIn && (
+          {open && !joined && !canPost && (
             <p style={{ fontWeight: 700, fontSize: 12, color: RC.muted, margin: "0 0 16px", lineHeight: 1.4 }}>🔒 Connect your wallet (top of the page) to drop a call.</p>
           )}
           {joined && <p style={{ fontWeight: 700, fontSize: 12, color: "#1F8A5B", margin: "0 0 16px", lineHeight: 1.4 }}>✓ Call locked — staked {room.stakeWal} WAL (mock). Saved on Walrus and in your File.</p>}

@@ -4,7 +4,7 @@ import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
 import { isAbusive, SAFE_DEFLECTION } from "@/lib/moderation";
 import { getMemoryStore } from "@/lib/memory";
 import { roomNamespace } from "@/lib/rooms";
-import { sessionAddress } from "@/lib/auth";
+import { sessionAddress, guestAllowed } from "@/lib/auth";
 import { withTimeout } from "@/lib/timeout";
 
 export const runtime = "nodejs";
@@ -19,10 +19,10 @@ export async function POST(req: Request) {
   const rl = rateLimit("roomdendam", clientIp(req), 40, 60_000);
   if (!rl.ok) return tooMany(rl);
 
-  // Only signed-in wallets drive Dendam (the room is wallet-gated), and since
-  // we now write the reaction to Walrus this keeps it tied to a real session.
+  // A wallet session or (when allowed) a guest may drive Dendam's reaction;
+  // either way it's written to the shared room thread.
   const addr = sessionAddress(req);
-  if (!addr) return Response.json({ error: "auth_required" }, { status: 401 });
+  if (!addr && !guestAllowed()) return Response.json({ error: "auth_required" }, { status: 401 });
 
   const { roomId, teamA, teamB, messages } = (await req.json().catch(() => ({}))) as {
     roomId?: string;
