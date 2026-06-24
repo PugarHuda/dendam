@@ -210,4 +210,31 @@ Public interface (The File) makes the memory visible: full memory log, verdicts,
 
 **Ticket 4 — [dx] Clarify `MEMWAL_AGENT_ID` vs delegate key in the dashboard**
 > The submission form says `MEMWAL_AGENT_ID` is the "Public key part" of the delegate key. The dashboard could label this explicitly (e.g. "MEMWAL_AGENT_ID = this public key") to remove ambiguity between the private delegate key and the agent id.
+
+**Ticket 5 — [feedback] Delegate-key rate limit (~30 weighted req/min) is low for multi-user reads + the 429 is the only signal**
+> The delegate key returns `429 {"error":"Rate limit exceeded","layer":"delegate_key","limit":"30 weighted-requests/min"}`. For a multi-user app this is the whole app's shared budget, so anything that fans out reads (a group leaderboard listing N users, a couple of pages loading, room polling) or writes in a burst (seeding, a busy room) trips it — and a rate-limited list() comes back empty, which silently renders pages blank. We worked around it with a short-TTL read cache, sequential (not concurrent) leaderboard reads, a paced + back-off writer, and "syncing to Walrus" UI. Requests: (a) a higher / configurable delegate-key limit, (b) document what each call's "weight" is, (c) a documented `retry_after_seconds` backoff pattern (it's in the 429 body — just surface it in the SDK as a typed error).
+
+**Ticket 6 — [docs] Document write→read propagation time on Mainnet**
+> A `remember()` returns success (job `done`) but the new memory often isn't readable for ~15–40s on Mainnet — a fresh room message or seeded memory takes that long to appear in `list()`/`recall()` for other clients. This isn't a bug for us, but it's undocumented; stating the expected propagation window (or offering a read-your-writes option) would save guesswork. Related to Ticket 2.
 ```
+
+---
+
+## ➕ Session-final feature additions (built late in S4)
+These extend the submission above — all live on Mainnet:
+
+- **Sui wallet identity (option-1).** Connect a Sui wallet + sign a gasless
+  personal message → the File's namespace becomes the verified address, so it
+  can't be read or impersonated by guessing a nickname. Server verifies with
+  `@mysten/sui/verify` and issues an httpOnly session cookie. Pick a display
+  username (editable, confirm-to-lock). dApp-kit `WalletProvider`.
+- **Guest mode (default ON).** Judges/first-timers chat instantly with just a
+  nickname — wallet is an optional ownership upgrade. Lockable with
+  `DENDAM_REQUIRE_WALLET=1`. The **"Start the beef" modal** lets the user choose
+  guest vs wallet and explains the trade-off.
+- **Real on-chain seed data** (`npm run seed:demo`): WC2026 results + populated
+  Files for the Hall-of-Shame handles (`budi` = reigning fraud, `hud/sarah/
+  reyhan/ta`), so the leaderboard + The File show *real stored memory*, not mock.
+- **Hardening for the shared relayer:** read caching, sequential leaderboard
+  reads, paced/back-off writes, request time-boxing, and "⏳ syncing to Walrus"
+  optimistic indicators. 60/60 unit tests, green build.
