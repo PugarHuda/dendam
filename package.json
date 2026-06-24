@@ -13,6 +13,7 @@
     "setup:memwal": "tsx scripts/setup-memwal.ts",
     "seed:results": "tsx scripts/seed-results.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
+    "media:slideshow": "node scripts/build-slideshow.mjs",
     "sync:results": "tsx scripts/sync-results.ts",
     "test": "node --import tsx --test tests/*.test.ts"
   },
@@ -35,6 +36,7 @@
     "@mysten/walrus": "^1.2.0"
   },
   "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
