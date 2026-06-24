@@ -19,12 +19,15 @@ export async function POST(req: Request) {
   const addr = sessionAddress(req);
   if (!addr) return Response.json({ error: "auth_required" }, { status: 401 });
 
-  const { roomId, message } = (await req.json().catch(() => ({}))) as {
+  const { roomId, message, displayName } = (await req.json().catch(() => ({}))) as {
     roomId?: string;
     message?: string;
+    displayName?: string;
   };
   const text = (message ?? "").trim();
-  const who = shortAddress(addr);
+  // Author label = the user's chosen display name (cosmetic; auth is the
+  // verified session above). Fall back to the short address.
+  const who = (displayName ?? "").trim().replace(/^@/, "").slice(0, 40) || shortAddress(addr);
   if (!roomId?.trim() || !text) {
     return Response.json({ error: "need_room_and_message" }, { status: 400 });
   }

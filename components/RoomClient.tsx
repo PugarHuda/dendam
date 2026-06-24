@@ -53,9 +53,10 @@ export function RoomClient({
   resolution: Resolution;
   initialChat: ChatMsg[];
 }) {
-  const { address } = useIdentity();
+  const { address, username } = useIdentity();
   const signedIn = !!address;
-  const meId = signedIn ? shortAddress(address) : ""; // chat author = wallet (short)
+  // Display author = your chosen username (falls back to the short address).
+  const meId = signedIn ? (username.trim() || shortAddress(address || "")) : "";
 
   const [players, setPlayers] = useState<Player[]>(room.players);
   const [chat, setChat] = useState<ChatMsg[]>(initialChat);
@@ -123,7 +124,7 @@ export function RoomClient({
       const res = await fetch("/api/room/post", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ roomId: room.id, message: text }),
+        body: JSON.stringify({ roomId: room.id, message: text, displayName: meId }),
       });
       if (!res.ok) {
         accepted = false;

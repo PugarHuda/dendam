@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 import { ShareButton } from "@/components/ShareButton";
 import { IconFolder, IconRecall, IconFlame, IconGavel, IconStadium } from "@/components/Icons";
+import { useIdentity } from "@/components/Identity";
+import { shortAddress } from "@/lib/authShared";
 import { EXPLORER_URL, walrusBlobUrl } from "@/lib/links";
 
 const C = {
@@ -88,7 +90,11 @@ const FILTERS: { key: string; label: string }[] = [
 ];
 
 export default function DossierPage() {
+  const { address: walletAddr, username } = useIdentity();
   const [handle, setHandle] = useState("anon");
+  // Viewing your own wallet File? Show your display name instead of 0x…
+  const ownFile = !!walletAddr && handle === walletAddr;
+  const displayHandle = ownFile ? username || shortAddress(walletAddr) : handle || "anon";
   const [memories, setMemories] = useState<Memory[]>([]);
   const [results, setResults] = useState<MatchResult[]>([]);
   const [verdicts, setVerdicts] = useState<Verdict[]>([]);
@@ -273,7 +279,10 @@ export default function DossierPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <IconFolder size={30} />
               <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 34, letterSpacing: -1, color: C.ink, margin: 0, whiteSpace: "nowrap" }}>The File</h1>
-              <span style={{ background: "#EDE3FF", color: C.violet, fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, padding: "5px 15px", borderRadius: 30 }}>on @{handle || "anon"}</span>
+              <span style={{ background: "#EDE3FF", color: C.violet, fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, padding: "5px 15px", borderRadius: 30 }}>on @{displayHandle}</span>
+              {ownFile && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--green-bg)", border: "1.5px solid var(--green-border)", color: "var(--green)", fontWeight: 800, fontSize: 11.5, padding: "4px 10px", borderRadius: 30 }} title={walletAddr ?? undefined}>🔗 {walletAddr ? shortAddress(walletAddr) : ""}</span>
+              )}
             </div>
             <p style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.55, color: C.body, margin: "10px 0 0" }}>
               The exact memory Dendam reads before every reply. Encrypted on Walrus, keyed to a MemWalAccount on Sui — change the handle (top-right) to read anyone&rsquo;s file.

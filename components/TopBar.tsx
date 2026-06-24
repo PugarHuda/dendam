@@ -29,7 +29,7 @@ export function TopBar({
   // When a wallet is signed in, identity = the wallet address (the File points
   // at the wallet's namespace and the nickname input is locked). On sign-out we
   // restore the last guest nickname.
-  const { address: walletAddr } = useIdentity();
+  const { address: walletAddr, username, setUsername } = useIdentity();
   const guestHandle = useRef(handle);
   useEffect(() => {
     if (!walletAddr) guestHandle.current = handle;
@@ -52,13 +52,18 @@ export function TopBar({
       <div className="dx-topbar-right">
         {walletAddr ? (
           <div className="dx-handle-wrap">
-            <div className="dx-handle dx-handle-locked" title={walletAddr}>
-              <span className="dx-handle-at">🔗</span>
-              <span style={{ fontWeight: 800, fontSize: 14, color: "var(--ink)" }}>
-                {shortAddress(walletAddr)}
-              </span>
+            <div className="dx-handle" title={`Display name — your File stays owned by ${walletAddr}`}>
+              <span className="dx-handle-at">@</span>
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="your name"
+                spellCheck={false}
+                maxLength={40}
+                aria-label="Your display name (your File stays tied to your wallet)"
+              />
             </div>
-            <span className="dx-handle-hint">your File is owned by this wallet</span>
+            <span className="dx-handle-hint">🔗 {shortAddress(walletAddr)} · wallet-owned File</span>
           </div>
         ) : (
           <div className="dx-handle-wrap">
