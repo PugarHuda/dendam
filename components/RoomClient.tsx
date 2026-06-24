@@ -97,12 +97,26 @@ export function RoomClient({
         /* next tick retries */
       }
     }
-    const t = setInterval(poll, 12000);
+    poll();
+    const t = setInterval(poll, 6000); // feel live without hammering the relayer
     return () => {
       alive = false;
       clearInterval(t);
     };
   }, [room.id]);
+
+  // Soft per-room user cap. Distinct human authors seen in the shared thread;
+  // once it's packed, newcomers can't pipe in (keeps the room readable + costs
+  // bounded). The server's per-room rate limit is the hard backstop.
+  const MAX_ROOM_USERS = 20;
+  const roomAuthors = new Set(
+    chat
+      .map((m) => m.handle.toLowerCase())
+      .filter((h) => h && h !== "dendam"),
+  );
+  const seatsUsed = Math.max(roomAuthors.size, players.length);
+  const roomFull =
+    !!meId && roomAuthors.size >= MAX_ROOM_USERS && !roomAuthors.has(meId.toLowerCase());
 
   const open = !resolution.resolved;
   const payoutEach = resolution.winners.length > 0 ? room.poolWal / resolution.winners.length : 0;
@@ -247,7 +261,12 @@ export function RoomClient({
       <div className="rmx-body" style={{ display: "grid", gridTemplateColumns: "1fr 300px" }}>
         {/* chat */}
         <div className="rmx-chat" style={{ padding: "22px 26px", borderRight: "2px solid #F0E6D6" }}>
-          <p style={{ fontWeight: 800, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: RC.muted, margin: "0 0 16px" }}>Room chat · Dendam is in here</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, margin: "0 0 16px" }}>
+            <p style={{ fontWeight: 800, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: RC.muted, margin: 0 }}>Room chat · Dendam is in here</p>
+            <span style={{ fontWeight: 800, fontSize: 11, color: seatsUsed >= MAX_ROOM_USERS ? RC.coral : RC.muted, whiteSpace: "nowrap" }} title="People who've spoken in this room (cap)">
+              {Math.min(seatsUsed, MAX_ROOM_USERS)}/{MAX_ROOM_USERS} in
+            </span>
+          </div>
           <div ref={msgsRef} style={{ display: "flex", flexDirection: "column", gap: 14, maxHeight: 380, overflowY: "auto" }}>
             {chat.length === 0 && (
               <div style={{ color: RC.muted, fontWeight: 600, fontSize: 13.5, lineHeight: 1.5 }}>
@@ -265,7 +284,11 @@ export function RoomClient({
             )}
           </div>
           {/* composer */}
-          {signedIn ? (
+          {signedIn && roomFull ? (
+            <div style={{ marginTop: 16, background: RC.cream, border: "2px solid #FFC2CE", borderRadius: 16, padding: "12px 16px", fontWeight: 700, fontSize: 13, color: RC.coral }}>
+              🔒 This room&rsquo;s packed ({MAX_ROOM_USERS} in) — jump into another match instead.
+            </div>
+          ) : signedIn ? (
             <>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 16, background: RC.cream, border: "2px solid #E4D8C8", borderRadius: 30, padding: "5px 5px 5px 14px" }}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: RC.violet, fontWeight: 800, fontSize: 12.5 }} title={address}>🔗 {meId}</span>

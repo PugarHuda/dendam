@@ -36,6 +36,11 @@ export async function POST(req: Request) {
         .filter((m) => m.handle?.toLowerCase() !== "dendam" && !isAbusive(m.text))
     : [];
   if (recent.length === 0) return Response.json({ line: "" });
+  // Per-room throttle: in a busy room Dendam doesn't react to every single
+  // message (bounds LLM cost). Over the limit it just stays quiet (no error).
+  if (roomId?.trim() && !rateLimit("roomdendam-room", roomId, 15, 60_000).ok) {
+    return Response.json({ line: "" });
+  }
   // Strip newlines so a message can't fake extra "speakers" in the transcript.
   const convo = recent
     .map((m) => `@${m.handle}: ${String(m.text).replace(/\s+/g, " ").slice(0, 200)}`)

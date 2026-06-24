@@ -32,6 +32,10 @@ export async function POST(req: Request) {
   if (!roomId?.trim() || !text) {
     return Response.json({ error: "need_room_and_message" }, { status: 400 });
   }
+  // Per-room cap (across everyone): bounds Walrus writes + Dendam LLM calls for
+  // a single busy room, independent of the per-IP limit above.
+  const roomRl = rateLimit("roompost-room", roomId, 30, 60_000);
+  if (!roomRl.ok) return tooMany(roomRl);
   // Basic guard: this is a public, persistent room chat (no delete API).
   if (isAbusive(text)) {
     return Response.json({ error: "keep_it_clean" }, { status: 400 });
