@@ -15,19 +15,22 @@ export async function POST(req: Request) {
   const rl = rateLimit("chat", clientIp(req), 20, 60_000);
   if (!rl.ok) return tooMany(rl);
 
-  const { messages, handle } = (await req.json().catch(() => ({}))) as {
+  const { messages } = (await req.json().catch(() => ({}))) as {
     messages?: CoreMessage[];
-    handle?: string;
   };
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ error: "no_messages" }, { status: 400 });
   }
 
+  // Chatting REQUIRES a connected + signed-in wallet. The identity is the
+  // verified address only — never a client-supplied handle — so a File can be
+  // read/written only by the wallet that owns it.
+  const identity = sessionAddress(req);
+  if (!identity) {
+    return Response.json({ error: "auth_required" }, { status: 401 });
+  }
+
   const store = getMemoryStore();
-  // A verified wallet session wins over the client-supplied handle, so a
-  // signed-in user's File can't be read or written by someone forging the
-  // handle. Guests fall back to the handle as before.
-  const identity = sessionAddress(req) ?? handle ?? "anon";
   const namespace = namespaceFor(identity);
 
   // The latest user turn is the recall query.

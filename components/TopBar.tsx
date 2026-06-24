@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { AppIcon } from "@/components/Logo";
 import { IconRespond, IconFolder, IconStadium, IconCrown } from "@/components/Icons";
 import { WalletControl } from "@/components/WalletControl";
+import { useIdentity } from "@/components/Identity";
 import { shortAddress } from "@/lib/authShared";
 
 type Tab = "chat" | "dossier" | "room" | "group";
@@ -28,20 +29,17 @@ export function TopBar({
   // When a wallet is signed in, identity = the wallet address (the File points
   // at the wallet's namespace and the nickname input is locked). On sign-out we
   // restore the last guest nickname.
-  const [walletAddr, setWalletAddr] = useState<string | null>(null);
+  const { address: walletAddr } = useIdentity();
   const guestHandle = useRef(handle);
   useEffect(() => {
     if (!walletAddr) guestHandle.current = handle;
   }, [handle, walletAddr]);
-
-  const onAddress = useCallback(
-    (a: string | null) => {
-      setWalletAddr(a);
-      if (a) setHandle(a);
-      else setHandle(guestHandle.current || "anon");
-    },
-    [setHandle],
-  );
+  useEffect(() => {
+    if (walletAddr) setHandle(walletAddr);
+    else setHandle(guestHandle.current || "anon");
+    // Only react to wallet sign-in/out, not to nickname keystrokes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletAddr]);
 
   return (
     <div className="dx-topbar">
@@ -81,7 +79,7 @@ export function TopBar({
             <span className="dx-handle-hint">new nickname = new File</span>
           </div>
         )}
-        <WalletControl onAddress={onAddress} />
+        <WalletControl />
         <nav className="dx-tabs">
           {TABS.map((t) => (
             <Link

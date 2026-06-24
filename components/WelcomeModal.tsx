@@ -48,14 +48,14 @@ export function WelcomeModal() {
           on Walrus, then throws them back the moment you&rsquo;re wrong.
         </p>
         <ol className="modal-steps">
-          <li><b>1</b> Make a call in the chat below</li>
-          <li><b>2</b> Dendam saves it under your <b>nickname</b> (top-right box)</li>
+          <li><b>1</b> Connect your Sui wallet — that&rsquo;s your identity (sign, no gas)</li>
+          <li><b>2</b> Make a call; Dendam saves it to <b>your wallet&rsquo;s File</b> on Walrus</li>
           <li><b>3</b> Come back any time — it remembers and roasts your misses</li>
         </ol>
         <div className="modal-actions">
-          <a className="btn" href="/chat?handle=demo">🔥 See it work (demo)</a>
+          <a className="btn" href="/dossier?handle=demo">📂 Peek at a File (demo)</a>
           <button className="btn ghost" type="button" onClick={close}>
-            Start fresh
+            Got it
           </button>
         </div>
       </div>

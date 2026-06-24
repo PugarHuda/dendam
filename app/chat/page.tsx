@@ -6,6 +6,8 @@ import { HANDLE_KEY, TopBar, initialHandle } from "@/components/TopBar";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { GrudgeBall } from "@/components/Logo";
 import { IconFolder } from "@/components/Icons";
+import { useIdentity } from "@/components/Identity";
+import { WalletControl } from "@/components/WalletControl";
 
 const SUGGESTIONS = [
   "Argentina wins it all, Brazil won't escape the group 😎",
@@ -21,6 +23,7 @@ const C = {
   yellow: "#FFC83D",
   muted: "#9A86C0",
   green: "#1F8A5B",
+  body: "#4A3570",
 };
 
 // Small green "saved on Walrus" check used on bot messages.
@@ -152,6 +155,9 @@ export default function ChatPage() {
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
   }, [input]);
 
+  const { address: walletAddr, loading: authLoading } = useIdentity();
+  const signedIn = !!walletAddr;
+
   const busy = status === "submitted" || status === "streaming";
   const lastId = messages.length ? messages[messages.length - 1].id : null;
 
@@ -173,19 +179,25 @@ export default function ChatPage() {
       <TopBar handle={handle} setHandle={setHandle} active="chat" />
 
       <main className="cx-main" ref={scroller} style={{ flex: 1, width: "100%", maxWidth: 720, margin: "0 auto", padding: "8px 24px 0", display: "flex", flexDirection: "column" }}>
-        {handle === "demo" && (
-          <div style={{ display: "flex", gap: 12, background: "#FFF1CF", border: "2px solid #F6DE9A", borderRadius: 18, padding: "14px 18px", marginBottom: 20 }} role="note">
-            <svg viewBox="0 0 48 48" style={{ width: 24, height: 24, flex: "none", marginTop: 1 }} aria-hidden>
-              <circle cx="24" cy="24" r="9" fill="none" stroke={C.ink} strokeWidth="3.2" />
-              <circle cx="24" cy="24" r="3.4" fill={C.ink} />
-              <path d="M6 24 C12 14 36 14 42 24 C36 34 12 34 6 24 Z" fill="none" stroke={C.ink} strokeWidth="3.2" strokeLinejoin="round" />
-            </svg>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 14, lineHeight: 1.5, color: "#6B4E0E" }}>
-              You&rsquo;re in the demo. Dendam already has a file on <strong style={{ color: C.ink }}>@demo</strong> from earlier sessions — ask it <em style={{ color: C.violet, fontStyle: "normal", fontWeight: 800 }}>&ldquo;what do you remember about me?&rdquo;</em> to see real cross-session recall, or change the handle to start fresh.
-            </p>
+        {!signedIn && !authLoading && (
+          <div style={{ display: "grid", placeItems: "center", textAlign: "center", padding: "36px 18px 28px" }}>
+            <div style={{ maxWidth: 440, background: "#fff", border: `2.5px solid ${C.ink}`, borderRadius: 26, padding: "34px 30px", boxShadow: "0 8px 0 #EDE3FF" }}>
+              <div style={{ marginBottom: 14 }}><GrudgeBall size={56} /></div>
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, letterSpacing: -0.5, color: C.ink, margin: "0 0 8px" }}>
+                Connect your wallet to start the beef
+              </h2>
+              <p style={{ fontWeight: 600, fontSize: 14.5, lineHeight: 1.55, color: C.body, margin: "0 0 20px" }}>
+                Your File belongs to your wallet — so no one can read it or put words in your mouth by guessing a nickname. Connect &amp; sign (no gas, no transaction) to begin.
+              </p>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <WalletControl />
+              </div>
+            </div>
           </div>
         )}
 
+        {signedIn && (
+        <>
         <div style={{ display: "flex", flexDirection: "column", gap: 18, paddingBottom: 10 }}>
           {showIntro && (
             <BotBubble>
@@ -278,21 +290,24 @@ export default function ChatPage() {
             </button>
           ))}
         </div>
+        </>
+        )}
       </main>
 
       {/* sticky input */}
       <div style={{ position: "sticky", bottom: 0, background: "linear-gradient(#FBF6EE00,#FBF6EE 22%)", padding: "16px 24px 14px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <form onSubmit={handleSubmit} style={{ display: "flex", gap: 10, alignItems: "center", background: "#fff", border: `2.5px solid ${C.ink}`, borderRadius: 40, padding: "7px 7px 7px 20px", boxShadow: "0 6px 0 #EDE3FF" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", gap: 10, alignItems: "center", background: "#fff", border: `2.5px solid ${signedIn ? C.ink : "#E4D8C8"}`, borderRadius: 40, padding: "7px 7px 7px 20px", boxShadow: "0 6px 0 #EDE3FF", opacity: signedIn ? 1 : 0.7 }}>
             <textarea
               ref={textareaRef}
               value={input}
               onChange={handleInputChange}
               rows={1}
-              placeholder="Type your prediction / opinion / trash talk… (any language)"
+              disabled={!signedIn}
+              placeholder={signedIn ? "Type your prediction / opinion / trash talk… (any language)" : "Connect your wallet to chat…"}
               aria-label="Message Dendam"
               className="cx-input"
-              style={{ flex: 1, border: "none", outline: "none", background: "transparent", resize: "none", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 15, color: C.ink, minWidth: 0, maxHeight: 120, lineHeight: 1.5, paddingTop: 6 }}
+              style={{ flex: 1, border: "none", outline: "none", background: "transparent", resize: "none", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 15, color: C.ink, minWidth: 0, maxHeight: 120, lineHeight: 1.5, paddingTop: 6, cursor: signedIn ? "text" : "not-allowed" }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -303,14 +318,18 @@ export default function ChatPage() {
             <button
               className="lx-press"
               type="submit"
-              disabled={busy || !input.trim()}
-              style={{ display: "inline-flex", alignItems: "center", gap: 7, background: C.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, border: "none", padding: "12px 22px", borderRadius: 34, cursor: "pointer", flex: "none", opacity: busy || !input.trim() ? 0.5 : 1 }}
+              disabled={!signedIn || busy || !input.trim()}
+              style={{ display: "inline-flex", alignItems: "center", gap: 7, background: C.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, border: "none", padding: "12px 22px", borderRadius: 34, cursor: "pointer", flex: "none", opacity: !signedIn || busy || !input.trim() ? 0.5 : 1 }}
             >
               Send <span>→</span>
             </button>
           </form>
           <p style={{ textAlign: "center", fontWeight: 700, fontSize: 12.5, color: C.muted, margin: "11px 0 6px" }}>
-            Tip: come back over several days — see what sticks in <a href="/dossier" style={{ color: C.violet, fontWeight: 800 }}>The File</a>. Real memory on Walrus{network === "local" ? " (dev)" : ""}, not a chat log.
+            {signedIn ? (
+              <>Tip: come back over several days — see what sticks in <a href="/dossier" style={{ color: C.violet, fontWeight: 800 }}>The File</a>. Real memory on Walrus{network === "local" ? " (dev)" : ""}, not a chat log.</>
+            ) : (
+              <>🔒 Your File is wallet-owned — connect above to chat. Browsing <a href="/dossier" style={{ color: C.violet, fontWeight: 800 }}>The File</a> stays open to everyone.</>
+            )}
           </p>
         </div>
       </div>

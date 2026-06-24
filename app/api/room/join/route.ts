@@ -1,29 +1,32 @@
 import { getMemoryStore, namespaceFor } from "@/lib/memory";
 import { clientIp, rateLimit, tooMany } from "@/lib/ratelimit";
+import { sessionAddress } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-// POST { handle, match, prediction } — join a match room by dropping a
-// prediction. The prediction is stored on Walrus (real memory), so it also
-// shows up in your File and Dendam can throw it back later.
+// POST { match, prediction } — join a match room by dropping a prediction.
+// Requires a connected + signed-in wallet; the call lands in that wallet's File
+// on Walrus, so Dendam can throw it back later.
 export async function POST(req: Request) {
   const rl = rateLimit("room", clientIp(req), 20, 60_000);
   if (!rl.ok) return tooMany(rl);
 
-  const { handle, match, prediction } = (await req.json().catch(() => ({}))) as {
-    handle?: string;
+  const addr = sessionAddress(req);
+  if (!addr) return Response.json({ error: "auth_required" }, { status: 401 });
+
+  const { match, prediction } = (await req.json().catch(() => ({}))) as {
     match?: string;
     prediction?: string;
   };
   const pred = (prediction ?? "").trim();
-  if (!handle?.trim() || !pred) {
-    return Response.json({ error: "need_handle_and_prediction" }, { status: 400 });
+  if (!pred) {
+    return Response.json({ error: "need_prediction" }, { status: 400 });
   }
 
   const store = getMemoryStore();
   try {
-    await store.remember(namespaceFor(handle), {
+    await store.remember(namespaceFor(addr), {
       text: `Match-room call${match ? ` (${match})` : ""}: ${pred.slice(0, 200)}`,
       kind: "prediction",
     });

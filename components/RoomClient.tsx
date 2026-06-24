@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { initialHandle } from "@/components/TopBar";
 import { GrudgeBall } from "@/components/Logo";
+import { useIdentity } from "@/components/Identity";
+import { WalletControl } from "@/components/WalletControl";
+import { shortAddress } from "@/lib/authShared";
 
 const RC = {
   cream: "#FBF6EE",
@@ -51,9 +53,12 @@ export function RoomClient({
   resolution: Resolution;
   initialChat: ChatMsg[];
 }) {
+  const { address } = useIdentity();
+  const signedIn = !!address;
+  const meId = signedIn ? shortAddress(address) : ""; // chat author = wallet (short)
+
   const [players, setPlayers] = useState<Player[]>(room.players);
   const [chat, setChat] = useState<ChatMsg[]>(initialChat);
-  const [me, setMe] = useState("");
   const [pred, setPred] = useState("");
   const [msg, setMsg] = useState("");
   const [joined, setJoined] = useState(false);
@@ -63,11 +68,6 @@ export function RoomClient({
   const [claimed, setClaimed] = useState(false);
   const [roomErr, setRoomErr] = useState("");
   const msgsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const h = initialHandle();
-    if (h && h !== "anon") setMe(h);
-  }, []);
 
   // Keep the thread scrolled to the newest message.
   useEffect(() => {
@@ -105,15 +105,14 @@ export function RoomClient({
 
   const open = !resolution.resolved;
   const payoutEach = resolution.winners.length > 0 ? room.poolWal / resolution.winners.length : 0;
-  const iWon = !!me && resolution.winners.includes(me.trim().toLowerCase());
+  const iWon = !!meId && resolution.winners.includes(meId.toLowerCase());
 
   async function post() {
-    const handle = me.trim().replace(/^@/, "");
     const text = msg.trim().slice(0, 280);
-    if (!handle || !text || posting) return;
+    if (!signedIn || !text || posting) return;
     setPosting(true);
     setRoomErr("");
-    const optimistic = { handle, text };
+    const optimistic = { handle: meId, text };
     const next = [...chat, optimistic];
     setChat(next);
     setMsg("");
@@ -124,7 +123,7 @@ export function RoomClient({
       const res = await fetch("/api/room/post", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ roomId: room.id, handle, message: text }),
+        body: JSON.stringify({ roomId: room.id, message: text }),
       });
       if (!res.ok) {
         accepted = false;
@@ -164,17 +163,16 @@ export function RoomClient({
   }
 
   async function join() {
-    const handle = me.trim().replace(/^@/, "");
     const prediction = pred.trim();
-    if (!handle || !prediction) return;
+    if (!signedIn || !prediction) return;
     setBusy(true);
-    setPlayers((p) => [...p.filter((x) => x.handle !== handle), { handle, prediction }]);
+    setPlayers((p) => [...p.filter((x) => x.handle !== meId), { handle: meId, prediction }]);
     setJoined(true);
     try {
       await fetch("/api/room/join", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ handle, match: room.id, prediction }),
+        body: JSON.stringify({ match: room.id, prediction }),
       });
     } catch {
       /* best-effort */
@@ -252,15 +250,21 @@ export function RoomClient({
             )}
           </div>
           {/* composer */}
-          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 16, background: RC.cream, border: "2px solid #E4D8C8", borderRadius: 30, padding: "5px 5px 5px 14px" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", color: RC.violet, fontWeight: 800, fontSize: 13.5 }} title="Your nickname in this room">
-              @
-              <input value={me} onChange={(e) => setMe(e.target.value)} placeholder="you" maxLength={40} aria-label="Your nickname" style={{ width: 56, border: "none", outline: "none", background: "transparent", fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 13.5, color: RC.ink }} />
-            </span>
-            <input value={msg} onChange={(e) => setMsg(e.target.value)} onKeyDown={(e) => e.key === "Enter" && post()} placeholder="Message the room…" aria-label="Message the room" maxLength={280} style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 14, color: RC.ink, minWidth: 0 }} />
-            <button onClick={post} disabled={posting || !me.trim() || !msg.trim()} className="lx-press" style={{ background: RC.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: "9px 18px", borderRadius: 30, cursor: "pointer", flex: "none", opacity: posting || !me.trim() || !msg.trim() ? 0.5 : 1 }}>{posting ? "…" : "Send"}</button>
-          </div>
-          {roomErr && <p style={{ color: RC.coral, fontWeight: 700, fontSize: 12.5, margin: "8px 0 0" }} role="alert">⚠️ {roomErr}</p>}
+          {signedIn ? (
+            <>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 16, background: RC.cream, border: "2px solid #E4D8C8", borderRadius: 30, padding: "5px 5px 5px 14px" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: RC.violet, fontWeight: 800, fontSize: 12.5 }} title={address}>🔗 {meId}</span>
+                <input value={msg} onChange={(e) => setMsg(e.target.value)} onKeyDown={(e) => e.key === "Enter" && post()} placeholder="Message the room…" aria-label="Message the room" maxLength={280} style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 14, color: RC.ink, minWidth: 0 }} />
+                <button onClick={post} disabled={posting || !msg.trim()} className="lx-press" style={{ background: RC.violet, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: "9px 18px", borderRadius: 30, cursor: "pointer", flex: "none", opacity: posting || !msg.trim() ? 0.5 : 1 }}>{posting ? "…" : "Send"}</button>
+              </div>
+              {roomErr && <p style={{ color: RC.coral, fontWeight: 700, fontSize: 12.5, margin: "8px 0 0" }} role="alert">⚠️ {roomErr}</p>}
+            </>
+          ) : (
+            <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", background: RC.cream, border: "2px solid #E4D8C8", borderRadius: 16, padding: "12px 16px" }}>
+              <span style={{ fontWeight: 700, fontSize: 13, color: RC.muted }}>🔒 Connect your wallet to chat in the room.</span>
+              <span style={{ marginLeft: "auto" }}><WalletControl /></span>
+            </div>
+          )}
         </div>
 
         {/* on the record + pool */}
@@ -279,11 +283,14 @@ export function RoomClient({
             })}
           </div>
 
-          {open && !joined && (
+          {open && !joined && signedIn && (
             <div style={{ marginBottom: 16 }}>
               <input value={pred} onChange={(e) => setPred(e.target.value)} onKeyDown={(e) => e.key === "Enter" && join()} placeholder={`Your call for this match…`} aria-label="Your prediction" style={{ width: "100%", border: "2px solid #E4D8C8", borderRadius: 14, padding: "10px 13px", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13, color: RC.ink, outline: "none", marginBottom: 8 }} />
-              <button onClick={join} disabled={busy || !me.trim() || !pred.trim()} className="lx-press" style={{ width: "100%", background: RC.ink, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: 11, borderRadius: 14, cursor: "pointer", opacity: busy || !me.trim() || !pred.trim() ? 0.5 : 1 }}>{busy ? "Locking…" : `Stake ${room.stakeWal} WAL & lock it`}</button>
+              <button onClick={join} disabled={busy || !pred.trim()} className="lx-press" style={{ width: "100%", background: RC.ink, color: "#fff", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, border: "none", padding: 11, borderRadius: 14, cursor: "pointer", opacity: busy || !pred.trim() ? 0.5 : 1 }}>{busy ? "Locking…" : `Stake ${room.stakeWal} WAL & lock it`}</button>
             </div>
+          )}
+          {open && !joined && !signedIn && (
+            <p style={{ fontWeight: 700, fontSize: 12, color: RC.muted, margin: "0 0 16px", lineHeight: 1.4 }}>🔒 Connect your wallet (top of the page) to drop a call.</p>
           )}
           {joined && <p style={{ fontWeight: 700, fontSize: 12, color: "#1F8A5B", margin: "0 0 16px", lineHeight: 1.4 }}>✓ Call locked — staked {room.stakeWal} WAL (mock). Saved on Walrus and in your File.</p>}
 

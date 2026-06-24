@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ConnectButton,
   useCurrentAccount,
@@ -8,44 +8,21 @@ import {
   useSignPersonalMessage,
 } from "@mysten/dapp-kit";
 import { loginMessage, shortAddress } from "@/lib/authShared";
+import { useIdentity } from "@/components/Identity";
 
 // Wallet sign-in control (option 1: wallet = identity).
 //  - not connected  → ConnectButton (dapp-kit modal)
 //  - connected      → "Sign in" (sign a personal message, verified server-side)
 //  - signed in      → address pill + "Sign out"
-// Calls `onAddress(addr | null)` whenever the verified session changes so the
-// host (TopBar) can point the active File at the wallet's namespace.
-export function WalletControl({ onAddress }: { onAddress: (a: string | null) => void }) {
+// Reads/writes the shared identity context so the whole app reacts to sign-in.
+export function WalletControl() {
   const account = useCurrentAccount();
   const { mutateAsync: signPersonalMessage } = useSignPersonalMessage();
   const { mutate: disconnect } = useDisconnectWallet();
+  const { address: addr, setAddress } = useIdentity();
 
-  const [addr, setAddr] = useState<string | null>(null); // verified session addr
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const notified = useRef<string | null>(null);
-
-  // Hydrate from an existing session cookie on mount.
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => {
-        if (alive) setAddr(d?.address ?? null);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  // Notify the host whenever the verified address changes.
-  useEffect(() => {
-    if (notified.current !== addr) {
-      notified.current = addr;
-      onAddress(addr);
-    }
-  }, [addr, onAddress]);
 
   const signIn = useCallback(async () => {
     if (!account) return;
@@ -71,23 +48,23 @@ export function WalletControl({ onAddress }: { onAddress: (a: string | null) => 
         );
         return;
       }
-      setAddr(data.address);
+      setAddress(data.address);
     } catch {
       setErr("Sign-in cancelled.");
     } finally {
       setBusy(false);
     }
-  }, [account, signPersonalMessage]);
+  }, [account, signPersonalMessage, setAddress]);
 
   const signOut = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
-    setAddr(null);
+    setAddress(null);
     try {
       disconnect();
     } catch {
       /* ignore */
     }
-  }, [disconnect]);
+  }, [disconnect, setAddress]);
 
   if (addr) {
     return (
