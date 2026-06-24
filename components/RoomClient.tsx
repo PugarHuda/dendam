@@ -26,7 +26,7 @@ const avColor = (h: string) => AV[[...h].reduce((a, c) => a + c.charCodeAt(0), 0
 const initials = (h: string) => h.replace(/^@/, "").slice(0, 2).toUpperCase();
 
 type Player = { handle: string; prediction: string };
-type ChatMsg = { handle: string; text: string };
+type ChatMsg = { handle: string; text: string; pending?: boolean };
 type Room = {
   id: string;
   teamA: string;
@@ -88,10 +88,22 @@ export function RoomClient({
           (m: { team?: string; text: string }) => ({ handle: m.team || "anon", text: m.text }),
         );
         if (!alive || incoming.length === 0) return;
+        const key = (m: ChatMsg) => m.handle.toLowerCase() + "|" + m.text;
         setChat((cur) => {
-          const seen = new Set(cur.map((m) => m.handle.toLowerCase() + "|" + m.text));
-          const fresh = incoming.filter((m) => !seen.has(m.handle.toLowerCase() + "|" + m.text));
-          return fresh.length ? [...cur, ...fresh] : cur;
+          const incomingKeys = new Set(incoming.map(key));
+          // A pending (optimistic) message that now shows up on Walrus is
+          // confirmed → drop its "syncing…" flag.
+          let changed = false;
+          const reconciled = cur.map((m) => {
+            if (m.pending && incomingKeys.has(key(m))) {
+              changed = true;
+              return { ...m, pending: false };
+            }
+            return m;
+          });
+          const seen = new Set(reconciled.map(key));
+          const fresh = incoming.filter((m) => !seen.has(key(m)));
+          return fresh.length || changed ? [...reconciled, ...fresh] : cur;
         });
       } catch {
         /* next tick retries */
@@ -127,7 +139,7 @@ export function RoomClient({
     if (!signedIn || !text || posting) return;
     setPosting(true);
     setRoomErr("");
-    const optimistic = { handle: meId, text };
+    const optimistic: ChatMsg = { handle: meId, text, pending: true };
     const next = [...chat, optimistic];
     setChat(next);
     setMsg("");
@@ -179,9 +191,9 @@ export function RoomClient({
           body: JSON.stringify({ roomId: room.id, teamA: room.teamA, teamB: room.teamB, messages: next.slice(-8) }),
         });
         const data = await res.json().catch(() => ({}));
-        // Show it immediately; the poll dedup keeps the persisted copy from
-        // doubling up. Other people in the room get it via their poll.
-        if (data?.line) setChat((c) => [...c, { handle: "Dendam", text: data.line }]);
+        // Show it immediately (syncing until the poll confirms it on Walrus);
+        // the dedup keeps the persisted copy from doubling up.
+        if (data?.line) setChat((c) => [...c, { handle: "Dendam", text: data.line, pending: true }]);
       } catch {
         /* Dendam stays quiet on error */
       } finally {
@@ -223,7 +235,12 @@ export function RoomClient({
           <div style={{ fontFamily: isDendam ? "var(--font-display)" : "var(--font-body)", fontWeight: isDendam ? 600 : 800, fontSize: 12, color: isDendam ? RC.violet : RC.ink, margin: "0 0 4px 2px" }}>
             {isDendam ? <>Dendam <span style={{ fontWeight: 700, color: RC.muted }}>· stirring</span></> : "@" + m.handle}
           </div>
-          <div style={{ background: isDendam ? "#F5EFFF" : RC.cream, border: `2px solid ${isDendam ? "#E2D3FA" : "#ECE2D3"}`, borderRadius: "4px 16px 16px 16px", padding: "11px 15px", fontWeight: 600, fontSize: 13.5, lineHeight: 1.5, color: RC.ink, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.text}</div>
+          <div style={{ background: isDendam ? "#F5EFFF" : RC.cream, border: `2px solid ${isDendam ? "#E2D3FA" : "#ECE2D3"}`, borderRadius: "4px 16px 16px 16px", padding: "11px 15px", fontWeight: 600, fontSize: 13.5, lineHeight: 1.5, color: RC.ink, whiteSpace: "pre-wrap", wordBreak: "break-word", opacity: m.pending ? 0.72 : 1 }}>{m.text}</div>
+          {m.pending && (
+            <div style={{ fontWeight: 700, fontSize: 10.5, color: RC.muted, margin: "4px 0 0 4px" }} title="Stored on Walrus — others see it once it lands">
+              ⏳ syncing to Walrus…
+            </div>
+          )}
         </div>
       </div>
     );
