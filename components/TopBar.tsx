@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AppIcon } from "@/components/Logo";
 import { IconRespond, IconFolder, IconStadium, IconCrown } from "@/components/Icons";
@@ -34,6 +34,20 @@ export function TopBar({
   useEffect(() => {
     if (!walletAddr) guestHandle.current = handle;
   }, [handle, walletAddr]);
+
+  // Username editing is explicit: a locked pill until you tap edit, then a
+  // draft + a confirm (✓) that commits and re-locks it.
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(username);
+  useEffect(() => {
+    setDraft(username);
+  }, [username]);
+  function confirmName() {
+    const next = draft.trim();
+    if (next) setUsername(next);
+    else setDraft(username);
+    setEditing(false);
+  }
   useEffect(() => {
     if (walletAddr) setHandle(walletAddr);
     else setHandle(guestHandle.current || "anon");
@@ -52,22 +66,42 @@ export function TopBar({
       <div className="dx-topbar-right">
         {walletAddr ? (
           <div className="dx-handle-wrap">
-            <div className="dx-handle dx-handle-edit" title={`Edit your display name — your File stays owned by ${walletAddr}`}>
-              <span className="dx-handle-at">@</span>
-              <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="your name"
-                spellCheck={false}
-                maxLength={40}
-                aria-label="Your display name (your File stays tied to your wallet)"
-              />
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden style={{ flex: "none", opacity: 0.55 }}>
-                <path d="M4 20h4L18.5 9.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" stroke="var(--violet)" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M13.5 6.5l4 4" stroke="var(--violet)" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="dx-handle-hint">✏️ rename anytime · 🔗 {shortAddress(walletAddr)}</span>
+            {editing ? (
+              <div className="dx-handle dx-handle-edit" title="Type a name, then ✓ to lock it in">
+                <span className="dx-handle-at">@</span>
+                <input
+                  autoFocus
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") confirmName();
+                    if (e.key === "Escape") {
+                      setDraft(username);
+                      setEditing(false);
+                    }
+                  }}
+                  placeholder="your name"
+                  spellCheck={false}
+                  maxLength={40}
+                  aria-label="Edit your display name"
+                />
+                <button className="dx-name-confirm" onClick={confirmName} title="Confirm & lock username" aria-label="Confirm username">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden>
+                    <path d="M5 12.5l4 4 10-10" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <button className="dx-handle dx-handle-locked dx-name-locked" onClick={() => setEditing(true)} title={`Tap to rename — your File stays owned by ${walletAddr}`}>
+                <span className="dx-handle-at">@</span>
+                <span style={{ fontWeight: 800, fontSize: 14, color: "var(--ink)" }}>{username}</span>
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" aria-hidden style={{ flex: "none", opacity: 0.6 }}>
+                  <path d="M4 20h4L18.5 9.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" stroke="var(--violet)" strokeWidth="2" strokeLinejoin="round" />
+                  <path d="M13.5 6.5l4 4" stroke="var(--violet)" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
+            <span className="dx-handle-hint">{editing ? "↵ or ✓ to lock it in" : "✏️ tap to rename"} · 🔗 {shortAddress(walletAddr)}</span>
           </div>
         ) : (
           <div className="dx-handle-wrap">

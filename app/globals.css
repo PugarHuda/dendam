@@ -1865,3 +1865,7 @@ button.send:disabled,
 
 .dx-handle-edit { border-color: var(--violet-border); }
 .dx-handle-edit:focus-within { border-color: var(--violet); box-shadow: 0 3px 0 var(--violet-soft); }
+
+.dx-name-locked { cursor: pointer; gap: 7px; }
+.dx-name-confirm { display: inline-flex; align-items: center; justify-content: center; background: var(--violet); border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; flex: none; margin-left: 2px; }
+.dx-name-confirm:hover { background: var(--accent-soft); }

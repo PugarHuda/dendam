@@ -118,30 +118,40 @@ export function RoomClient({
     setChat(next);
     setMsg("");
 
-    // persist to Walrus; if it's rejected (e.g. content guard), pull it back.
+    // Persist to Walrus. Writes can be transiently slow, so retry once on a
+    // 5xx / network blip before giving up. On a hard fail, pull the optimistic
+    // message back AND restore the text so the user doesn't have to retype.
     let accepted = true;
-    try {
-      const res = await fetch("/api/room/post", {
+    const sendOnce = () =>
+      fetch("/api/room/post", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ roomId: room.id, message: text, displayName: meId }),
       });
+    try {
+      let res = await sendOnce();
+      if (!res.ok && res.status >= 500) {
+        await new Promise((r) => setTimeout(r, 800));
+        res = await sendOnce();
+      }
       if (!res.ok) {
         accepted = false;
         setChat((c) => c.filter((m) => m !== optimistic));
         const data = await res.json().catch(() => ({}));
+        const clean = data?.error === "keep_it_clean";
+        if (!clean) setMsg(text); // give the message back to retry
         setRoomErr(
           res.status === 401
             ? "Your wallet session expired — reconnect (top of the page) and try again."
-            : data?.error === "keep_it_clean"
+            : clean
               ? "Keep it about football — that one didn't fly."
               : res.status === 429
                 ? "Slow down a sec — too many messages."
-                : "Couldn't reach Walrus just now. Try again in a moment.",
+                : "Couldn't reach Walrus just now — your message is back in the box, try again.",
         );
       }
     } catch {
-      /* network blip — keep the optimistic message */
+      // network blip — keep the optimistic message; it may still have landed
     }
 
     // Dendam jumps in automatically — but only on accepted, non-trivial posts
