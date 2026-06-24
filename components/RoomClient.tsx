@@ -162,9 +162,11 @@ export function RoomClient({
         const res = await fetch("/api/room/dendam", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ teamA: room.teamA, teamB: room.teamB, messages: next.slice(-8) }),
+          body: JSON.stringify({ roomId: room.id, teamA: room.teamA, teamB: room.teamB, messages: next.slice(-8) }),
         });
         const data = await res.json().catch(() => ({}));
+        // Show it immediately; the poll dedup keeps the persisted copy from
+        // doubling up. Other people in the room get it via their poll.
         if (data?.line) setChat((c) => [...c, { handle: "Dendam", text: data.line }]);
       } catch {
         /* Dendam stays quiet on error */
